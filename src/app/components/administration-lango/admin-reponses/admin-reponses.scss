@@ -1,0 +1,272 @@
+:root {
+    --green:       #008753;
+    --green-light: #e6f4ee;
+    --green-mid:   #b3d9c8;
+    --yellow:      #FCD116;
+    --text:        #111827;
+    --muted:       #6b7280;
+    --border:      #e5e7eb;
+    --bg:          #f9fafb;
+    --radius:      9px;
+  }
+
+  .ar {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13.5px;
+    color: var(--text);
+  }
+
+  /* ── Header ───────────────────────── */
+  .ar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .ar-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+  }
+
+  .ar-title i { color: var(--green); }
+
+  .ar-count {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 0.1rem 0.45rem;
+    border-radius: 100px;
+    background: var(--green-light);
+    color: var(--green);
+    border: 1px solid var(--green-mid);
+  }
+
+  /* ── Loading / vide ───────────────── */
+  .ar-loading, .ar-empty {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 2rem 1rem;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 13.5px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+  }
+
+  .ar-empty i { font-size: 1.5rem; color: #d1d5db; }
+
+  /* ── Carte réponse ────────────────── */
+  .ar-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+    background: #fff;
+    border-radius: 8px;
+  }
+
+  .ar-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.625rem 0.875rem;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .ar-card-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .ar-avatar {
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    background: var(--green-light);
+    color: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .ar-username {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .ar-date {
+    font-size: 11.5px;
+    color: #9ca3af;
+  }
+
+  /* Badge action type */
+  .ar-action-badge {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+  }
+
+  .ar-action-badge.fournir_documents  { background: #f5f3ff; color: #7c3aed; }
+  .ar-action-badge.confirmer_action   { background: #fff7ed; color: #f97316; }
+  .ar-action-badge.ouvrir_conversation { background: #eff6ff; color: #3b82f6; }
+  .ar-action-badge.autre              { background: var(--bg); color: var(--muted); }
+
+  /* Badge traitée */
+  .ar-status {
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .ar-status.traitee  { background: var(--green-light); color: var(--green); }
+  .ar-status.attente  { background: #fffbeb; color: #d97706; }
+
+  /* Corps carte */
+  .ar-card-body { padding: 0.75rem 0.875rem; }
+
+  .ar-message {
+    font-size: 13.5px;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+    white-space: pre-wrap;
+  }
+
+  /* Fichiers */
+  .ar-fichiers-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #9ca3af;
+    margin-bottom: 0.375rem;
+  }
+
+  .ar-fichiers-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .ar-fichier-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    text-decoration: none;
+    transition: background 0.12s;
+  }
+
+  .ar-fichier-chip:hover { background: var(--green-light); border-color: var(--green-mid); }
+  .ar-fichier-chip i { color: var(--green); font-size: 12px; }
+
+  /* Footer carte */
+  .ar-card-footer {
+    padding: 0.5rem 0.875rem;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .ar-traitee-info {
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .ar-traitee-info i { color: var(--green); }
+
+  /* Bouton traiter */
+  .ar-btn-traiter {
+    height: 28px;
+    padding: 0 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--green-mid);
+    background: var(--green-light);
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.15s;
+  }
+
+  .ar-btn-traiter:hover   { background: var(--green); color: #fff; border-color: var(--green); }
+  .ar-btn-traiter:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .ar-confirm-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.625rem 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.ar-confirm-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.ar-confirm-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+}
+
+.ar-confirm-value {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0.2rem 0.625rem;
+  border-radius: 100px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ar-confirm-comment {
+  font-size: 13px;
+  color: #374151;
+  font-style: italic;
+  line-height: 1.5;
+}

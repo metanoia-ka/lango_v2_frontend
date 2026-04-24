@@ -1,0 +1,75 @@
+<div class="prem-wrap">
+  <div class="prem-header">
+    <div class="prem-header-icon" style="background:#f5f3ff;color:#7c3aed">
+      <i class="bi bi-folder2-open"></i>
+    </div>
+    <div>
+      <h5 class="prem-title">Mes dossiers fonciers</h5>
+      <span class="prem-sub">Rapports complets générés (valables 30 jours)</span>
+    </div>
+  </div>
+ 
+  @if (isLoading()) {
+    <div class="prem-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement…</span>
+    </div>
+  } @else if (dossiers().length === 0) {
+    <div class="prem-empty">
+      <i class="bi bi-folder2"></i>
+      <p>Aucun dossier commandé.</p>
+      <span class="prem-empty-hint">
+        Commandez un dossier depuis la fiche d'une parcelle (20 crédits).
+      </span>
+    </div>
+  } @else {
+    <div class="prem-list">
+      @for (d of dossiers(); track d.id) {
+        <div class="prem-card">
+ 
+          <div class="prem-card-left">
+            <div class="prem-card-icon" style="background:#f5f3ff;color:#7c3aed">
+              <i class="bi bi-file-earmark-text-fill"></i>
+            </div>
+            <div class="prem-card-info">
+              <span class="prem-card-title">Parcelle {{ d.parcelle_numero }}</span>
+              @if (d.statut === 'EN_COURS') {
+                <span class="prem-card-meta">
+                  <span class="spinner-border spinner-border-sm me-1"></span>
+                  Génération en cours…
+                </span>
+              } @else if (d.pdf_valide) {
+                <span class="prem-card-meta prem-valid">
+                  <i class="bi bi-check-circle-fill me-1"></i>
+                  Valide encore {{ d.jours_validite_restants }} 
+                  jour{{ d.jours_validite_restants > 1 ? 's' : '' }}
+                </span>
+              } @else {
+                <span class="prem-card-meta prem-expire">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                  Expiré
+                </span>
+              }
+            </div>
+          </div>
+ 
+          <div class="prem-card-right">
+            <span class="prem-badge"
+                  [class.prem-badge--active]="d.statut === 'PRET'"
+                  [class.prem-badge--attente]="d.statut === 'EN_COURS'"
+                  [class.prem-badge--expire]="d.statut === 'EXPIRE'">
+              {{ d.statut_label }}
+            </span>
+            @if (d.pdf_valide && d.pdf_url) {
+              <button class="prem-btn-primary"
+                      (click)="telechargerPdf(d.pdf_url)">
+                <i class="bi bi-download me-1"></i> Télécharger
+              </button>
+            }
+          </div>
+ 
+        </div>
+      }
+    </div>
+  }
+</div>

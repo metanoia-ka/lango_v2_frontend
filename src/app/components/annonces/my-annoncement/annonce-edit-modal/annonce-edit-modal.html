@@ -1,0 +1,315 @@
+<div class="mf-header">
+  <div class="mf-header-left">
+    <div class="mf-header-icon"
+         [class]="isEditMode ? 'mf-header-icon--edit' : 'mf-header-icon--create'">
+      <i class="bi" [class.bi-plus-lg]="!isEditMode"
+         [class.bi-pencil-fill]="isEditMode"></i>
+    </div>
+    <div>
+      <p class="mf-header-title">
+        {{ isEditMode ? 'Modifier l\'annonce' : 'Nouvelle annonce' }}
+      </p>
+      <span class="mf-header-sub">
+        {{ isEditMode
+          ? 'Modifiez les informations de l\'annonce'
+          : 'Sélectionnez un bien — le prix sera repris automatiquement' }}
+      </span>
+    </div>
+  </div>
+  <button class="mf-close-btn" (click)="onCancel()"><i class="bi bi-x-lg"></i></button>
+</div>
+
+<div class="mf-body">
+  @if (isLoading()) {
+    <div class="mf-loading"><div class="mf-spinner"></div><span>Chargement…</span></div>
+  } @else {
+    <form [formGroup]="annonceForm" (ngSubmit)="onSubmit($event)">
+
+      @if (success()) {
+        <div class="cam-alert cam-alert--success">
+          <i class="bi bi-check-circle-fill me-2"></i>{{ success() }}
+        </div>
+      }
+      @if (error()) {
+        <div class="cam-alert cam-alert--error">
+          <i class="bi bi-exclamation-circle-fill me-2"></i>{{ error() }}
+        </div>
+      }
+
+      <!-- Alertes -->
+      <!-- @if (successMessage) {
+        <app-alert type="success" title="Information !" [autoClose]="true"
+                   [autoCloseDelay]="4000" (onClose)="clearSuccessMessage()">
+          <p class="mb-0 small">{{ successMessage }}</p>
+        </app-alert>
+      } @else if (errorMessage) {
+        <app-alert type="danger" title="Erreur" (onClose)="clearErrorMessage()">
+          <p class="mb-0 small">{{ errorMessage }}</p>
+        </app-alert>
+      } -->
+
+      <!-- ── 1. BIEN IMMOBILIER ──────────────────────────────────────────── -->
+      <div class="mf-section-label">
+        <i class="bi bi-building"></i> Bien immobilier
+      </div>
+
+      @if (isEditMode && bienVerrouille()) {
+        <!-- Mode édition : bien verrouillé, lecture seule -->
+        <div class="mf-bien-locked">
+          <div class="mf-bien-locked__icon"><i class="bi bi-house-fill"></i></div>
+          <div class="mf-bien-locked__info">
+            <span class="mf-bien-locked__titre">
+              {{ bienLabel(bienVerrouille()!) }}
+            </span>
+            <div class="mf-bien-locked__meta">
+              @if (bienVerrouille()!.type_bien) {
+                <span class="mf-chip">{{ bienVerrouille()!.type_bien!.nom }}</span>
+              }
+              <span class="mf-chip mf-chip--trans">
+                {{ bienVerrouille()!.type_transaction_display 
+                  ?? bienVerrouille()!.type_transaction }}
+              </span>
+              @if (bienVerrouille()!.superficie) {
+                <span class="mf-chip">{{ bienVerrouille()!.superficie }} m²</span>
+              }
+            </div>
+          </div>
+          <div class="mf-bien-locked__badge"><i class="bi bi-lock-fill"></i> Lié</div>
+        </div>
+        <p class="mf-hint mf-hint--warning">
+          <i class="bi bi-info-circle"></i>
+          Le bien associé ne peut pas être modifié.
+        </p>
+        <input type="hidden" formControlName="bien_id" />
+
+      } @else {
+        <!-- Mode création : select du bien -->
+        @if (biensLoading()) {
+          <div class="mf-field-loading">
+            <div class="mf-spinner mf-spinner--sm"></div>
+            <span>Chargement des biens…</span>
+          </div>
+        } @else if (biens().length === 0) {
+          <div class="mf-bien-empty">
+
+    <div class="mf-bien-empty__icon">
+      <i class="bi bi-house"></i>
+    </div>
+
+    <p class="mf-bien-empty__title">Aucun bien disponible</p>
+    <p class="mf-bien-empty__sub">
+      Vous devez d'abord enregistrer un bien immobilier avant de
+      pouvoir publier une annonce.
+    </p>
+
+    <button class="mf-btn-create-bien" type="button" (click)="goBiensImmobiliers()">
+      <i class="bi bi-plus-square"></i>
+      Créer un bien immobilier
+      <i class="bi bi-arrow-right"></i>
+    </button>
+
+    <p class="mf-bien-empty__hint">La modale se fermera et vous serez redirigé.</p>
+
+  </div>
+        } @else {
+          <div class="mf-field mb-2">
+            <div class="form-floating">
+              <select id="bien_id" formControlName="bien_id" class="form-select"
+                      [class.is-invalid]="annonceForm.get('bien_id')?.touched
+                                          && annonceForm.get('bien_id')?.invalid">
+                <option value="" disabled>-- Sélectionner un bien --</option>
+                @for (bien of biens(); track bien.id) {
+                  <option [value]="bien.id">
+                    {{ bienLabel(bien) }}
+                    @if (bien.superficie) { · {{ bien.superficie }} m² }
+                  </option>
+                }
+              </select>
+              <label for="bien_id">
+                Bien immobilier <span class="text-danger">*</span>
+              </label>
+              <div class="invalid-feedback">Veuillez sélectionner un bien.</div>
+            </div>
+
+            <!-- Preview du bien sélectionné -->
+            @if (bienSelectionne) {
+              <div class="mf-bien-preview">
+                <i class="bi bi-house-check-fill text-success me-1"></i>
+                <strong>{{ bienLabel(bienSelectionne) }}</strong>
+                @if (bienSelectionne.type_bien) {
+                  <span class="mf-chip ms-1">{{ bienSelectionne.type_bien.nom }}</span>
+                }
+                @if (bienSelectionne.superficie) {
+                  <span class="mf-chip ms-1">{{ bienSelectionne.superficie }} m²</span>
+                }
+                @if (bienSelectionne.zone_tarifaire) {
+                  <span class="mf-chip ms-1">
+                    <i class="bi bi-geo-alt"></i> {{ bienSelectionne.zone_tarifaire }}
+                  </span>
+                }
+                @if (bienSelectionne.parcelle) {
+                  <span class="mf-chip ms-1">
+                    <i class="bi bi-map"></i>
+                    Parcelle {{ bienSelectionne.parcelle.numero }}
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- ── 2. PRIX AUTO (lecture seule) ───────────────────────────────── -->
+      @if (prixAffiche) {
+        <div class="mf-prix-auto mb-3">
+          <i class="bi bi-tag-fill"></i>
+          <span class="mf-prix-auto__label">Prix de l'annonce</span>
+          <span class="mf-prix-auto__value">
+            {{ prixAffiche | number }} {{ prixUnite }}
+          </span>
+          <span class="mf-prix-auto__hint">Repris automatiquement du bien</span>
+        </div>
+      }
+
+      <!-- ── 3. TITRE + TYPE ────────────────────────────────────────────── -->
+      <div class="row g-2 mb-3">
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input type="text" id="titre" formControlName="titre" class="form-control"
+                   placeholder="Titre (optionnel — auto-généré si vide)">
+            <label for="titre">
+              Titre
+              <span class="text-muted small">(optionnel)</span>
+            </label>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-floating">
+            <select id="type_annonce_id" formControlName="type_annonce_id"
+                    class="form-select"
+                    [class.is-invalid]="annonceForm.get('type_annonce_id')?.touched
+                                        && annonceForm.get('type_annonce_id')?.invalid">
+              <option value="" disabled>-- Sélectionner --</option>
+              @for (type of typeAnnonces; track type.id) {
+                <option [value]="type.id">{{ type.nom }}</option>
+              }
+            </select>
+            <label for="type_annonce_id">
+              Type d'annonce <span class="text-danger">*</span>
+            </label>
+            <div class="invalid-feedback">Le type est obligatoire.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 4. DATES ───────────────────────────────────────────────────── -->
+      <div class="row g-2 mb-3">
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input id="date_debut" type="date" class="form-control"
+                   formControlName="date_debut"
+                   [class.is-invalid]="annonceForm.get('date_debut')?.touched
+                                       && annonceForm.get('date_debut')?.invalid">
+            <label for="date_debut">Date de début <span class="text-danger">*</span></label>
+            <div class="invalid-feedback">La date de début est obligatoire.</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input id="date_fin" type="date" class="form-control"
+                   formControlName="date_fin">
+            <label for="date_fin">
+              Date de fin <span class="text-muted small">(optionnel)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 5. IMAGE ───────────────────────────────────────────────────── -->
+      <div class="mb-3">
+        
+        <p class="mf-section-label">
+          <i class="bi bi-image"></i> Image principale
+          @if (selectedFile || imagePreview) {
+            <span class="ms-2 text-success small">
+              <i class="bi bi-check-circle"></i> Image sélectionnée
+            </span>
+          }
+        </p>
+        
+        <!-- Zone de dropzone -->
+        <div class="mf-dropzone" (click)="triggerFileInput()" 
+             [class.mf-dropzone--has-file]="selectedFile || imagePreview">
+          
+          <!-- Input file caché -->
+          <input #fileInput 
+                 type="file" 
+                 class="mf-file-input"
+                 style="display: none;"
+                 (change)="onFileChange($event)" 
+                 accept=".jpg,.jpeg,.png,.webp">
+          
+          <!-- Preview de l'image -->
+          @if (imagePreview) {
+            <div class="mf-image-preview">
+              <img [src]="imagePreview" alt="Preview">
+              <button type="button" class="mf-remove-image" 
+                      (click)="removeImage($event)">
+                <i class="bi bi-x-circle-fill"></i>
+              </button>
+            </div>
+          } @else {
+            <div class="mf-dropzone-icon">
+              <i class="bi bi-cloud-arrow-up"></i>
+            </div>
+            <p class="mf-dropzone-label">Cliquez pour choisir une image</p>
+            <p class="mf-dropzone-hint">JPG, PNG, WEBP — max 5 MB</p>
+          }
+        </div>
+        
+        <!-- Affichage du nom du fichier sélectionné -->
+        @if (selectedFile && !imagePreview) {
+          <div class="mf-file-info mt-2">
+            <i class="bi bi-file-image"></i>
+            <span>{{ selectedFile.name }}</span>
+            <button type="button" class="mf-remove-file" (click)="removeImage($event)">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+        }
+
+      </div>
+
+      <!-- ── 6. DESCRIPTION ─────────────────────────────────────────────── -->
+      <div class="mf-field">
+        <div class="form-floating">
+          <textarea id="contenu" formControlName="contenu"
+                    class="form-control mf-textarea" style="height:110px"
+                    placeholder="Description"></textarea>
+          <label for="contenu">
+            Description
+            <span class="text-muted small">(optionnel — reprise du bien si vide)</span>
+          </label>
+        </div>
+      </div>
+
+    </form>
+  }
+</div>
+
+<div class="mf-actions">
+  <button type="button" class="mf-btn mf-btn--cancel" (click)="onCancel()">
+    <i class="bi bi-x-lg"></i> Annuler
+  </button>
+  <button type="submit" class="mf-btn mf-btn--submit"
+          [disabled]="annonceForm.invalid || isSubmitting()"
+          (click)="onConfirm()">
+    @if (isSubmitting()) {
+      <span class="spinner-border spinner-border-sm"></span>
+    } @else {
+      <i class="bi" [class.bi-plus-lg]="!isEditMode"
+         [class.bi-floppy]="isEditMode"></i>
+    }
+    {{ isEditMode ? 'Mettre à jour' : 'Créer l\'annonce' }}
+  </button>
+</div>

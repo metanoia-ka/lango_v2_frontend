@@ -1,0 +1,195 @@
+.nd-wrap {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13.5px;
+    position: relative;
+  }
+
+  /* ── Cloche ─────────────────────────────────── */
+  .nd-bell-btn {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    position: relative;
+    color: #374151;
+    font-size: 16px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .nd-bell-btn:hover { background: #f3f4f6; }
+  .nd-bell-btn.pulse { animation: bellPulse 0.5s ease; }
+
+  @keyframes bellPulse {
+    0%,100% { transform: rotate(0deg); }
+    25%      { transform: rotate(-12deg); }
+    75%      { transform: rotate(12deg); }
+  }
+
+  /* Indicateur WS */
+  .nd-ws-dot {
+    position: absolute; bottom: 3px; right: 3px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #9ca3af;
+    border: 1.5px solid #fff;
+    transition: background 0.3s;
+  }
+  .nd-ws-dot.online { background: #008753; }
+
+  /* Badge compteur */
+  .nd-badge {
+    position: absolute; top: -5px; right: -5px;
+    min-width: 18px; height: 18px;
+    border-radius: 100px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px;
+    border: 2px solid #fff;
+    line-height: 1;
+  }
+
+  /* ── Panel ───────────────────────────────────── */
+  .nd-panel {
+    width: 370px;
+    max-height: 540px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+
+  .nd-panel-header {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fafafa;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .nd-panel-title {
+    font-size: 13.5px; font-weight: 700; color: #111827;
+    display: flex; align-items: center; gap: 0.4rem; margin: 0;
+  }
+  .nd-panel-title i { color: #008753; }
+
+  .nd-count-chip {
+    font-size: 11px; background: #008753; color: #fff;
+    border-radius: 100px; padding: 0.1rem 0.45rem; font-weight: 700;
+  }
+
+  .nd-tout-lire {
+    font-size: 12px; color: #008753; font-weight: 500;
+    background: none; border: none; cursor: pointer; padding: 0;
+    transition: opacity 0.15s;
+  }
+  .nd-tout-lire:hover { opacity: 0.7; }
+
+  /* ── Liste ───────────────────────────────────── */
+  .nd-list {
+    overflow-y: auto; flex: 1;
+    scroll-behavior: smooth;
+  }
+  .nd-list::-webkit-scrollbar { width: 4px; }
+  .nd-list::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+
+  /* Item */
+  .nd-item {
+    display: flex; gap: 0.625rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #f9fafb;
+    cursor: pointer;
+    transition: background 0.12s;
+    position: relative;
+    align-items: flex-start;
+  }
+  .nd-item:hover { background: #f9fafb; }
+  .nd-item.non-lue { background: #f0fdf4; }
+  .nd-item.non-lue:hover { background: #e6f4ee; }
+  .nd-item.non-lue::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: #008753;
+    border-radius: 0 2px 2px 0;
+  }
+
+  /* Icône */
+  .nd-icone {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+
+  /* Corps */
+  .nd-corps { flex: 1; min-width: 0; }
+
+  .nd-titre {
+    font-size: 13px; font-weight: 600; color: #111827;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 0.1rem;
+  }
+
+  .nd-message {
+    font-size: 12.5px; color: #6b7280; line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .nd-meta {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-top: 0.3rem;
+  }
+
+  .nd-depuis { font-size: 11.5px; color: #9ca3af; }
+
+  /* Chip action */
+  .nd-action-chip {
+    font-size: 11px; font-weight: 600;
+    padding: 0.1rem 0.45rem;
+    border-radius: 100px;
+    white-space: nowrap;
+    background: #fef3c7; color: #92400e;
+  }
+  .nd-action-chip.doc    { background: #ede9fe; color: #5b21b6; }
+  .nd-action-chip.orange { background: #ffedd5; color: #c2410c; }
+  .nd-action-chip.blue   { background: #e0f2fe; color: #0369a1; }
+
+  /* Bouton supprimer */
+  .nd-del {
+    width: 22px; height: 22px;
+    border-radius: 5px; border: none;
+    background: transparent; color: #d1d5db;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; font-size: 12px; flex-shrink: 0;
+    margin-top: 1px;
+    transition: background 0.12s, color 0.12s;
+  }
+  .nd-del:hover { background: #fee2e2; color: #ef4444; }
+
+  /* Vide */
+  .nd-empty {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 2.5rem 1rem; color: #9ca3af; gap: 0.5rem;
+  }
+  .nd-empty i { font-size: 1.8rem; opacity: 0.3; }
+  .nd-empty span { font-size: 13px; }
+
+  /* Footer */
+  .nd-footer {
+    padding: 0.6rem 1rem;
+    border-top: 1px solid #f0f0f0;
+    background: #fafafa; text-align: center; flex-shrink: 0;
+  }
+  .nd-footer a {
+    font-size: 12.5px; color: #008753; font-weight: 500;
+    text-decoration: none;
+  }
+  .nd-footer a:hover { text-decoration: underline; }

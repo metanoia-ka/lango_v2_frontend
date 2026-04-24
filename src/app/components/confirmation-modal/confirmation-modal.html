@@ -1,0 +1,112 @@
+<div class="cm" @fadeInOut>
+
+  <!-- ── Header ── -->
+  <div class="cm-header text-white" [ngClass]="type">
+    <div class="cm-header-icon">
+      <i class="bi" [class]="icon"></i>
+    </div>
+    <h5 class="cm-header-title">{{ title }}</h5>
+
+    @if (infoMode) {
+      <button class="cm-header-close" (click)="onClose()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    }
+  </div>
+
+  <!-- ── Body ── -->
+  <div class="cm-body">
+
+    <!-- Icône secondaire petite -->
+    @if (iconMessageSmall) {
+      <span class="cm-icon-sm">{{ iconMessageSmall }}</span>
+    }
+
+    <div class="cm-content">
+
+      <!-- Message principal -->
+      @if (message) {
+        <p class="cm-message">{{ message }}</p>
+      }
+
+      <!-- Détail supplémentaire en mode info -->
+      @if (infoMode && detail) {
+        <div class="cm-info-detail">
+          <i class="bi bi-chevron-right"></i>
+          <span>{{ detail }}</span>
+        </div>
+      }
+
+      <!-- Bloc détail (grande icône + phrases) -->
+      @if (iconMessageBig || zonePhraseOne || zonePhraseTwo || zonePhraseThree) {
+        <div class="cm-detail">
+          @if (iconMessageBig) {
+            <span class="cm-icon-lg">{{ iconMessageBig }}</span>
+          }
+          <div class="cm-phrases">
+            @if (zonePhraseOne)   { <p class="cm-phrase">{{ zonePhraseOne }}</p> }
+            @if (zonePhraseTwo)   { <p class="cm-phrase">{{ zonePhraseTwo }}</p> }
+            @if (zonePhraseThree) { <p class="cm-phrase">{{ zonePhraseThree }}</p> }
+          </div>
+        </div>
+      }
+    </div>
+
+     <!-- ── Motif (optionnel) ── -->
+    @if (!infoMode && requireMotif) {
+      <div class="cm-motif-field">
+        <label class="cm-motif-label">
+          <i class="bi bi-pencil-square"></i> {{ motifLabel }}
+          <span class="cm-required">*</span>
+        </label>
+        <textarea
+          class="cm-motif-textarea"
+          [class.cm-motif-textarea--error]="motifError()"
+          rows="3"
+          [placeholder]="'Saisissez un motif (' + motifMinLength + ' caractères minimum)…'"
+          [value]="motif()"
+          (input)="motif.set($any($event.target).value); motifError.set('')">
+        </textarea>
+        @if (motifError()) {
+          <span class="cm-motif-error">
+            <i class="bi bi-exclamation-circle"></i> {{ motifError() }}
+          </span>
+        }
+        <span class="cm-motif-count"
+              [class.cm-motif-count--ok]="motif().trim().length >= motifMinLength">
+          {{ motif().trim().length }} / {{ motifMinLength }} min
+        </span>
+      </div>
+    }
+  </div>
+
+  <!-- ── Footer ── -->
+  <div class="cm-footer">
+    @if (infoMode) {
+      <!-- Mode info : un seul bouton fermer -->
+      <button type="button" class="cm-btn cm-btn-confirm text-white w-100"
+              [ngClass]="contextType"
+              (click)="onClose()">
+        <i class="bi bi-check2"></i>
+        {{ closeLabel }}
+      </button>
+
+    } @else {
+
+      <button type="button" class="cm-btn cm-btn-cancel"
+            ngbTooltip="Annuler" placement="top" triggers="hover"
+            (click)="onCancel()">
+        <i class="bi bi-x-lg"></i>
+        {{ cancelLabel }}
+      </button>
+      <button type="button" class="cm-btn cm-btn-confirm text-white" [ngClass]="type"
+              ngbTooltip="Confirmer" placement="top" triggers="hover"
+              (click)="onConfirm()">
+        <i class="bi" [class]="icon"></i>
+        {{ confirmLabel }}
+      </button>
+
+    }
+  </div>
+
+</div>

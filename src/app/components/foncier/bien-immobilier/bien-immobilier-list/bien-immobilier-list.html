@@ -1,0 +1,148 @@
+<!-- bien-immobilier-liste.component.html -->
+<div class="bi-page mt-5">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="lt-header">
+    <div class="lt-header__left">
+      <h1 class="lt-title"><i class="bi bi-buildings"></i> Biens immobiliers</h1>
+      <p class="lt-subtitle">Maisons, parcelles, appartements à vendre ou louer</p>
+    </div>
+    <button class="lt-btn lt-btn--primary" (click)="openCreate()">
+      <i class="bi bi-plus-lg"></i> Nouveau bien
+    </button>
+  </div>
+
+  <!-- ── Toolbar ──────────────────────────────────────────────── -->
+  <div class="lt-toolbar">
+    <div class="lt-search">
+      <i class="bi bi-search lt-search__icon"></i>
+      <input class="lt-search__input" type="text"
+             placeholder="Rechercher par localisation, type…"
+             [ngModel]="searchQuery()" (ngModelChange)="onSearch($event)" />
+    </div>
+    <span class="lt-count">{{ total() }} bien(s)</span>
+  </div>
+
+  @if (error()) {
+    <div class="lt-alert lt-alert--danger">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+    </div>
+  }
+
+  <!-- ── Skeletons ────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="bi-grid2">
+      @for (_ of [1,2,3,4,6,8]; track $index) {
+        <div class="bi-card bi-card--skeleton">
+          <div class="lt-skeleton lt-skeleton--img"></div>
+          <div class="bi-card__body">
+            <div class="lt-skeleton"></div>
+            <div class="lt-skeleton lt-skeleton--sm"></div>
+            <div class="lt-skeleton lt-skeleton--sm"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Grille de cartes ─────────────────────────────────────── -->
+  @if (!loading() && biens().length > 0) {
+    <div class="bi-grid2">
+      @for (b of biens(); track trackById($index, b)) {
+        <div class="bi-card">
+
+          <!-- Photo principale -->
+          <div class="bi-card__photo">
+            @if (getPrincipalPhoto(b)) {
+              <img [src]="getPrincipalPhoto(b)!" [alt]="b.type_bien_nom ?? 'Bien'" />
+            } @else {
+              <div class="bi-card__photo-placeholder">
+                <i class="bi bi-building"></i>
+              </div>
+            }
+            <!-- Transaction badge -->
+            <span class="bi-card__tx-badge
+              {{ b.type_transaction === 'VENTE' 
+               ? 'bi-card__tx-badge--vente' 
+               : 'bi-card__tx-badge--location' }}">
+              {{ TRANSACTION_LABELS[b.type_transaction] }}
+            </span>
+            @if (b.is_verified) {
+              <span class="bi-card__verified" ngbTooltip="Bien vérifié">
+                <i class="bi bi-patch-check-fill"></i>
+              </span>
+            }
+          </div>
+
+          <!-- Corps -->
+          <div class="bi-card__body">
+            <div class="bi-card__type">{{ b.type_bien_nom ?? '—' }}</div>
+            <div class="bi-card__location">
+              <i class="bi bi-geo-alt-fill"></i> {{ b.localisation_approx }}
+            </div>
+
+            <!-- Prix -->
+            <div class="bi-card__price">
+              @if (b.type_transaction === 'VENTE' && b.prix_m2) {
+                <span>{{ b.prix_m2 | number:'1.0-0' }} FCFA/m²</span>
+              }
+              @if (b.type_transaction === 'LOCATION' && b.loyer_mensuel) {
+                <span>{{ b.loyer_mensuel | number:'1.0-0' }} FCFA/mois</span>
+              }
+            </div>
+
+            <!-- Détails habitation -->
+            <div class="bi-card__details">
+              @if (b.superficie) {
+                <span ngbTooltip="Superficie">
+                  <i class="bi bi-rulers"></i> {{ b.superficie }} m²
+                </span>
+              }
+            </div>
+            
+            <!-- Statut -->
+            <span class="lt-badge {{ STATUT_BADGE[b.statut_bien] }}">
+              {{ STATUT_LABELS[b.statut_bien] }}
+            </span>
+          </div>
+
+          <!-- Actions -->
+          <div class="bi-card__footer">
+            <!-- <a [routerLink]="['/lango/biens-immobiliers', b.id]"
+               class="lt-action-btn" ngbTooltip="Voir le détail">
+              <i class="bi bi-eye"></i>
+            </a> -->
+            <button class="lt-action-btn" ngbTooltip="Modifier" (click)="openEdit(b)">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button class="lt-action-btn lt-action-btn--danger"
+                    ngbTooltip="Supprimer" (click)="onDelete(b)">
+              <i class="bi bi-trash3"></i>
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="lt-pagination">
+        <ngb-pagination
+          [collectionSize]="total()" [pageSize]="pageSize"
+          [(page)]="page" [maxSize]="5" [rotate]="true" [ellipses]="true"
+          (pageChange)="onPageChange($event)" />
+      </div>
+    }
+  }
+
+  @if (!loading() && biens().length === 0) {
+    <div class="lt-empty">
+      <i class="bi bi-buildings lt-empty__icon"></i>
+      <p class="lt-empty__title">Aucun bien immobilier</p>
+      <button class="lt-btn lt-btn--primary" (click)="openCreate()">
+        <i class="bi bi-plus-lg"></i> Ajouter un bien
+      </button>
+    </div>
+  }
+
+</div>

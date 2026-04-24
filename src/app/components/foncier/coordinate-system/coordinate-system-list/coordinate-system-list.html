@@ -1,0 +1,123 @@
+<div class="lt-page mt-5">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="lt-header">
+    <div class="lt-header__left">
+      <h1 class="lt-title">
+        <i class="bi bi-globe2"></i> Systèmes de coordonnées
+      </h1>
+      <p class="lt-subtitle">Référentiel des systèmes de projection (EPSG / SRID)</p>
+    </div>
+    <button class="lt-btn lt-btn--primary" (click)="openCreate()">
+      <i class="bi bi-plus-lg"></i> Nouveau système
+    </button>
+  </div>
+
+  <!-- ── Toolbar ──────────────────────────────────────────────── -->
+  <div class="lt-toolbar">
+    <div class="lt-search">
+      <i class="bi bi-search lt-search__icon"></i>
+      <input class="lt-search__input" type="text"
+             placeholder="Rechercher par nom ou SRID…"
+             [ngModel]="searchQuery()" (ngModelChange)="onSearch($event)" />
+    </div>
+    <span class="lt-count">{{ systems().length }} système(s)</span>
+  </div>
+
+  <!-- ── Erreur ───────────────────────────────────────────────── -->
+  @if (error()) {
+    <div class="lt-alert lt-alert--danger">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+    </div>
+  }
+
+  <!-- ── Skeletons ────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="cs-grid">
+      @for (_ of [1,2,3,4,6]; track $index) {
+        <div class="cs-card cs-card--skeleton">
+          <div class="lt-skeleton lt-skeleton--img"></div>
+          <div class="cs-card__body">
+            <div class="lt-skeleton"></div>
+            <div class="lt-skeleton lt-skeleton--sm"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Grille de cartes ─────────────────────────────────────── -->
+  @if (!loading() && systems().length > 0) {
+    <div class="cs-grid">
+      @for (cs of systems(); track trackById($index, cs)) {
+
+        <div class="cs-card">
+
+          <!-- En-tête carte -->
+          <div class="cs-card__header">
+            <div class="cs-card__srid">
+              <span class="cs-card__srid-label">EPSG</span>
+              <span class="cs-card__srid-value">{{ cs.srid }}</span>
+            </div>
+            <div class="cs-card__actions">
+              <button class="lt-action-btn" ngbTooltip="Détails"
+                      (click)="openDetail(cs)">
+                <i class="bi bi-eye"></i>
+              </button>
+              <button class="lt-action-btn" ngbTooltip="Modifier"
+                      (click)="openEdit(cs)">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="lt-action-btn lt-action-btn--danger"
+                      ngbTooltip="Supprimer"
+                      (click)="onDelete(cs)">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Corps -->
+          <div class="cs-card__body">
+            <h3 class="cs-card__nom">{{ cs.nom }}</h3>
+            @if (cs.description) {
+              <p class="cs-card__desc">{{ cs.description }}</p>
+            }
+          </div>
+
+          <!-- Pied -->
+          <div class="cs-card__footer">
+            <span class="cs-card__date">
+              <i class="bi bi-calendar3"></i>
+              {{ cs.created_at | date:'dd/MM/yyyy' }}
+            </span>
+            <button class="cs-card__detail-btn" (click)="openDetail(cs)">
+              Métadonnées <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Empty state ───────────────────────────────────────────── -->
+  @if (!loading() && systems().length === 0) {
+    <div class="lt-empty">
+      <i class="bi bi-globe2 lt-empty__icon"></i>
+      <p class="lt-empty__title">Aucun système de coordonnées</p>
+      <p class="lt-empty__text">
+        @if (searchQuery()) {
+          Aucun résultat pour « {{ searchQuery() }} ».
+        } @else {
+          Ajoutez votre premier système de projection.
+        }
+      </p>
+      @if (!searchQuery()) {
+        <button class="lt-btn lt-btn--primary" (click)="openCreate()">
+          <i class="bi bi-plus-lg"></i> Créer un système
+        </button>
+      }
+    </div>
+  }
+
+</div>

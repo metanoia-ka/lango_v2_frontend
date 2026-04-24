@@ -1,0 +1,558 @@
+<div class="lf-modal">
+
+  <!-- ══ Header ═══════════════════════════════════════════════════════ -->
+  <div class="lf-header">
+    <div class="lf-header__left">
+      <i class="bi bi-map-fill lf-header__icon"></i>
+      <div>
+        <h3 class="lf-header__title">
+          {{ isEdit() ? 'Modifier le lotissement' : 'Créer un lotissement' }}
+        </h3>
+        @if (!isEdit()) {
+          <p class="lf-header__sub">
+            Choisissez votre méthode de création.
+          </p>
+        }
+      </div>
+    </div>
+    <button class="lf-close" (click)="activeModal.dismiss()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- ══ ÉTAPE 0 — Choix du mode ══════════════════════════════════════ -->
+  @if (mode() === 'choix' && !isEdit()) {
+    <div class="lf-body">
+      <p class="lf-choix-title">Comment souhaitez-vous créer le lotissement ?</p>
+
+      <div class="lf-mode-grid">
+
+        <!-- Simple -->
+        <button class="lf-mode-card" (click)="choisirMode('simple')">
+          <div class="lf-mode-card__icon lf-mode-card__icon--green">
+            <i class="bi bi-file-earmark-plus-fill"></i>
+          </div>
+          <div class="lf-mode-card__body">
+            <strong>Sans bornes</strong>
+            <p>Saisir uniquement les informations du lotissement. 
+              Les bornes pourront être ajoutées ultérieurement.</p>
+          </div>
+          <i class="bi bi-chevron-right lf-mode-card__arrow"></i>
+        </button>
+
+        <!-- Manuel -->
+        <button class="lf-mode-card" (click)="choisirMode('manual')">
+          <div class="lf-mode-card__icon lf-mode-card__icon--blue">
+            <i class="bi bi-keyboard-fill"></i>
+          </div>
+          <div class="lf-mode-card__body">
+            <strong>Saisie manuelle des bornes</strong>
+            <p>Entrer les coordonnées X/Y de chaque borne une par une.</p>
+          </div>
+          <i class="bi bi-chevron-right lf-mode-card__arrow"></i>
+        </button>
+
+        <!-- Fichier -->
+        <button class="lf-mode-card lf-mode-card--featured" (click)="choisirMode('fichier')">
+          <div class="lf-mode-card__icon lf-mode-card__icon--amber">
+            <i class="bi bi-upload"></i>
+          </div>
+          <div class="lf-mode-card__body">
+            <strong>Importer depuis un fichier</strong>
+            <p>
+              Excel, CSV, PDF, Shapefile, DXF/DWG, GeoJSON, KML…<br>
+              Les coordonnées sont extraites automatiquement.
+            </p>
+            <div class="lf-format-chips">
+              @for (fmt of FORMATS; track fmt.id) {
+                <span class="lf-chip">{{ fmt.label }}</span>
+              }
+            </div>
+          </div>
+          <i class="bi bi-chevron-right lf-mode-card__arrow"></i>
+        </button>
+
+      </div>
+    </div>
+  }
+
+  <!-- ══ FORMULAIRE COMMUN (simple + manual + fichier) ══════════════════ -->
+  @if (mode() !== 'choix') {
+    <div class="lf-body">
+
+      <!-- Breadcrumb de retour (création uniquement) -->
+      @if (!isEdit()) {
+        <button class="lf-back-btn" (click)="retourChoix()">
+          <i class="bi bi-arrow-left me-1"></i> Retour au choix
+        </button>
+      }
+
+      <!-- Erreur globale -->
+      @if (error()) {
+        <div class="lf-alert lf-alert--danger">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          {{ error() }}
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+        <!-- ── Infos générales ─────────────────────────────────────── -->
+        <div class="lf-section-title">
+          <i class="bi bi-info-circle"></i> Informations générales
+        </div>
+
+        <div class="lf-row">
+          <!-- Nom -->
+          <div class="lf-field" [class.lf-field--error]="getFieldError('nom')">
+            <label class="lf-label" for="nom">
+              Nom du lotissement <span class="req">*</span>
+            </label>
+            <input id="nom" type="text" class="lf-input"
+                   formControlName="nom" placeholder="Bastos Nord" />
+            @if (getFieldError('nom')) {
+              <span class="lf-field-err">{{ getFieldError('nom') }}</span>
+            }
+          </div>
+
+          <!-- Localisation -->
+          <div class="lf-field" [class.lf-field--error]="getFieldError('localisation')">
+            <label class="lf-label" for="localisation">
+              Localisation <span class="req">*</span>
+            </label>
+            <input id="localisation" type="text" class="lf-input"
+                   formControlName="localisation" placeholder="Yaoundé" />
+            @if (getFieldError('localisation')) {
+              <span class="lf-field-err">{{ getFieldError('localisation') }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="lf-row">
+          <!-- Titre foncier -->
+          <div class="lf-field" [class.lf-field--error]="getFieldError('titre_foncier')">
+            <label class="lf-label" for="titre_foncier">
+              Titre foncier <span class="req">*</span>
+            </label>
+            <select id="titre_foncier" class="lf-select" formControlName="titre_foncier">
+              <option value="">— Sélectionner —</option>
+              @for (tf of titresFonciers(); track tf.id) {
+                <option [value]="tf.id">
+                  {{ tf.numero }} — {{ tf?.proprietaire_nom ?? '' }}
+                </option>
+              }
+            </select>
+            @if (getFieldError('titre_foncier')) {
+              <span class="lf-field-err">{{ getFieldError('titre_foncier') }}</span>
+            }
+          </div>
+
+          <!-- Système de coordonnées -->
+          <div class="lf-field" [class.lf-field--error]="getFieldError('systeme')">
+            <label class="lf-label" for="systeme">
+              Système de coordonnées <span class="req">*</span>
+              @if (sridAuto()) {
+                <span class="lf-badge-auto">
+                  <i class="bi bi-check-circle-fill"></i> 
+                  Détecté auto. (EPSG:{{ sridDetecte() }})
+                </span>
+              }
+            </label>
+            <select id="systeme" class="lf-select" formControlName="systeme"
+                    [attr.disabled]="sridAuto() ? true : null">
+              <option value="">— Sélectionner —</option>
+              @for (cs of systems(); track cs.id) {
+                <option [value]="cs.id">{{ cs.nom }} (EPSG:{{ cs.srid }})</option>
+              }
+            </select>
+            @if (sridAuto()) {
+              <span class="lf-field-hint">
+                <i class="bi bi-lock-fill me-1"></i>
+                SRID détecté depuis le fichier — non modifiable.
+              </span>
+            }
+            @if (!sridAuto() && mode() === 'fichier') {
+              <span class="lf-field-hint lf-field-hint--warn">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Le système n'a pas pu être détecté depuis le fichier. 
+                Sélectionnez-le manuellement.
+              </span>
+            }
+            @if (getFieldError('systeme')) {
+              <span class="lf-field-err">{{ getFieldError('systeme') }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- ══ SECTION 2 — Localisation (cascade) ══════════════════════════════ -->
+    <div class="lf-section-title">
+      <i class="bi bi-geo-alt me-2"></i>Localisation
+      <span class="lf-section-sub">Ville → Arrondissement → Quartier → Lieu-dit</span>
+    </div>
+
+    <!-- Étape 1 : Ville -->
+    <div class="lf-field">
+      <label class="lf-label lf-label--required">Ville</label>
+      <div class="lf-ville-chips">
+        @for (v of villes(); track v.ville) {
+          <button type="button" class="lf-ville-chip"
+                  [class.lf-ville-chip--active]="form.get('ville')?.value === v.ville"
+                  (click)="form.get('ville')?.setValue(v.ville)">
+            {{ v.ville }}
+          </button>
+        }
+        @if (villes().length === 0) {
+          <span class="lf-hint">Chargement des villes…</span>
+        }
+      </div>
+    </div>
+
+    <!-- Étape 2 : Arrondissement (si ville choisie) -->
+    @if (arrondissements().length > 0) {
+      <div class="lf-field">
+        <label class="lf-label lf-label--required">
+          <i class="bi bi-chevron-right me-1"></i>Arrondissement / Commune
+        </label>
+        <select class="lf-select" formControlName="arrondissement_id"
+                [class.lf-input--error]="getFieldError('arrondissement_id')">
+          <option value="">— Sélectionner —</option>
+          @for (a of arrondissements(); track a.id) {
+            <option [value]="a.id">{{ a.nom }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <!-- Étape 3 : Quartier (si arrondissement choisi) -->
+    @if (form.get('arrondissement_id')?.value) {
+      <div class="lf-field">
+        @if (loadingQ()) {
+          <div class="lf-loading-inline">
+            <span class="spinner-border spinner-border-sm text-success me-2"></span>
+            Chargement des quartiers…
+          </div>
+        } @else {
+          <label class="lf-label lf-label--required">
+            <i class="bi bi-chevron-right me-1"></i>Quartier
+          </label>
+          <select class="lf-select" formControlName="quartier_id"
+                  [class.lf-input--error]="getFieldError('quartier_id')">
+            <option value="">— Sélectionner —</option>
+            @for (q of quartiers(); track q.id) {
+              <option [value]="q.id">{{ q.nom }}</option>
+            }
+          </select>
+          @if (quartiers().length === 0 && !loadingQ()) {
+            <span class="lf-hint lf-hint--warning">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              Aucun quartier enregistré pour cet arrondissement.
+            </span>
+          }
+        }
+      </div>
+    }
+
+    <!-- Étape 4 : Lieu-dit (si quartier choisi) -->
+    @if (form.get('quartier_id')?.value) {
+      <div class="lf-field">
+        @if (loadingLD()) {
+          <div class="lf-loading-inline">
+            <span class="spinner-border spinner-border-sm text-success me-2"></span>
+            Chargement des lieux-dits…
+          </div>
+        } @else {
+          <label class="lf-label lf-label--required">
+            <i class="bi bi-chevron-right me-1"></i>Lieu-dit
+          </label>
+          <select class="lf-select" formControlName="lieu_dit_id"
+                  [class.lf-input--error]="getFieldError('lieu_dit_id')">
+            <option value="">— Sélectionner —</option>
+            @for (ld of lieuxDits(); track ld.id) {
+              <option [value]="ld.id"
+                      [disabled]="!lieuDitCompatible(ld)">
+                {{ ld.nom }}
+                @if (!ld.a_tarif_bati && !ld.a_tarif_non_bati) {
+                   (pas de barème enregistré)
+                }
+              </option>
+            }
+          </select>
+          @if (lieuxDits().length === 0 && !loadingLD()) {
+            <span class="lf-hint lf-hint--warning">
+              Aucun lieu-dit enregistré pour ce quartier.
+            </span>
+          }
+        }
+      </div>
+    }
+
+    <!-- ══ SECTION 3 — Type d'immeuble ══════════════════════════════════════ -->
+    <div class="lf-section-title">
+      <i class="bi bi-building me-2"></i>Type d'immeuble
+    </div>
+
+    <div class="lf-immeuble-grid mb-2">
+      @for (t of TYPES_IMMEUBLE; track t.val) {
+        <label class="lf-immeuble-card"
+               [class.lf-immeuble-card--active]="form.get('type_immeuble')?.value === t.val">
+          <input type="radio" formControlName="type_immeuble" [value]="t.val" hidden>
+          <i [class]="'bi ' + t.icone + ' lf-immeuble-card__icon'"></i>
+          <span class="lf-immeuble-card__label">{{ t.label }}</span>
+        </label>
+      }
+    </div>
+
+    <!-- ══ SECTION 4 — Zone tarifaire calculée ═════════════════════════════ -->
+    @if (form.get('lieu_dit_id')?.value) {
+      <div class="lf-section-title">
+        <i class="bi bi-calculator me-2"></i>Barème fiscal (calculé automatiquement)
+      </div>
+
+      @if (loadingT()) {
+        <div class="lf-loading-inline">
+          <span class="spinner-border spinner-border-sm text-success me-2"></span>
+          Récupération du barème…
+        </div>
+      } @else if (tarif()?.tarif_disponible) {
+        <div class="lf-tarif-card">
+          <div class="lf-tarif-card__header">
+            <i class="bi bi-patch-check-fill me-2" style="color:#008753"></i>
+            Barème trouvé automatiquement
+          </div>
+          <div class="lf-tarif-card__grid">
+            <div class="lf-tarif-row">
+              <span class="lf-tarif-lbl">Localisation</span>
+              <span>
+                {{ tarif()!.arrondissement }} › 
+                {{ tarif()!.quartier }} › 
+                {{ tarif()!.lieu_dit }}</span>
+            </div>
+            <div class="lf-tarif-row">
+              <span class="lf-tarif-lbl">Type</span>
+              <span>{{ tarif()!.type_immeuble }}</span>
+            </div>
+            <div class="lf-tarif-row">
+              <span class="lf-tarif-lbl">Classification</span>
+              <span class="lf-tarif-badge">{{ tarif()!.classification }}</span>
+            </div>
+            <div class="lf-tarif-row lf-tarif-row--highlight">
+              <span class="lf-tarif-lbl">Valeur au m²</span>
+              <strong class="lf-tarif-valeur">{{ formatValeur(tarif()!.valeur_m2) }}</strong>
+            </div>
+            @if (tarif()!.source) {
+              <div class="lf-tarif-row">
+                <span class="lf-tarif-lbl">Référence</span>
+                <span class="lf-tarif-source">{{ tarif()!.source }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      } @else if (tarifErreur()) {
+        <div class="lf-alert lf-alert--warning">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          {{ tarifErreur() }}
+          <p class="mb-0 mt-1" style="font-size:0.78rem">
+            Le lotissement pourra quand même être enregistré.
+            L'administrateur devra renseigner le barème fiscal manuellement.
+          </p>
+        </div>
+      }
+    }
+
+        <!-- Date administrative (optionnel) -->
+        <div class="lf-field lf-field--half">
+          <label class="lf-label" for="date_admin">Date de création administrative</label>
+          <input id="date_admin" type="date" class="lf-input"
+                 formControlName="date_creation_administrative" />
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════
+             MODE FICHIER — sélecteur de format + upload
+             ════════════════════════════════════════════════════════════ -->
+        @if (mode() === 'fichier') {
+
+          <div class="lf-section-title mt-3">
+            <i class="bi bi-upload"></i> Fichier de bornes
+          </div>
+
+          <!-- Sélecteur de format -->
+          @if (!formatSelectionne()) {
+            <p class="lf-hint">Sélectionnez le format de votre fichier :</p>
+            <div class="lf-format-grid">
+              @for (fmt of FORMATS; track fmt.id) {
+                <button type="button"
+                        class="lf-format-btn"
+                        (click)="selectionnerFormat(fmt)">
+                  <i [class]="'bi ' + fmt.icone + ' lf-format-btn__icon'"></i>
+                  <span class="lf-format-btn__label">{{ fmt.label }}</span>
+                  <span class="lf-format-btn__ext">{{ fmt.extensions.join(', ') }}</span>
+                  @if (fmt.srid_auto) {
+                    <span class="lf-format-btn__srid-hint">SRID auto</span>
+                  }
+                </button>
+              }
+            </div>
+          }
+
+          <!-- Upload fichier -->
+          @if (formatSelectionne(); as fmt) {
+            <div class="lf-upload-zone">
+              <div class="lf-upload-header">
+                <i [class]="'bi ' + fmt.icone"></i>
+                <strong>{{ fmt.label }}</strong>
+                <button type="button" class="lf-link-btn" 
+                (click)="selectionnerFormat(fmt)">
+                  Changer de format
+                </button>
+              </div>
+              <p class="lf-upload-desc">{{ fmt.description }}</p>
+
+              <label class="lf-upload-area" 
+                     [class.lf-upload-area--loaded]="fichierSelectionne()">
+                @if (!fichierSelectionne()) {
+                  <i class="bi bi-cloud-upload lf-upload-area__icon"></i>
+                  <span>Cliquez pour sélectionner</span>
+                  <span class="lf-upload-area__ext">{{ fmt.extensions.join(' · ') }}</span>
+                } @else {
+                  <i class="bi bi-file-check-fill lf-upload-area__icon text-success"></i>
+                  <span class="text-success">{{ fichierSelectionne()!.name }}</span>
+                  <span class="lf-upload-area__ext">
+                    {{ (fichierSelectionne()!.size / 1024).toFixed(0) }} Ko
+                  </span>
+                }
+                <input type="file" class="lf-upload-input"
+                       [accept]="fmt.accept"
+                       (change)="onFichierChange($event)" />
+              </label>
+
+              <!-- État du parsing -->
+              @if (parseLoading()) {
+                <div class="lf-parse-loading">
+                  <span class="spinner-border spinner-border-sm text-success me-2"></span>
+                  Extraction des coordonnées en cours…
+                </div>
+              }
+
+              @if (parseError()) {
+                <div class="lf-alert lf-alert--danger mt-2">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  {{ parseError() }}
+                </div>
+              }
+
+              <!-- Résultat du parsing -->
+              @if (resumeImport(); as r) {
+                <div class="lf-parse-result">
+                  <div class="lf-parse-result__row">
+                    <i class="bi bi-check-circle-fill text-success"></i>
+                    <strong>{{ r.nb }} borne(s) extraite(s)</strong>
+                  </div>
+                  @if (r.srid) {
+                    <div class="lf-parse-result__row">
+                      <i class="bi bi-geo-fill text-blue"></i>
+                      Système détecté : EPSG:{{ r.srid }}
+                    </div>
+                  }
+                  @for (w of r.avert; track $index) {
+                    <div class="lf-parse-result__warn">
+                      <i class="bi bi-exclamation-triangle"></i>
+                      {{ w }}
+                    </div>
+                  }
+
+                  <!-- Aperçu des premières bornes -->
+                  <details class="lf-bornes-preview">
+                    <summary>Aperçu des 5 premières bornes</summary>
+                    <table class="lf-bornes-table">
+                      <thead>
+                        <tr><th>#</th><th>X</th><th>Y</th><th>Label</th></tr>
+                      </thead>
+                      <tbody>
+                        @for (b of bornesImportees().slice(0, 5); track $index) {
+                          <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ b.x }}</td>
+                            <td>{{ b.y }}</td>
+                            <td>{{ b.label ?? '—' }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                    @if (bornesImportees().length > 5) {
+                      <p class="lf-bornes-more">
+                        … et {{ bornesImportees().length - 5 }} autre(s) borne(s).
+                      </p>
+                    }
+                  </details>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        <!-- ════════════════════════════════════════════════════════════
+             MODE MANUAL — saisie bornes
+             ════════════════════════════════════════════════════════════ -->
+        @if (mode() === 'manual') {
+          <div class="lf-section-title mt-3">
+            <i class="bi bi-pin-map-fill"></i> Bornes (coordonnées)
+          </div>
+
+          @if (bornes.length === 0) {
+            <p class="lf-hint">Ajoutez au moins 4 bornes pour générer la géométrie.</p>
+          }
+
+          <div formArrayName="bornes" class="lf-bornes-list">
+            @for (b of bornes.controls; track $index) {
+              <div [formGroupName]="$index" class="lf-borne-row">
+                <span class="lf-borne-idx">{{ $index + 1 }}</span>
+                <div class="lf-borne-coords">
+                  <input type="text" class="lf-input lf-input--sm"
+                         formControlName="x" placeholder="X (E/Easting)" />
+                  <input type="text" class="lf-input lf-input--sm"
+                         formControlName="y" placeholder="Y (N/Northing)" />
+                </div>
+                <button type="button" class="lf-icon-btn lf-icon-btn--danger"
+                        (click)="removeBorne($index)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            }
+          </div>
+
+          <button type="button" class="lf-add-borne-btn" (click)="addBorne()">
+            <i class="bi bi-plus-circle me-1"></i> Ajouter une borne
+          </button>
+        }
+
+        <!-- ── Footer actions ────────────────────────────────────────── -->
+        <div class="lf-footer">
+          <button type="button" class="lf-btn lf-btn--ghost"
+                  (click)="activeModal.dismiss()">
+            Annuler
+          </button>
+
+          <!-- Désactiver si mode fichier et pas encore de bornes importées -->
+          <button type="submit" class="lf-btn lf-btn--primary"
+                  [disabled]="saving()
+                    || (mode() === 'fichier' && bornesImportees().length < 4)
+                    || (mode() === 'fichier' && parseLoading())">
+            @if (saving()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Enregistrement…
+            } @else {
+              @if(isEdit()) {
+                <i class="bi bi-floppy me-1"></i>
+              } @else {
+                <i class="bi bi-plus-lg me-1"></i>
+              }
+              @if (isEdit()) { Enregistrer } @else { Créer le lotissement }
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+  }
+
+</div>

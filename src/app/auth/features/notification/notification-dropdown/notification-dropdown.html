@@ -1,0 +1,124 @@
+<!-- ══ Notification Dropdown ══ -->
+<div class="position-relative" ngbDropdown placement="bottom-end" display="dynamic">
+
+  <!-- ── Bouton cloche ────────────────────────────────────────────────────── -->
+  <button class="nd-trigger" ngbDropdownToggle>
+    <i class="bi bi-bell-fill nd-trigger-icon"></i>
+    @if (unreadCount() > 0) {
+      <span class="nd-badge">
+        {{ unreadCount() > 9 ? '9+' : unreadCount() }}
+      </span>
+    }
+  </button>
+
+  <!-- ── Dropdown ─────────────────────────────────────────────────────────── -->
+  <div ngbDropdownMenu class="nd-dropdown">
+
+    <!-- Header -->
+    <div class="nd-header">
+      <div class="nd-header-left">
+        <div class="nd-header-icon">
+          <i class="bi bi-bell-fill"></i>
+        </div>
+        <div>
+          <span class="nd-header-title">Notifications</span>
+          @if (unreadCount() > 0) {
+            <span class="nd-header-count">{{ unreadCount() }} non lue(s)</span>
+          } @else {
+            <span class="nd-header-count">Tout est lu ✓</span>
+          }
+        </div>
+      </div>
+
+      @if (unreadCount() > 0) {
+        <button class="nd-mark-all-btn"
+                (click)="markAllAsRead(); $event.stopPropagation()">
+          <i class="bi bi-check-all"></i>
+          Tout lire
+        </button>
+      }
+    </div>
+
+    <!-- Liste -->
+    <div class="nd-list">
+
+      @if (notifications().length === 0) {
+        <div class="nd-empty">
+          <div class="nd-empty-icon">
+            <i class="bi bi-bell-slash"></i>
+          </div>
+          <p class="nd-empty-title">Aucune notification</p>
+          <p class="nd-empty-sub">Vous êtes à jour !</p>
+        </div>
+      } @else {
+        @for (notif of notifications(); track notif.id) {
+          <div class="nd-item"
+               [class.nd-item--unread]="!notif.lue"
+               [class.nd-item--read]="notif.lue"
+               (click)="openNotification(notif, $event)">
+
+            <!-- Indicateur non lu -->
+            @if (!notif.lue) {
+              <span class="nd-unread-dot"></span>
+            }
+
+            <!-- Icône type -->
+            <div class="nd-item-icon"
+                 [class.nd-item-icon--unread]="!notif.lue"
+                 [class.nd-item-icon--read]="notif.lue">
+              <i [class]="'bi ' + (notif.icone || 'bi-info-circle')"></i>
+            </div>
+
+            <!-- Contenu -->
+            <div class="nd-item-body">
+              <div class="nd-item-top">
+                <span class="nd-item-titre"
+                      [class.nd-item-titre--unread]="!notif.lue">
+                  {{ notif.titre }}
+                </span>
+                <span class="nd-item-time">
+                  {{ notif.date_creation | date:'HH:mm' }}
+                </span>
+              </div>
+
+              <p class="nd-item-msg">
+                {{ notif.message.length > 80
+                  ? notif.message.substring(0, 80) + '…'
+                  : notif.message }}
+              </p>
+
+              <div class="nd-item-footer">
+                <span class="nd-type-badge"
+                      [class]="'nd-type-badge--' + notif.type.toLowerCase()">
+                  {{ notif.type }}
+                </span>
+                <span class="nd-item-depuis">{{ notif.depuis }}</span>
+              </div>
+            </div>
+
+            <!-- Bouton marquer lu -->
+            @if (!notif.lue) {
+              <button class="nd-read-btn"
+                      (click)="markAsRead(notif.id, $event)"
+                      title="Marquer comme lu">
+                <i class="bi bi-check2"></i>
+              </button>
+            }
+
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Footer -->
+    @if (notifications().length > 0) {
+      <div class="nd-footer">
+        <a routerLink="/notifications" class="nd-footer-link">
+          Voir toutes les notifications
+          <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    }
+
+  </div>
+</div>

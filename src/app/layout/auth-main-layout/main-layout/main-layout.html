@@ -1,0 +1,8 @@
+<app-header />
+<app-lango-sidebar />
+
+<main class="main-content" [class.expanded]="sidebar.collapsed()">
+  <div class="content-wrapper">
+    <router-outlet></router-outlet>
+  </div>
+</main>

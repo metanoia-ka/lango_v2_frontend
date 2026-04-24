@@ -1,0 +1,103 @@
+<div class="mf-modal">
+
+  <div class="mf-modal__header">
+    <h5 class="mf-modal__title">
+      <i class="bi bi-globe2"></i>
+      {{ isEdit ? 'Modifier le système' : 'Nouveau système de coordonnées' }}
+    </h5>
+    <button class="mf-modal__close" (click)="activeModal.dismiss()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="mf-modal__body" [formGroup]="form">
+
+    @if (error()) {
+      <div class="mf-alert mf-alert--danger">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+      </div>
+    }
+
+    <!-- ── SRID ────────────────────────────────────────────── -->
+    <div class="mf-field">
+      <label class="mf-label mf-label--required">
+        Code EPSG / SRID
+        @if (isEdit) { <span class="mf-optional">(non modifiable)</span> }
+      </label>
+      <input class="mf-input"
+             [class.mf-input--error]="getFieldError('srid')"
+             type="number"
+             formControlName="srid"
+             placeholder="Ex: 32632"
+             min="1" />
+      @if (getFieldError('srid')) {
+        <span class="mf-error">{{ getFieldError('srid') }}</span>
+      }
+      @if (!isEdit) {
+        <span class="mf-hint">
+          <i class="bi bi-info-circle"></i>
+          Le SRID est l'identifiant EPSG du système (ex: 32632 pour UTM zone 32N).
+          Il ne pourra plus être modifié après création.
+        </span>
+      }
+    </div>
+
+    <!-- ── Suggestions SRID fréquents ──────────────────────── -->
+    @if (!isEdit) {
+      <div class="cs-suggestions">
+        <p class="cs-suggestions__label">Systèmes courants :</p>
+        <div class="cs-suggestions__chips">
+          @for (s of suggestions; track s.srid) {
+            <button type="button"
+                    class="cs-suggestion-chip"
+                    [class.cs-suggestion-chip--active]="form.get('srid')?.value === s.srid"
+                    (click)="applySuggestion(s.srid, s.label)">
+              <span class="cs-suggestion-chip__srid">{{ s.srid }}</span>
+              <span class="cs-suggestion-chip__label">{{ s.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Nom ─────────────────────────────────────────────── -->
+    <div class="mf-field">
+      <label class="mf-label mf-label--required">Nom</label>
+      <input class="mf-input"
+             [class.mf-input--error]="getFieldError('nom')"
+             formControlName="nom"
+             placeholder="Ex: WGS 84 / UTM zone 32N" />
+      @if (getFieldError('nom')) {
+        <span class="mf-error">{{ getFieldError('nom') }}</span>
+      }
+    </div>
+
+    <!-- ── Description ─────────────────────────────────────── -->
+    <div class="mf-field">
+      <label class="mf-label">Description</label>
+      <textarea class="mf-textarea" rows="3" formControlName="description"
+                placeholder="Contexte d'utilisation, zone géographique couverte…">
+      </textarea>
+    </div>
+
+  </div>
+
+  <div class="mf-modal__footer">
+    <button class="mf-btn mf-btn--secondary" (click)="activeModal.dismiss()">
+      Annuler
+    </button>
+    <button class="mf-btn mf-btn--primary" (click)="submit()" [disabled]="saving()">
+      @if (saving()) {
+        <span class="mf-spinner"></span> Enregistrement…
+      } @else {
+        @if(isEdit) {
+          <i class="bi bi-floppy me-1"></i>
+        } @else {
+          <i class="bi bi-plus-lg me-1"></i>
+        }
+        {{ isEdit ? 'Mettre à jour' : 'Créer le système' }}
+      }
+    </button>
+  </div>
+
+</div>

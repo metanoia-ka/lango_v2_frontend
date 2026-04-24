@@ -1,0 +1,233 @@
+<!-- mes-reservations.html — VERSION CORRIGÉE -->
+<div class="mr-wrap mt-5">
+
+  <!-- ══ Header ══════════════════════════════════════════════════════════ -->
+  <div class="mr-header">
+    <div class="mr-header__left">
+      <i class="bi bi-bookmark-check-fill mr-header__icon"></i>
+      <div>
+        <h1 class="mr-header__title">Mes réservations</h1>
+        <p class="mr-header__sub">
+          Suivez vos parcelles réservées et vos négociations de prix.
+        </p>
+      </div>
+    </div>
+    <a routerLink="/lango/annonces" class="mr-btn mr-btn--ghost">
+      <i class="bi bi-arrow-left"></i> Retour aux annonces
+    </a>
+  </div>
+
+  <!-- ══ Stats ════════════════════════════════════════════════════════════ -->
+  <div class="mr-stats">
+    <div class="mr-stat mr-stat--pending">
+      <span class="mr-stat__val">{{ stats().enAttente }}</span>
+      <span class="mr-stat__lbl">En attente</span>
+    </div>
+    <div class="mr-stat mr-stat--warning">
+      <span class="mr-stat__val">{{ stats().enNegociation }}</span>
+      <span class="mr-stat__lbl">En négociation</span>
+    </div>
+    <div class="mr-stat mr-stat--success">
+      <span class="mr-stat__val">{{ stats().attribuee }}</span>
+      <span class="mr-stat__lbl">Attribuées</span>
+    </div>
+    <div class="mr-stat mr-stat--muted">
+      <span class="mr-stat__val">{{ stats().expiree }}</span>
+      <span class="mr-stat__lbl">Expirées</span>
+    </div>
+    <div class="mr-stat mr-stat--danger">
+      <span class="mr-stat__val">{{ stats().annulee }}</span>
+      <span class="mr-stat__lbl">Annulées</span>
+    </div>
+  </div>
+
+  <!-- ══ Loading ══════════════════════════════════════════════════════════ -->
+  @if (loading()) {
+    <div class="mr-loading">
+      <span class="spinner-border spinner-border-sm text-success"></span>
+      Chargement…
+    </div>
+  }
+
+  <!-- ══ Vide ═════════════════════════════════════════════════════════════ -->
+  @if (!loading() && reservations().length === 0) {
+    <div class="mr-empty">
+      <i class="bi bi-bookmark"></i>
+      <p>Vous n'avez encore aucune réservation.</p>
+      <a routerLink="/lango/annonces" class="mr-btn mr-btn--primary">
+        <i class="bi bi-search me-1"></i> Parcourir les annonces
+      </a>
+    </div>
+  }
+
+  <!-- ══ Liste des réservations ══════════════════════════════════════════ -->
+  @for (resa of reservations(); track trackById($index, resa)) {
+    <div class="mr-card"
+         [class.mr-card--pending]="resa.statut === 'EN_ATTENTE'"
+         [class.mr-card--warning]="resa.statut === 'NEGOCIATION'"
+         [class.mr-card--success]="resa.statut === 'ATTRIBUEE'"
+         [class.mr-card--muted]="resa.statut === 'EXPIREE' || resa.statut === 'ANNULEE'">
+
+      <!-- Header carte -->
+      <div class="mr-card__header">
+        <div class="mr-card__title-wrap">
+          <h3 class="mr-card__parcelle">{{ resa.parcelle_numero }}</h3>
+          <span [class]="'mr-badge ' + STATUT_CLASSES[resa.statut]">
+            {{ STATUT_LABELS[resa.statut] }}
+          </span>
+          @if (resa.est_expiree && resa.statut !== 'ATTRIBUEE') {
+            <span class="mr-badge mr-badge--expired">
+              <i class="bi bi-clock me-1"></i>Expirée
+            </span>
+          }
+        </div>
+        <span class="mr-card__lotissement">
+          <i class="bi bi-geo-alt"></i> {{ resa.lotissement_nom }}
+        </span>
+      </div>
+
+      <!-- Infos -->
+      <div class="mr-card__body">
+        <div class="mr-card__meta">
+          <div class="mr-meta-row">
+            <span class="mr-meta-label">Potentiel acheteur: </span>
+            <span class="mr-meta-value">
+              <i class="bi bi-person text-warning me-1"></i>
+              @if (user()?.username === resa.client_nom) { 
+                <span class="badge-vous">You</span> 
+              }
+              @else { <span class="meta-value">{{ resa.client_nom }}</span> }
+            </span>
+          </div>
+          @if (user()?.username === resa.client_nom) { 
+            <div class="mr-meta-row">
+              <span class="mr-meta-label">Crédits débités: </span>
+              <span class="mr-meta-value">
+                <i class="bi bi-coin text-warning me-1"></i>{{ resa.credits_debites }}
+              </span>
+            </div> 
+          }
+          @if (resa.statut === 'ATTRIBUEE') { 
+            <div class="mr-meta-row">
+              <span class="mr-meta-label">Attribué le: </span>
+              <span class="mr-meta-value">
+                {{ resa.updated_at | date:'dd/MM/yyyy' }}<strong>,</strong> 
+                {{ resa.updated_at | relativeTime }}
+              </span>
+            </div> 
+          }
+          <div class="mr-meta-row">
+            <span class="mr-meta-label">Réservé le: </span>
+            <span class="mr-meta-value">
+              {{ resa.created_at | date:'dd/MM/yyyy' }}<strong>,</strong>  
+              {{ resa.created_at | relativeTime }}
+            </span>
+          </div>
+          @if (resa.statut !== 'ATTRIBUEE' && resa.statut !== 'ANNULEE') {
+            <div class="mr-meta-row">
+              <span class="mr-meta-label me-2">Expire le: </span>
+              <span class="mr-meta-value"
+                    [class.text-danger]="resa.jours_restants <= 1"
+                    [class.text-warning]="resa.jours_restants <= 3 
+                    && resa.jours_restants > 1">
+                {{ resa.expire_le | date:'dd/MM/yyyy' }}
+                ({{ resa.jours_restants }} j)
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- Urgence -->
+        @if ((resa.statut === 'EN_ATTENTE' || resa.statut === 'NEGOCIATION')
+             && resa.jours_restants <= 2 && !resa.est_expiree) {
+          <div class="mr-urgence">
+            <i class="bi bi-clock-fill"></i>
+            Attention — il reste peu de temps avant l'expiration de la réservation.
+          </div>
+        }
+
+        <!-- Résumé offre active -->
+        @if (resa.offre_active) {
+          <div class="mr-offre-active"
+               [class.mr-offre-active--action]="resa.offre_active.statut === 'EN_ATTENTE'">
+            <i class="bi bi-chat-left-dots-fill"></i>
+            @switch (resa.offre_active.statut) {
+              @case ('EN_ATTENTE') {
+                <span>
+                  Offre du vendeur :
+                  <strong>
+                    {{ resa.offre_active.prix_vendeur | number }} XAF/m²
+                  </strong>
+                  — <span class="text-success fw-bold">Réponse requise</span>
+                </span>
+              }
+              @case ('CONTRE_PROPOSEE') {
+                <span>
+                  Contre-offre client —
+                  <strong>
+                    {{ resa.offre_active.prix_client | number }} XAF/m²
+                  </strong>
+                  — <span class="text-warning fw-bold">En attente du vendeur</span>
+                </span>
+              }
+              @case ('ACCEPTEE') {
+                <span class="text-success">
+                  <i class="bi bi-check-circle-fill me-1"></i>
+                  Offre acceptée — attribution en cours
+                </span>
+              }
+              @default {
+                <span>Négociation en cours</span>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="mr-card__footer">
+
+        <!-- Bouton négociation — libellé corrigé -->
+        @if (peutNegocier(resa)) {
+          <button class="mr-btn mr-btn--primary"
+                  [class.mr-btn--action]="resa.offre_active?.statut === 'EN_ATTENTE'"
+                  (click)="ouvrirNegociation(resa)">
+            <i class="bi bi-chat-left-dots me-1"></i>
+            <!-- BUG FIX : libellé via méthode, pas via statut 'NEGOCIATION' -->
+            {{ libelleBoutonNegociation(resa) }}
+          </button>
+        }
+
+        <!-- Annulation -->
+        @if (peutAnnuler(resa)) {
+          <button class="mr-btn mr-btn--ghost"
+                  [disabled]="annulLoading() === resa.id"
+                  (click)="annuler(resa)">
+            @if (annulLoading() === resa.id) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Annuler la réservation
+          </button>
+        }
+
+        <!-- Attribuée -->
+        @if (resa.statut === 'ATTRIBUEE') {
+          <div class="mr-attribuee-msg">
+            <i class="bi bi-check-circle-fill text-success me-2"></i>
+            Parcelle attribuée — 
+            @if (user()?.username === resa.client_nom) { 
+                <strong>le vendeur vous contactera pour la suite.</strong> 
+              }
+              @else { 
+                <span class="meta-value">à 
+                  <strong>{{ resa.client_nom }}</strong>
+                </span> 
+              }
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+
+</div>

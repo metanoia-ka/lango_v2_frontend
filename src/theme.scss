@@ -1,0 +1,955 @@
+// Ajoute en haut du fichier
+@use 'sass:color';
+@use 'titre-foncier';
+@use 'foncier';
+@use 'coordinate-system';
+@use 'admin-lists';
+@use 'annonce-edit-detail.scss';
+@use 'new-annonce.scss';
+@use 'credit.scss';
+@use 'pack-credit.scss';
+@use 'plan-list-abonnement.scss';
+@use 'premium.scss';
+@use 'parcelle-actions.scss';
+@use 'messaging.scss';
+@use 'reservation-parcelle.scss';
+@use 'type-bien-categorie.scss';
+@use 'zones-competence.component.scss';
+//@use 'annonce-search-modal.scss';
+
+
+// Variables de couleurs
+$primary: #008753;
+$secondary: #FCD116;
+$accent: #008753;
+
+// Dégradés globaux - CORRIGÉ avec les nouvelles fonctions
+$primary-color: #008753;
+$secondary-color: #FCD116;
+$accent-color: #008753;
+$main-gradient: linear-gradient(90deg, $primary-color, $secondary-color, $accent-color);
+
+// Dégradés spécifiques - CORRIGÉ
+$primary-gradient: linear-gradient(90deg, 
+$primary, color.adjust($primary, $lightness: -10%));
+$secondary-gradient: linear-gradient(90deg, 
+$secondary, color.adjust($secondary, $lightness: -10%));
+$accent-gradient: linear-gradient(90deg, $accent, color.adjust($accent, $lightness: -10%));
+
+// ⚡ Override Bootstrap theme
+$theme-colors: (
+  "primary": $primary,
+  "secondary": $secondary,
+  "danger": $accent
+);
+
+// Définition de variables CSS globales
+:root {
+  --color-primary: #008753;
+  --color-secondary: #FCD116;
+  --color-accent: #008753;
+}
+
+// 🔹 Mixin pour les boutons gradient - CORRIGÉ
+@mixin gradient-btn($gradient, $text-color: #000, $hover-text-color: #fff) {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: 3px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  background: linear-gradient(white, white) padding-box,
+              $gradient border-box;
+  color: $text-color;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  min-width: 120px;
+
+  &:hover:not(:disabled) {
+    background: $gradient;
+    color: $hover-text-color;
+    border-color: transparent;
+    //box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba($primary, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: linear-gradient(#f8f9fa, #f8f9fa) padding-box,
+                linear-gradient(135deg, #ccc, #999) border-box;
+    color: #666;
+    
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}
+
+// Mixin pour texte avec dégradé
+@mixin text-gradient($gradient: $main-gradient) {
+  background: $gradient;
+  // Préfixes pour support navigateur
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -moz-text-fill-color: transparent;
+  text-fill-color: transparent;
+  color: transparent;
+  display: inline-block;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+@mixin text-gradient-register-login($gradient: $main-gradient) {
+  background: $gradient;
+  // Préfixes pour support navigateur
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -moz-text-fill-color: transparent;
+  text-fill-color: transparent;
+  color: transparent;
+  display: inline-block;
+  font-weight: bold;
+}
+
+textarea {
+  resize: none;
+}
+
+// Text gradient animé
+.text-agiris-animated {
+  @include text-gradient();
+  background-size: 200% auto;
+  animation: gradientShift 3s ease-in-out infinite;
+  
+  @keyframes gradientShift {
+    0% { background-position: 0% center; }
+    50% { background-position: 100% center; }
+    100% { background-position: 0% center; }
+  }
+}
+
+// Application
+.animated-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  @include text-gradient();
+  background-size: 200% auto;
+  animation: gradientShift 3s ease-in-out infinite;
+}
+
+// Classe utilitaire pour texte gradient
+.text-agiris {
+  @include text-gradient();
+}
+
+// Variantes de couleurs
+.text-gradient-primary {
+  @include text-gradient($primary-gradient);
+}
+
+.text-gradient-register-login {
+  @include text-gradient-register-login($primary-gradient);
+}
+
+.text-gradient-register-login-info {
+  font-weight: bold;
+  text-transform: capitalize !important;
+}
+
+.text-gradient-secondary {
+  @include text-gradient($secondary-gradient);
+}
+
+.text-gradient-accent {
+  @include text-gradient($accent-gradient);
+}
+
+
+// 🔹 Bouton Principal (Multi-gradient)
+.btn-agiris {
+  @include gradient-btn($main-gradient, #000, #fff);
+  
+  // Variante outline
+  &.btn-outline {
+    background: transparent;
+    border: 2px solid;
+    border-image: $main-gradient 1;
+    color: $primary;
+    
+    &:hover {
+      background: $main-gradient;
+      color: #fff;
+      border-image: none;
+    }
+  }
+}
+
+// 🔹 Bouton Primary
+.btn-primary-custom {
+  @include gradient-btn($primary-gradient, #fff, #fff);
+  
+  &.btn-outline {
+    background: transparent;
+    border: 2px solid $primary;
+    color: $primary;
+    
+    &:hover {
+      background: $primary;
+      color: #fff;
+    }
+  }
+}
+
+.btn-register, .btn-login {
+  background: #008753;
+  color: #fff;
+}
+
+// 🔹 Bouton Secondary
+.btn-secondary-custom {
+  @include gradient-btn($secondary-gradient, #fff, #fff);
+  
+  &.btn-outline {
+    background: transparent;
+    border: 2px solid $secondary;
+    color: $secondary;
+    
+    &:hover {
+      background: $secondary;
+      color: #fff;
+    }
+  }
+}
+
+// 🔹 Bouton Accent
+.btn-accent-custom {
+  @include gradient-btn($accent-gradient, #fff, #fff);
+  
+  &.btn-outline {
+    background: transparent;
+    border: 2px solid $accent;
+    color: $accent;
+    
+    &:hover {
+      background: $accent;
+      color: #fff;
+    }
+  }
+}
+
+// 🔹 Notification Accent
+.notification-custom {
+  background: $main-gradient;
+  color: white;
+  font-weight: bold;
+}
+
+/* Retirer le zoom sur les boutons personnalisés */
+.btn-secondary-custom,
+.btn-primary-custom {
+  transform: none !important;
+  transition: none !important;
+}
+
+.btn-secondary-custom:hover,
+.btn-primary-custom:hover {
+  transform: none !important;
+}
+
+// 🔹 Bouton Success
+.btn-success-custom {
+  $success: #28a745;
+  $success-gradient: linear-gradient(90deg, 
+  $success, color.adjust($success, $lightness: -10%));
+  
+  @include gradient-btn($success-gradient, #fff, #fff);
+}
+
+// 🔹 Bouton Warning
+.btn-warning-custom {
+  $warning: #ffc107;
+  $warning-gradient: linear-gradient(90deg, 
+  $warning, color.adjust($warning, $lightness: -10%));
+  
+  @include gradient-btn($warning-gradient, #000, #000);
+}
+
+// 🔹 Bouton Danger
+.btn-danger-custom {
+  $danger: #dc3545;
+  $danger-gradient: linear-gradient(90deg, 
+  $danger, color.adjust($danger, $lightness: -10%));
+  
+  @include gradient-btn($danger-gradient, #fff, #fff);
+}
+
+// 🔹 Tailles de boutons
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  min-width: 50px;
+  border-width: 2px;
+  
+  &:hover {
+    padding: none;
+  }
+}
+
+.btn-lg {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  min-width: 140px;
+  border-width: 4px;
+  
+  &:hover {
+    padding: none;
+  }
+}
+
+// 🔹 Boutons avec icônes
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  
+  .bi, .spinner-border-sm {
+    transition: transform 0.2s ease;
+  }
+  
+  &:hover:not(:disabled) {
+    .bi {
+      //transform: translateX(2px);
+    }
+  }
+}
+
+// 🔹 Styles pour les modales
+.modal-header {
+  //background: $main-gradient;
+  //color: white;
+  //border-radius: 12px 12px 0 0;
+  //font-weight: bold;
+}
+
+.modal-body, .modal-actions, .modal-footer {
+  border-radius: none;
+}
+
+.table-header {
+  background: $main-gradient;
+  color: white;
+  border-radius: 2px 2px 0 0;
+  font-weight: bold;
+}
+
+// 🔹 Tableaux - CORRIGÉ
+.table thead {
+  background: $main-gradient;
+  color: white;
+  font-weight: bold;
+  
+  // Pour assurer que le gradient s'applique sur toutes les cellules
+  th {
+    background: inherit;
+    color: inherit;
+    font-weight: inherit;
+    border: none;
+    padding: 12px 16px;
+  }
+}
+
+// Variante si tu veux utiliser une classe spécifique
+.table-thead-gradient {
+  background: $main-gradient;
+  color: white;
+  font-weight: bold;
+  
+  th {
+    background: inherit;
+    color: inherit;
+    font-weight: inherit;
+    border: none;
+    padding: 12px 16px;
+  }
+}
+
+// 🔹 Badges
+.badge-agiris {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+.badge-accent {
+  background-color: var(--color-accent);
+  color: #fff;
+}
+
+// 🔹 Cards
+.card {
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  background: white;
+
+  .card-header {
+    background: $main-gradient;
+    color: white;
+    font-weight: bold;
+    padding: 12px 16px;
+  }
+
+  .card-custom {
+    background: $main-gradient;
+    color: white;
+    font-weight: bold;
+    padding: 12px 16px;
+  }
+
+  .card-body {
+    padding: 16px;
+  }
+}
+
+// 🔹 Spinners dans les boutons
+.btn-primary-custom,
+.btn-secondary-custom,
+.btn-agiris {
+  .spinner-border-sm {
+    width: 0.8rem;
+    height: 0.8rem;
+    border-width: 0.15em;
+  }
+  
+  &:disabled {
+    .spinner-border-sm {
+      border-color: rgba(255, 255, 255, 0.5);
+      border-right-color: transparent;
+    }
+  }
+}
+
+.custom-input-sm {
+  height: 32px;
+  padding: 5px 12px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+.btn-outline {
+  .spinner-border-sm {
+    border-color: currentColor;
+    border-right-color: transparent;
+  }
+  
+  &:disabled .spinner-border-sm {
+    border-color: #666;
+    border-right-color: transparent;
+  }
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// modal-forms-shared.scss
+// SCSS partagé pour tous les formulaires modaux :
+// type-annonce, annonce-edit, role, user, systeme-coordonnees, conversation
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Variables ─────────────────────────────────────────────────────────────────
+$green:       #008753;
+$green-light: #00a86b;
+$green-bg:    #e6f4ee;
+$border:      #e5e7eb;
+$text:        #111827;
+$muted:       #9ca3af;
+$radius:      12px;
+$radius-sm:   8px;
+
+// ── Header modal ──────────────────────────────────────────────────────────────
+.mf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid $border;
+  background: #fff;
+  border-radius: $radius $radius 0 0;
+}
+
+.mf-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mf-header-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+
+  &--create { background: $green-bg; color: $green; }
+  &--edit   { background: #eff6ff;   color: #2563eb; }
+  &--danger { background: #fef2f2;   color: #dc2626; }
+  &--chat   { background: #f5f3ff;   color: #7c3aed; }
+  &--geo    { background: #fff7ed;   color: #ea580c; }
+}
+
+.mf-header-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+}
+
+.mf-header-sub {
+  font-size: 0.75rem;
+  color: $muted;
+  margin: 0;
+  display: block;
+}
+
+.mf-close-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid $border;
+  background: #fff;
+  color: $muted;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.15s;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #dc2626;
+  }
+}
+
+// ── Body modal ────────────────────────────────────────────────────────────────
+.mf-body {
+  padding: 1.25rem;
+  background: #fff;
+}
+
+// ── Loading ───────────────────────────────────────────────────────────────────
+.mf-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem;
+  color: $muted;
+  font-size: 0.875rem;
+}
+
+.mf-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid $border;
+  border-top-color: $green;
+  border-radius: 50%;
+  animation: mf-spin 0.7s linear infinite;
+}
+
+@keyframes mf-spin { to { transform: rotate(360deg); } }
+
+// ── Champs form-floating améliorés ────────────────────────────────────────────
+.mf-field {
+  margin-bottom: 1rem;
+
+  .form-floating {
+    .form-control,
+    .form-select {
+      border: 1.5px solid $border;
+      border-radius: $radius-sm;
+      font-size: 0.875rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+
+      &:focus {
+        border-color: $green;
+        box-shadow: 0 0 0 3px rgba($green, 0.1);
+      }
+
+      &.is-invalid {
+        border-color: #dc2626;
+        &:focus { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
+      }
+    }
+
+    label {
+      font-size: 0.8125rem;
+      color: $muted;
+    }
+  }
+
+  .invalid-feedback {
+    font-size: 0.75rem;
+    color: #dc2626;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+
+    &::before {
+      content: '⚠';
+      font-size: 0.7rem;
+    }
+  }
+
+  .mf-hint {
+    font-size: 0.72rem;
+    color: $muted;
+    margin-top: 0.3rem;
+    display: block;
+
+    a {
+      color: $green;
+      text-decoration: none;
+      &:hover { text-decoration: underline; }
+    }
+  }
+}
+
+// ── Section label ─────────────────────────────────────────────────────────────
+.mf-section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: $muted;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.625rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  span.req { color: #dc2626; }
+}
+
+// ── Palette couleurs ──────────────────────────────────────────────────────────
+.mf-color-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.mf-color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  outline: none;
+
+  &:hover { transform: scale(1.15); }
+  &.selected {
+    border-color: $green;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px $green;
+    transform: scale(1.1);
+  }
+}
+
+.mf-color-picker {
+  width: 100%;
+  height: 40px;
+  border-radius: $radius-sm;
+  border: 1.5px solid $border;
+  padding: 2px;
+  cursor: pointer;
+}
+
+// ── Aperçu badge ──────────────────────────────────────────────────────────────
+.mf-preview {
+  padding: 1rem;
+  border-radius: $radius-sm;
+  background: #f9fafb;
+  border: 1px solid $border;
+  margin-top: 0.75rem;
+}
+
+.mf-preview-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $muted;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.625rem;
+}
+
+.mf-preview-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+// ── Toggle switch amélioré ────────────────────────────────────────────────────
+.mf-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.875rem;
+  border-radius: $radius-sm;
+  background: #f9fafb;
+  border: 1px solid $border;
+}
+
+.mf-switch-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mf-switch-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $text;
+}
+
+.mf-switch-sub {
+  font-size: 0.72rem;
+  color: $muted;
+}
+
+// ── Rôles sélecteurs ──────────────────────────────────────────────────────────
+.mf-role-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.mf-role-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: 20px;
+  border: 1.5px solid $border;
+  background: #fff;
+  color: #6b7280;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { border-color: $green; color: $green; background: $green-bg; }
+
+  &.active {
+    background: $green-bg;
+    border-color: $green;
+    color: $green;
+  }
+
+  i { font-size: 0.75rem; }
+}
+
+// ── Icône input-group ─────────────────────────────────────────────────────────
+.mf-icon-group {
+  .input-group-text {
+    border: 1.5px solid $border;
+    border-right: none;
+    border-radius: $radius-sm 0 0 $radius-sm;
+    background: #f9fafb;
+    color: $green;
+    font-size: 1rem;
+    min-width: 44px;
+    justify-content: center;
+  }
+
+  .form-control {
+    border: 1.5px solid $border;
+    border-radius: 0 $radius-sm $radius-sm 0;
+    font-size: 0.875rem;
+
+    &:focus {
+      border-color: $green;
+      box-shadow: 0 0 0 3px rgba($green, 0.1);
+      z-index: 1;
+    }
+  }
+}
+
+// ── Dropzone image ────────────────────────────────────────────────────────────
+.mf-dropzone {
+  border: 2px dashed $border;
+  border-radius: $radius-sm;
+  padding: 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: #fafafa;
+
+  &:hover {
+    border-color: $green;
+    background: $green-bg;
+
+    .mf-dropzone-icon { color: $green; }
+  }
+}
+
+.mf-dropzone-icon {
+  font-size: 1.75rem;
+  color: $muted;
+  margin-bottom: 0.4rem;
+  transition: color 0.15s;
+}
+
+.mf-dropzone-label {
+  font-size: 0.8125rem;
+  color: $muted;
+  margin: 0;
+}
+
+.mf-dropzone-hint {
+  font-size: 0.72rem;
+  color: #d1d5db;
+  margin: 0.2rem 0 0;
+}
+
+// Masquer l'input file natif
+.mf-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+// ── Textarea ──────────────────────────────────────────────────────────────────
+.mf-textarea {
+  border: 1.5px solid $border !important;
+  border-radius: $radius-sm !important;
+  resize: none;
+  font-size: 0.875rem;
+
+  &:focus {
+    border-color: $green !important;
+    box-shadow: 0 0 0 3px rgba($green, 0.1) !important;
+  }
+}
+
+// ── Footer actions ────────────────────────────────────────────────────────────
+.mf-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.625rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid $border;
+  background: #fafafa;
+  border-radius: 0 0 $radius $radius;
+}
+
+.mf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.125rem;
+  border-radius: $radius-sm;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1.5px solid transparent;
+  white-space: nowrap;
+
+  &--cancel {
+    background: #fff;
+    border-color: $border;
+    color: #6b7280;
+    &:hover { border-color: #d1d5db; background: #f3f4f6; }
+  }
+
+  &--submit {
+    background: linear-gradient(135deg, $green, $green-light);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba($green, 0.25);
+    &:hover { box-shadow: 0 4px 14px rgba($green, 0.35); transform: translateY(-1px); }
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+  }
+
+  &--send {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+    &:hover { box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35); transform: translateY(-1px); }
+    &:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+  }
+
+  .spinner-border-sm { width: 14px; height: 14px; border-width: 2px; }
+}
+
+.action-btn-contact {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 10px;
+  border: 1px solid #FCD116 !important;
+  background: none;
+  color: #008753 !important;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+
+  i { font-size: 0.9rem; flex-shrink: 0; }
+
+  &:hover {
+    background: #008753 !important;
+    color: #FCD116 !important;
+    box-shadow: 0 3px 10px rgba(252, 209, 22, 0.4);
+    transition: ease-in-out;
+  }
+
+  // Centré quand collapsed
+  .sb--collapsed & {
+    justify-content: center;
+    padding: 0.55rem;
+  }
+}

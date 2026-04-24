@@ -1,0 +1,338 @@
+<div class="am-root mt-5">
+
+  <!-- ══ HEADER ════════════════════════════════════════════════ -->
+  <div class="am-header">
+    <div class="am-header__left">
+      <i class="bi bi-inbox-fill am-header__icon"></i>
+      <div>
+        <h1 class="am-header__title">Messagerie</h1>
+        @if (stats(); as s) {
+          <p class="am-header__sub">
+            {{ s.total }} message{{ s.total > 1 ? 's' : '' }}
+            @if (s.nouveau > 0) {
+              · <strong class="am-header__new">
+                  {{ s.nouveau }} nouveau{{ s.nouveau > 1 ? 'x' : '' }}
+                </strong>
+            }
+          </p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STATS ═════════════════════════════════════════════════ -->
+  @if (stats(); as s) {
+    <div class="am-stats">
+      <div class="am-stat am-stat--nouveau">
+        <span class="am-stat__val">{{ s.nouveau }}</span>
+        <span class="am-stat__lbl">Nouveaux</span>
+      </div>
+      <div class="am-stat am-stat--lu">
+        <span class="am-stat__val">{{ s.lu }}</span>
+        <span class="am-stat__lbl">Lus</span>
+      </div>
+      <div class="am-stat am-stat--repondu">
+        <span class="am-stat__val">{{ s.repondu }}</span>
+        <span class="am-stat__lbl">Répondus</span>
+      </div>
+      <div class="am-stat am-stat--archive">
+        <span class="am-stat__val">{{ s.archive }}</span>
+        <span class="am-stat__lbl">Archivés</span>
+      </div>
+    </div>
+  }
+
+  <!-- ══ TOOLBAR ═══════════════════════════════════════════════ -->
+  <div class="am-toolbar">
+    <div class="am-statut-tabs">
+      @for (s of STATUTS; track s.value) {
+        <button class="am-statut-tab"
+                [class.active]="statutFilter.value === s.value"
+                (click)="statutFilter.setValue(s.value)">
+          {{ s.label }}
+        </button>
+      }
+    </div>
+    <div class="am-search">
+      <i class="bi bi-search am-search__icon"></i>
+      <input type="text" class="am-search__input"
+             placeholder="Rechercher par objet, nom, email…"
+             [formControl]="searchCtrl" />
+    </div>
+  </div>
+
+  <!-- ══ LAYOUT : LISTE + PANEL ════════════════════════════════ -->
+  <div class="am-layout" [class.am-layout--split]="selectedMessage()">
+
+    <!-- ── LISTE ──────────────────────────────────────────────── -->
+    <div class="am-list">
+
+      @if (loading()) {
+        @for (_ of [1,2,3,4,5]; track $index) {
+          <div class="am-item am-item--skeleton">
+            <div class="sk sk--avatar"></div>
+            <div class="sk-body">
+              <div class="sk sk--line sk--w70"></div>
+              <div class="sk sk--line sk--w40"></div>
+            </div>
+          </div>
+        }
+      }
+
+      @if (!loading() && messages().length === 0) {
+        <div class="am-empty">
+          <i class="bi bi-inbox"></i>
+          <p>Aucun message trouvé.</p>
+        </div>
+      }
+
+      @for (msg of messages(); track trackById($index, msg)) {
+        <div class="am-item"
+             [class.am-item--selected]="selectedMessage()?.id === msg.id"
+             [class.am-item--nouveau]="msg.statut === 'NOUVEAU'"
+             (click)="selectionner(msg)">
+
+          <!-- Avatar + indicateur présence -->
+          <div class="am-item__avatar">
+            <span class="am-item__initiales">
+              {{ msg.sender_nom.charAt(0).toUpperCase() }}
+            </span>
+            @if (!msg.est_visitor && msg.sender_user) {
+              <span class="am-presence-dot"
+                    [class.am-presence-dot--online]="estEnLigne(msg.sender_user)"
+                    [title]="estEnLigne(msg.sender_user) ? 'En ligne' : 'Hors ligne'">
+              </span>
+            }
+          </div>
+
+          <!-- Corps -->
+          <div class="am-item__body">
+            <div class="am-item__top">
+              <span class="am-item__nom">{{ msg.sender_nom }}</span>
+              <span class="am-item__date">{{ msg.created_at | date:'dd/MM à HH:mm' }}</span>
+            </div>
+            <div class="am-item__objet">{{ msg.objet }}</div>
+            <div class="am-item__meta">
+              <span [class]="'am-badge ' + statutClass(msg.statut)">
+                {{ statutLabel(msg.statut) }}
+              </span>
+              @if (msg.est_visitor) {
+                <span class="am-badge am-badge--visitor">Visiteur</span>
+              }
+              @if (msg.pj_url) {
+                <span class="am-badge am-badge--pj">
+                  <i class="bi bi-paperclip"></i>PJ
+                </span>
+              }
+              @if (msg.nb_reponses > 0) {
+                <span class="am-item__replies">
+                  <i class="bi bi-chat-dots"></i> {{ msg.nb_reponses }}
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- Action rapide -->
+          <div class="am-item__actions">
+            @if (msg.statut !== 'ARCHIVE') {
+              <button class="am-icon-btn" title="Archiver"
+                      (click)="archiverMessage(msg, $event)">
+                <i class="bi bi-archive"></i>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ── PANEL DÉTAIL + RÉPONSE ─────────────────────────────── -->
+    @if (selectedMessage(); as msg) {
+      <div class="am-panel">
+
+        <!-- Header panel -->
+        <div class="am-panel__header">
+          <div class="am-panel__title-wrap">
+            <h2 class="am-panel__title">{{ msg.objet }}</h2>
+            <span [class]="'am-badge ' + statutClass(msg.statut)">
+              {{ statutLabel(msg.statut) }}
+            </span>
+          </div>
+          <button class="am-icon-btn" (click)="fermerPanel()" title="Fermer">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <!-- Spinner chargement détail -->
+        @if (detailLoading()) {
+          <div class="am-panel__loading">
+            <div class="am-spinner-lg"></div>
+            <span>Chargement du message…</span>
+          </div>
+        }
+
+        <!-- Contenu détail — affiché seulement après chargement complet -->
+        @if (!detailLoading()) {
+
+          <!-- Expéditeur + présence -->
+          <div class="am-panel__sender">
+            <div class="am-panel__sender-info">
+              <strong>{{ msg.sender_nom }}</strong>
+              <span class="am-panel__email">{{ msg.sender_email }}</span>
+              @if (msg.sender_role) {
+                <span class="am-badge am-badge--role">{{ msg.sender_role }}</span>
+              }
+              @if (msg.est_visitor) {
+                <span class="am-badge am-badge--visitor">Visiteur</span>
+              }
+            </div>
+            <!-- Indicateur présence temps réel -->
+            @if (!msg.est_visitor && msg.sender_user) {
+              <div class="am-panel__presence"
+                   [class.online]="estEnLigne(msg.sender_user)">
+                <span class="am-presence-dot am-presence-dot--lg"
+                      [class.am-presence-dot--online]="estEnLigne(msg.sender_user)">
+                </span>
+                {{ estEnLigne(msg.sender_user) ? 'En ligne' : 'Hors ligne' }}
+              </div>
+            }
+            <span class="am-panel__date">
+              {{ msg.created_at | date:'dd/MM/yyyy à HH:mm' }}
+            </span>
+          </div>
+
+          <!-- Contenu du message -->
+          <div class="am-panel__contenu">{{ msg.contenu }}</div>
+
+          <!-- Pièce jointe -->
+          @if (msg.pj_url) {
+            <div class="am-pj-section">
+              <div class="am-pj-bar">
+                <i class="bi bi-paperclip"></i>
+                <span class="am-pj-nom">{{ msg.pj_nom_original }}</span>
+                <span class="am-pj-taille">{{ formatTaille(msg.pj_taille) }}</span>
+                <div class="am-pj-actions">
+                  <button class="am-icon-btn" title="Prévisualiser"
+                          (click)="ouvrirPreview(msg)">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button class="am-icon-btn" title="Télécharger"
+                          (click)="telechargerPj(msg)">
+                    <i class="bi bi-download"></i>
+                  </button>
+                </div>
+              </div>
+              @if (previewUrl() && previewType()) {
+                <div class="am-preview">
+                  <div class="am-preview__header">
+                    <span>{{ previewNom() }}</span>
+                    <button class="am-icon-btn" (click)="fermerPreview()">
+                      <i class="bi bi-x"></i>
+                    </button>
+                  </div>
+                  @if (previewType() === 'image') {
+                    <img [src]="previewUrl()!" [alt]="previewNom()!"
+                         class="am-preview__img" />
+                  }
+                  @if (previewType() === 'pdf') {
+                    <iframe [src]="previewUrl()!" class="am-preview__pdf"
+                            title="Prévisualisation PDF"></iframe>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Réponses précédentes -->
+          @if (msg.reponses && msg.reponses.length > 0) {
+            <div class="am-replies">
+              <h3 class="am-replies__title">
+                <i class="bi bi-chat-left-dots"></i>
+                Réponses ({{ msg.reponses.length }})
+              </h3>
+              @for (rep of msg.reponses; track rep.id) {
+                <div class="am-reply">
+                  <div class="am-reply__header">
+                    <span class="am-reply__admin">
+                      <i class="bi bi-person-fill-gear"></i>
+                      {{ rep.admin_nom }}
+                    </span>
+                    <span class="am-reply__date">
+                      {{ rep.created_at | date:'dd/MM/yyyy à HH:mm' }}
+                    </span>
+                    <div class="am-reply__delivery">
+                      @if (rep.notif_envoyee) {
+                        <span class="am-delivery am-delivery--ok" title="Notif envoyée">
+                          <i class="bi bi-bell-fill"></i>
+                        </span>
+                      }
+                      @if (rep.email_envoye) {
+                        <span class="am-delivery am-delivery--ok" title="Email envoyé">
+                          <i class="bi bi-envelope-check-fill"></i>
+                        </span>
+                      }
+                    </div>
+                  </div>
+                  <div class="am-reply__contenu">{{ rep.contenu }}</div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Formulaire réponse inline -->
+          @if (msg.statut !== 'ARCHIVE') {
+            <div class="am-reply-form">
+              <h3 class="am-reply-form__title">
+                <i class="bi bi-reply-fill"></i>
+                Répondre
+                @if (!msg.est_visitor) {
+                  <span class="am-reply-form__hint">
+                    → notification in-app
+                    @if (estEnLigne(msg.sender_user)) {
+                      <span class="am-online-hint">· utilisateur en ligne 🟢</span>
+                    }
+                  </span>
+                } @else {
+                  <span class="am-reply-form__hint">
+                    → email à {{ msg.sender_email }}
+                  </span>
+                }
+              </h3>
+
+              @if (replySuccess()) {
+                <div class="am-alert am-alert--success">
+                  <i class="bi bi-check-circle-fill"></i>
+                  Réponse envoyée avec succès.
+                </div>
+              }
+              @if (replyError()) {
+                <div class="am-alert am-alert--danger">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  {{ replyError() }}
+                </div>
+              }
+
+              <textarea class="am-reply-form__textarea"
+                        [formControl]="$any(replyForm.get('contenu'))"
+                        placeholder="Saisissez votre réponse…"
+                        rows="4"></textarea>
+
+              <div class="am-reply-form__footer">
+                <button class="am-btn am-btn--primary"
+                        [disabled]="replyForm.invalid || replyLoading()"
+                        (click)="envoyerReponse()">
+                  @if (replyLoading()) {
+                    <span class="am-spinner"></span> Envoi…
+                  } @else {
+                    <i class="bi bi-send-fill"></i> Envoyer la réponse
+                  }
+                </button>
+              </div>
+            </div>
+          }
+
+        } <!-- fin @if (!detailLoading()) -->
+      </div>
+    }
+  </div>
+
+</div>

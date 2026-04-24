@@ -1,0 +1,54 @@
+:root {
+  --bleu-nuit: #0C1633;
+  --gris-clair: #F5F7FA;
+  --gris-texte: #3C3C3C;
+  --vert-succes: #1BB55C;
+  --orange-alerte: #FF7F50;
+}
+
+
+/* Structure principale */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+router-outlet + * {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: 80px; /* Hauteur de votre header */
+  padding-bottom: 2rem;
+}
+
+
+/* Styles globaux pour HTML et Body */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Empêche le défilement horizontal */
+  font-family: 'Manrope', sans-serif; /* Assurez-vous que votre police est appliquée */
+}
+
+/* Wrapper principal de l'application */
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh; /* Assure que le wrapper prend au moins toute la hauteur du viewport */
+  position: relative; /* Nécessaire pour le z-index par rapport au fond */
+  z-index: 0; /* S'assure que le wrapper est au-dessus du fond (-1) */
+}
+
+/* Zone de contenu principale (où se trouve le router-outlet) */
+.content-area {
+  flex-grow: 1; /* Permet à cette zone de prendre tout l'espace disponible */
+  /*
+   * Ajustez ces paddings en fonction de la hauteur réelle de votre header et footer.
+   * Si votre header fait environ 70px et votre footer 50px :
+   */
+  padding-top: 70px; /* Espace pour le header fixe */
+  padding-bottom: 50px; /* Espace pour le footer fixe */
+}
+

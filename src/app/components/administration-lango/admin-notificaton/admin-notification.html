@@ -1,0 +1,397 @@
+<div class="an-wrap mx-auto px-5 mt-5">
+
+  <!-- Header -->
+  <div class="an-header">
+    <h5 class="an-title">
+      <i class="bi bi-bell me-2"></i>
+      Envoyer une notification
+    </h5>
+  </div>
+
+  <!-- Alertes -->
+  @if (successMsg()) {
+    <div class="an-alert success">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ successMsg() }}
+    </div>
+  }
+  @if (errorMsg()) {
+    <div class="an-alert error">
+      <i class="bi bi-x-circle-fill me-2"></i>{{ errorMsg() }}
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="envoyer()">
+    <div class="an-cols">
+
+      <!-- ══ Colonne gauche : ciblage + type ══ -->
+      <div>
+
+        <!-- Ciblage -->
+        <div class="an-field">
+          <span class="an-label">Destinataires</span>
+          <div class="an-cible-grid">
+            <button type="button" class="an-cible-btn"
+                    [class.active]="cible==='user'"
+                    (click)="cible='user'; clearSelection()">
+              <i class="bi bi-person"></i>Un utilisateur
+            </button>
+            <button type="button" class="an-cible-btn"
+                    [class.active]="cible==='multiple'"
+                    (click)="cible='multiple'; clearSelection()">
+              <i class="bi bi-people"></i>Plusieurs
+            </button>
+            <button type="button" class="an-cible-btn"
+                    [class.active]="cible==='role'"
+                    (click)="cible='role'">
+              <i class="bi bi-shield"></i>Par rôle
+            </button>
+            <button type="button" class="an-cible-btn active danger"
+                    [class.active]="cible==='broadcast'"
+                    (click)="cible='broadcast'">
+              <i class="bi bi-broadcast"></i>Tous
+            </button>
+          </div>
+        </div>
+
+        <!-- Sélection utilisateur(s) -->
+        @if (cible === 'user' || cible === 'multiple') {
+          <div class="an-field">
+            <input class="an-search" type="text"
+                   placeholder="Rechercher un utilisateur…"
+                   [value]="searchTerm()"
+                   (input)="searchTerm.set($any($event.target).value)">
+
+            <div class="an-select-actions">
+              <button type="button" (click)="selectAll()">Tout sélect.</button>
+              <span>|</span>
+              <button type="button" (click)="clearSelection()">Effacer</button>
+            </div>
+
+            <div class="an-user-list">
+              @for (u of filteredUsers(); track u.id) {
+                <div class="an-user-item" [class.selected]="isSelected(u.id)"
+                     (click)="toggleUser(u.id)">
+                  <div class="an-user-check">
+                    @if (isSelected(u.id)) { <i class="bi bi-check"></i> }
+                  </div>
+                  <div>
+                    <div class="an-user-name">{{ u.username || '—' }}</div>
+                    <div class="an-user-phone">{{ u.phone || '' }}</div>
+                  </div>
+                </div>
+              }
+              @if (filteredUsers().length === 0) {
+                <div style="padding:1rem;text-align:center;color:#9ca3af;font-size:13px">
+                  Aucun résultat
+                </div>
+              }
+            </div>
+
+            @if (selectedUserIds().size > 0) {
+              <div class="an-selected-count">
+                <i class="bi bi-check-circle me-1"></i>
+                {{ selectedUserIds().size }} sélectionné(s)
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Sélection rôle -->
+        @if (cible === 'role') {
+          <div class="an-field">
+            <label class="an-label">Rôle cible</label>
+            <select class="an-select" formControlName="role">
+              <option value="">— Choisir —</option>
+              @for (r of roles; track r) {
+                <option [value]="r">{{ r }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <!-- Banner broadcast -->
+        @if (cible === 'broadcast') {
+          <div class="an-broadcast-banner">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Envoi à <strong>tous les utilisateurs actifs</strong>. Utilisez avec précaution.
+          </div>
+        }
+
+        <!-- Type de notification -->
+        <div class="an-field">
+          <span class="an-label">Type</span>
+          <div class="an-type-grid">
+            @for (t of typesNotif; track t.value) {
+              <div class="an-type-opt"
+                   [class.active]="form.get('type')?.value === t.value"
+                   [style.border-color]="form.get('type')?.value === t.value 
+                                        ? t.couleur : ''"
+                   [style.color]="form.get('type')?.value === t.value 
+                                  ? t.couleur : ''"
+                   [style.background]="form.get('type')?.value === t.value 
+                                      ? t.couleur + '14' : ''"
+                   (click)="form.get('type')?.setValue(t.value)">
+                <i class="bi" [class]="t.icone"></i>
+                {{ t.label }}
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ Colonne droite : contenu + options ══ -->
+      <div class="an-col-divider">
+
+        <!-- Titre -->
+        <div class="an-field">
+          <label class="an-label">Titre <span class="text-danger">*</span></label>
+          <input type="text" class="an-input" formControlName="titre"
+                 placeholder="Ex : Documents manquants"
+                 [class.invalid]="form.get('titre')?.invalid && form.get('titre')?.touched">
+          @if (form.get('titre')?.invalid 
+                && form.get('titre')?.touched) {
+            <span class="field-msg">Le titre est requis.</span>
+          }
+        </div>
+
+        <div class="an-field">
+          <label class="an-label">
+            <i class="bi bi-clock me-1" style="color:#f59e0b"></i>
+            Date d'expiration
+            <span class="an-label-hint">— optionnel</span>
+          </label>
+
+          <div class="an-expire-row">
+            <input type="datetime-local"
+                   class="an-input an-input-date"
+                   formControlName="expire_le"
+                   [min]="minDate">
+
+            <!-- Raccourcis rapides -->
+            <div class="an-expire-shortcuts">
+              <button type="button" class="an-shortcut" (click)="setExpire(1)">+1j</button>
+              <button type="button" class="an-shortcut" (click)="setExpire(3)">+3j</button>
+              <button type="button" class="an-shortcut" (click)="setExpire(7)">+7j</button>
+              <button type="button" class="an-shortcut an-shortcut-clear"
+                      (click)="form.get('expire_le')?.setValue(null)"
+                      [disabled]="!form.get('expire_le')?.value">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Aperçu de l'expiration -->
+          @if (form.get('expire_le')?.value) {
+            <div class="an-expire-preview">
+              <i class="bi bi-info-circle me-1"></i>
+              La notification expirera le
+              <strong>
+                {{ form.get('expire_le')?.value | date:'dd/MM/yyyy à HH:mm':'':'fr' }}
+              </strong>
+            </div>
+          } @else {
+            <div class="an-expire-preview muted">
+              Sans expiration — la notification restera visible indéfiniment.
+            </div>
+          }
+        </div>
+
+        <!-- ── Pièces jointes PDF ──────────────────────────────────────────────────── -->
+<div class="an-field">
+  <label class="an-label">
+    <i class="bi bi-file-earmark-pdf me-1" style="color:#dc2626"></i>
+    Pièces jointes PDF
+    <span class="an-label-hint">— optionnel · max 1.5 Mo / fichier</span>
+  </label>
+
+  <!-- Zone upload fichiers locaux -->
+  <label class="an-pdf-dropzone">
+    <i class="bi bi-cloud-arrow-up" style="font-size:1.5rem;color:#9ca3af"></i>
+    <span>Cliquer pour sélectionner des PDF</span>
+    <span style="font-size:11.5px;color:#9ca3af">Uniquement .pdf · 1.5 Mo max</span>
+    <input type="file" accept=".pdf" multiple hidden (change)="onPdfsChange($event)">
+  </label>
+
+  <!-- Liste des fichiers sélectionnés -->
+  @if (pdfsFichiers().length > 0) {
+    <div class="an-pdf-list">
+      @for (f of pdfsFichiers(); track f.name; let i = $index) {
+        <div class="an-pdf-item">
+          <i class="bi bi-file-earmark-pdf" style="color:#dc2626;font-size:1rem"></i>
+          <div class="an-pdf-info">
+            <span class="an-pdf-name">{{ f.name }}</span>
+            <span class="an-pdf-size">{{ formatTaille(f.size) }}</span>
+          </div>
+          <button type="button" class="an-pdf-del" (click)="supprimerPdf(i)">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Séparateur -->
+  <div class="an-pdf-ou">
+    <span>ou ajouter un lien externe</span>
+  </div>
+
+  <!-- Lien externe -->
+  <div class="an-lien-row">
+    <input type="url"
+           class="an-input"
+           [(ngModel)]="nouveauLien"
+           placeholder="https://example.com/document.pdf"
+           (keyup.enter)="ajouterLien()">
+    <button type="button" class="an-btn-lien" (click)="ajouterLien()"
+            [disabled]="!nouveauLien.startsWith('http')">
+      <i class="bi bi-plus"></i>
+    </button>
+  </div>
+
+  <!-- Liste des liens ajoutés -->
+  @if (liensExternes().length > 0) {
+    <div class="an-pdf-list">
+      @for (lien of liensExternes(); track lien; let i = $index) {
+        <div class="an-pdf-item">
+          <i class="bi bi-link-45deg" style="color:#6366f1;font-size:1rem"></i>
+          <div class="an-pdf-info">
+            <span class="an-pdf-name" style="font-size:12px">
+              {{ lien.split('/').pop() }}
+            </span>
+            <span class="an-pdf-size">Lien externe</span>
+          </div>
+          <button type="button" class="an-pdf-del" (click)="supprimerLien(i)">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+</div>
+
+        <!-- Message -->
+        <div class="an-field">
+          <label class="an-label">Message  <span class="text-danger">*</span></label>
+          <textarea class="an-textarea" formControlName="message"
+                    placeholder="Décrivez clairement ce que vous attendez…"
+                    [class.invalid]="form.get('message')?.invalid 
+                                    && form.get('message')?.touched">
+          </textarea>
+          @if (form.get('message')?.invalid 
+                && form.get('message')?.touched) {
+            <span class="field-msg">Le message est requis.</span>
+          }
+        </div>
+
+        <!-- Toggle : demande de documents -->
+        <label class="an-toggle-row"
+               (click)="form.get('demandeDocuments')?.setValue(
+                        !form.get('demandeDocuments')?.value);
+                        form.get('demandeConfirmation')?.setValue(false)">
+          <span class="an-toggle-label">
+            <i class="bi bi-file-earmark-arrow-up" style="color:#7c3aed"></i>
+            Demander des documents
+          </span>
+          <div class="an-sw" [class.on]="form.get('demandeDocuments')?.value">
+            <div class="an-sw-knob"></div>
+          </div>
+        </label>
+
+        @if (form.get('demandeDocuments')?.value) {
+          <div class="an-docs-builder">
+            <div class="an-docs-header">
+              <div class="an-docs-title"><i class="bi bi-paperclip"></i>
+                Documents requis
+              </div>
+              <button type="button" class="btn-add-doc" (click)="ajouterDoc()">
+                <i class="bi bi-plus"></i> Ajouter
+              </button>
+            </div>
+            @for (doc of documentsRequis(); track doc.id) {
+              <div class="an-doc-card">
+                <div class="an-doc-row">
+                  <input type="text" class="an-input" [value]="doc.nom"
+                         placeholder="Nom du document *"
+                         (input)="updateDoc(doc.id, 'nom', $any($event.target).value)">
+                  <input type="text" class="an-input" [value]="doc.description"
+                         placeholder="Description"
+                         (input)="updateDoc(
+                         doc.id, 'description', $any($event.target).value
+                         )">
+                </div>
+                <div class="an-doc-footer">
+                  <label class="an-oblig">
+                    <input type="checkbox" [checked]="doc.obligatoire"
+                           (change)="updateDoc(doc.id,'obligatoire',$any($event.target).checked)">
+                    Obligatoire
+                  </label>
+                  <button type="button" class="btn-del-doc" (click)="supprimerDoc(doc.id)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            }
+            @if (documentsRequis().length === 0) {
+              <div style="font-size:13px;color:#9ca3af;text-align:center;padding:0.5rem">
+                Ajoutez au moins un document
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Toggle : demande de confirmation -->
+        <label class="an-toggle-row"
+               (click)="form.get('demandeConfirmation')?.setValue(
+               !form.get('demandeConfirmation')?.value
+               );
+                        form.get('demandeDocuments')?.setValue(false)">
+          <span class="an-toggle-label">
+            <i class="bi bi-hand-index" style="color:#f97316"></i>
+            Demander une confirmation
+          </span>
+          <div class="an-sw" [class.on]="form.get('demandeConfirmation')?.value">
+            <div class="an-sw-knob"></div>
+          </div>
+        </label>
+
+        @if (form.get('demandeConfirmation')?.value) {
+          <div class="an-options-builder">
+            <div class="an-options-title">
+              <i class="bi bi-ui-checks"></i>Options de réponse
+            </div>
+            <div formArrayName="optionsConfirm">
+              @for (opt of optionsArray.controls; track $index; let i = $index) {
+                <div class="an-option-row" [formGroupName]="i">
+                  <input type="text" class="an-input" formControlName="label"
+                         placeholder="Ex: Oui / Non / Je confirme">
+                  <button type="button" class="btn-del-option" (click)="supprimerOption(i)">
+                    <i class="bi bi-x"></i>
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn-add-option" (click)="ajouterOption()">
+              <i class="bi bi-plus"></i> Ajouter une option
+            </button>
+          </div>
+        }
+
+        <!-- Envoyer -->
+        <button type="submit" class="btn-envoyer"
+                [disabled]="form.invalid || isSubmitting()">
+          @if (isSubmitting()) {
+            <span class="spinner-border" 
+                  style="width:14px;height:14px;border-width:2px"></span>
+            Envoi en cours…
+          } @else {
+            <i class="bi bi-send-fill"></i>
+            Envoyer la notification
+          }
+        </button>
+
+      </div>
+    </div>
+  </form>
+</div>

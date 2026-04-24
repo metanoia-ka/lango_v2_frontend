@@ -1,0 +1,281 @@
+<div class="abo-detail-wrap mt-5">
+
+  <!-- ══ Chargement ══ -->
+  @if (isLoading()) {
+    <div class="abo-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement…</span>
+    </div>
+  }
+
+  <!-- ══ Aucun abonnement ══ -->
+  @else if (!abonnement()) {
+    <div class="abo-empty">
+      <div class="abo-empty-icon"><i class="bi bi-patch-check"></i></div>
+      <h5 class="abo-empty-title">Aucun abonnement actif</h5>
+      <p class="abo-empty-sub">
+        Souscrivez à un plan pour commencer à publier vos annonces.
+      </p>
+      <a routerLink="../plans" class="abo-btn-cta">
+        <i class="bi bi-rocket-takeoff me-1"></i> Voir les plans
+      </a>
+    </div>
+  }
+
+  <!-- ══ Abonnement actif ══ -->
+  @else {
+    <!-- Header plan -->
+    <div class="abo-detail-header"
+         [style.border-left-color]="getNiveauColor(abonnement()!.plan_detail.niveau)">
+
+      <div class="abo-detail-header-left">
+        <div class="abo-detail-niveau"
+             [style.background]="getNiveauBg(abonnement()!.plan_detail.niveau)"
+             [style.color]="getNiveauColor(abonnement()!.plan_detail.niveau)">
+          {{ abonnement()!.plan_detail.nom }}
+        </div>
+        <span class="abo-detail-statut-badge"
+              [class]="getStatutClass(abonnement()!.statut)">
+          {{ abonnement()!.statut_label }}
+        </span>
+      </div>
+
+      <div class="abo-detail-prix">
+        {{ abonnement()!.plan_detail.prix_mensuel_fcfa | number }} FCFA/mois
+      </div>
+    </div>
+
+    <!-- Bandeau quota épuisé -->
+    @if (quotaEpuise()) {
+      <div class="abo-quota-alert abo-quota-alert--danger">
+        <i class="bi bi-x-octagon-fill abo-quota-alert__icon"></i>
+        <div class="abo-quota-alert__body">
+          <strong>Quota épuisé — Publication bloquée</strong>
+          <p>
+            Vous avez utilisé toutes vos
+            <strong>{{ abonnement()!.quota_annonces_total }}</strong>
+            publications du plan
+            <strong>{{ abonnement()!.plan_detail.nom }}</strong> ce mois-ci.
+          </p>
+          <div class="abo-quota-alert__actions">
+            <a routerLink="../plans" class="abo-alert-btn abo-alert-btn--primary">
+              <i class="bi bi-arrow-up-circle me-1"></i> Passer au plan supérieur
+            </a>
+            <span class="abo-quota-alert__renew">
+              <i class="bi bi-calendar me-1"></i>
+              Renouvellement le
+              {{ abonnement()!.date_fin | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Bandeau quota proche de l'épuisement (≥ 80%) -->
+    @if (quotaAlerte() && !quotaEpuise()) {
+      <div class="abo-quota-alert abo-quota-alert--warning">
+        <i class="bi bi-exclamation-triangle-fill abo-quota-alert__icon"></i>
+        <div class="abo-quota-alert__body">
+          <strong>Quota presque atteint</strong>
+          <p>
+            Il vous reste seulement
+            <strong>{{ abonnement()!.quota_annonces_restant }}</strong>
+            publication{{ abonnement()!.quota_annonces_restant > 1 ? 's' : '' }}
+            ce mois-ci.
+          </p>
+          <a routerLink="../plans" class="abo-alert-btn abo-alert-btn--warning">
+            <i class="bi bi-arrow-up-circle me-1"></i> Voir les plans supérieurs
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- Onglets -->
+    <div class="abo-tabs">
+      <button class="abo-tab" [class.abo-tab--active]="onglet() === 'apercu'"
+              (click)="changerOnglet('apercu')">
+        <i class="bi bi-grid me-1"></i> Aperçu
+      </button>
+      <button class="abo-tab" [class.abo-tab--active]="onglet() === 'historique'"
+              (click)="changerOnglet('historique')">
+        <i class="bi bi-clock-history me-1"></i> Historique
+      </button>
+    </div>
+
+    <!-- ── Onglet Aperçu ── -->
+    @if (onglet() === 'apercu') {
+
+      <div class="abo-apercu-grid">
+
+        <!-- Quota annonces -->
+        <div class="abo-stat-card">
+          <div class="abo-stat-icon" style="background:#e1f5ee;color:#0f6e56">
+            <i class="bi bi-megaphone-fill"></i>
+          </div>
+          <div class="abo-stat-body">
+            <span class="abo-stat-label">Annonces publiables</span>
+            @if (abonnement()!.plan_detail.est_illimite) {
+              <span class="abo-stat-value">∞ illimité</span>
+            } @else {
+              <span class="abo-stat-value">
+                {{ abonnement()!.quota_annonces_restant }}
+                <span class="abo-stat-total">
+                  / {{ abonnement()!.quota_annonces_total }}
+                </span>
+              </span>
+              <!-- Barre de progression quota -->
+              <div class="abo-quota-bar">
+                <div class="abo-quota-bar-fill"
+                     [style.width.%]="quotaPct"
+                     [style.background]="quotaColor">
+                </div>
+              </div>
+              <span class="abo-stat-hint">
+                {{ abonnement()!.quota_annonces_total 
+                  - abonnement()!.quota_annonces_restant }}
+                utilisée{{ abonnement()!.quota_annonces_total 
+                  - abonnement()!.quota_annonces_restant > 1 ? 's' : '' 
+                }}
+                ce mois
+              </span>
+            }
+          </div>
+        </div>
+
+        <!-- Boosts restants -->
+        <div class="abo-stat-card">
+          <div class="abo-stat-icon" style="background:#eeedfe;color:#3c3489">
+            <i class="bi bi-lightning-fill"></i>
+          </div>
+          <div class="abo-stat-body">
+            <span class="abo-stat-label">Boosts restants</span>
+            <span class="abo-stat-value">
+              {{ abonnement()!.boosts_restants }}
+              <span class="abo-stat-total">
+                / {{ abonnement()!.plan_detail.nb_boosts_inclus }}
+              </span>
+            </span>
+            <span class="abo-stat-hint">Inclus dans le plan ce mois</span>
+          </div>
+        </div>
+
+        <!-- Jours restants -->
+        <div class="abo-stat-card"
+             [class.abo-stat-card--warn]="abonnement()!.jours_restants < 7">
+          <div class="abo-stat-icon"
+               [style.background]="abonnement()!.jours_restants < 7 ? '#fef9c3' : '#e6f1fb'"
+               [style.color]="abonnement()!.jours_restants < 7 ? '#92400e' : '#185fa5'">
+            <i class="bi bi-calendar-check-fill"></i>
+          </div>
+          <div class="abo-stat-body">
+            <span class="abo-stat-label">Jours restants</span>
+            <span class="abo-stat-value">
+              {{ abonnement()!.jours_restants }}
+              @if (abonnement()!.jours_restants < 7) {
+                <i class="bi bi-exclamation-triangle-fill ms-1 text-warning"></i>
+              }
+            </span>
+            <span class="abo-stat-hint">
+              Expire le {{ abonnement()!.date_fin | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Renouvellement auto -->
+        <div class="abo-stat-card">
+          <div class="abo-stat-icon" style="background:#faeeda;color:#854f0b">
+            <i class="bi bi-arrow-repeat"></i>
+          </div>
+          <div class="abo-stat-body">
+            <span class="abo-stat-label">Renouvellement auto</span>
+            <span class="abo-stat-value">
+              @if (abonnement()!.renouvellement_auto) {
+                <span class="abo-badge-on">Activé</span>
+              } @else {
+                <span class="abo-badge-off">Désactivé</span>
+              }
+            </span>
+            @if (abonnement()!.date_prochain_renouvellement) {
+              <span class="abo-stat-hint">
+                Prochain : 
+                {{ abonnement()!.date_prochain_renouvellement | date:'dd/MM/yyyy' }}
+              </span>
+            }
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Fonctionnalités incluses -->
+      <div class="abo-features-row">
+        <div class="abo-feature-chip"
+             [class.abo-feature-chip--on]="abonnement()!.plan_detail.stats_avancees">
+          <i class="bi bi-bar-chart-fill me-1"></i>
+          Stats {{ abonnement()!.plan_detail.stats_avancees ? 'avancées' : 'basiques' }}
+        </div>
+        <div class="abo-feature-chip"
+             [class.abo-feature-chip--on]="abonnement()!.plan_detail.export_stats">
+          <i class="bi bi-download me-1"></i>
+          Export 
+          {{ abonnement()!.plan_detail.export_stats 
+             ? 'disponible' 
+             : 'non disponible' }}
+        </div>
+        <div class="abo-feature-chip"
+             [class.abo-feature-chip--on]="abonnement()!.plan_detail.annonce_epinglee">
+          <i class="bi bi-pin-fill me-1"></i>
+          Épinglage 
+          {{ abonnement()!.plan_detail.annonce_epinglee 
+             ? 'disponible' 
+             : 'non disponible' }}
+        </div>
+      </div>
+
+      <!-- Lien changer de plan -->
+      <div class="abo-change-plan-row">
+        <a routerLink="../plans" class="abo-change-plan-link">
+          <i class="bi bi-arrow-left-right me-1"></i>
+          Changer de plan
+        </a>
+      </div>
+    }
+
+    <!-- ── Onglet Historique ── -->
+    @if (onglet() === 'historique') {
+      @if (abonnement()!.historique.length === 0) {
+        <div class="abo-empty-hist">
+          <i class="bi bi-clock-history"></i>
+          <p>Aucun cycle de renouvellement enregistré.</p>
+        </div>
+      } @else {
+        <div class="abo-hist-table-wrap">
+          <table class="abo-hist-table">
+            <thead>
+              <tr>
+                <th>Début du cycle</th>
+                <th>Fin du cycle</th>
+                <th>Plan</th>
+                <th>Montant</th>
+                <th>Référence</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (h of abonnement()!.historique; track h.id) {
+                <tr>
+                  <td>{{ h.date_debut_cycle | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ h.date_fin_cycle | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ abonnement()!.plan_detail.nom }}</td>
+                  <td><strong>{{ h.montant_fcfa | number }} FCFA</strong></td>
+                  <td class="abo-hist-ref">
+                    {{ h.reference_paiement || '—' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  }
+
+</div>

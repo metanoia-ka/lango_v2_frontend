@@ -1,0 +1,171 @@
+
+<div class="conv-list-wrap">
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="text-center py-4">
+      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+    </div>
+
+  } @else {
+
+    <!-- Header -->
+    <div class="conv-list-header">
+      <h6 class="conv-list-title">
+        <i class="bi bi-chat-dots"></i>
+        Messages reçus
+        @if (totalConversations() > 0) {
+          <span class="conv-count-badge">{{ totalConversations() }}</span>
+        }
+      </h6>
+      <button class="refresh-btn" (click)="refresh()" title="Rafraîchir">
+        <i class="bi bi-arrow-repeat"></i>
+      </button>
+    </div>
+
+    <!-- Liste -->
+    @if (filteredConversations().length > 0) {
+      @for (conv of filteredConversations(); track conv.id) {
+        <div class="conv-item"
+             [class.has-unread]="conv.nb_messages_non_lus > 0"
+             [class.is-closed]="conv.fermee">
+
+          <!-- Ligne principale -->
+          <div class="conv-top">
+            <div class="conv-participant">
+              <div class="conv-avatar"
+                   [style.background-color]="getOtherParticipant(conv) | stringToColor">
+                {{ getInitials(getOtherParticipant(conv)) }}
+              </div>
+              <div style="min-width:0">
+                <div class="conv-name">@{{ getOtherParticipant(conv) }}</div>
+                <div class="conv-time">
+                  <i class="bi bi-clock me-1"></i>
+                  {{ conv.created_at | relativeTime }}
+                </div>
+              </div>
+            </div>
+
+            <div class="conv-badges">
+              @if (conv.nb_messages_non_lus > 0) {
+                <span class="unread-badge">{{ conv.nb_messages_non_lus }} non lu</span>
+              }
+              @if (conv.fermee) {
+                <span class="closed-badge">
+                  <i class="bi bi-lock"></i> Fermée
+                </span>
+              }
+            </div>
+          </div>
+
+          <!-- Annonce -->
+          <div class="conv-annonce">
+            <i class="bi bi-tag me-1"></i>{{ conv.annonce_titre }}
+          </div>
+
+          <!-- Dernier message -->
+          @if (conv.dernier_message) {
+            <div class="conv-preview">
+              <span class="preview-author">{{ conv.dernier_message.auteur }} :</span>
+              {{ conv.dernier_message.contenu }}
+            </div>
+          }
+
+          <!-- Actions -->
+          <div class="conv-actions">
+            @if (conv.nb_messages_non_lus > 0) {
+              <button class="action-btn mark-read"
+                      (click)="markAsRead(conv)"
+                      title="Marquer comme lu">
+                <i class="bi bi-check-all"></i>
+              </button>
+            }
+
+            @if (!conv.fermee) {
+              <button class="action-btn close-conv"
+                      (click)="closeConversation(conv, $event)"
+                      title="Fermer la conversation">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            }
+
+            <button class="action-btn reply"
+                    (click)="openReplyModal(conv, replyModal)"
+                    [disabled]="conv.fermee">
+              <i class="bi bi-reply-fill"></i>
+              Répondre
+            </button>
+          </div>
+
+        </div>
+      }
+
+    } @else {
+      <div class="conv-empty">
+        <i class="bi bi-chat-square-dots"></i>
+        <p>Aucune conversation pour cette annonce</p>
+        <small>Les acheteurs intéressés vous contacteront ici</small>
+      </div>
+    }
+
+  }
+</div>
+
+
+<!-- ── Modale de réponse ────────────────────────────── -->
+<ng-template #replyModal let-modal>
+
+  <div class="modal-header-custom">
+    <h5>
+      <i class="bi bi-reply-fill" style="color:#6366f1"></i>
+      Répondre à @{{ getOtherParticipant(selectedConversation()!) }}
+    </h5>
+    <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+  </div>
+
+  <div class="modal-body-custom">
+
+    <!-- Citation dernier message -->
+    @if (selectedConversation()?.dernier_message) {
+      <div class="msg-quote">
+        <div class="msg-quote-meta">
+          <i class="bi bi-chat-quote"></i>
+          {{ formatDate(selectedConversation()!.dernier_message!.created_at) }}
+        </div>
+        <p class="msg-quote-text">
+          "{{ selectedConversation()?.dernier_message?.contenu }}"
+        </p>
+      </div>
+    }
+
+    <!-- Textarea -->
+    <label class="reply-label">Votre réponse</label>
+    <textarea
+      class="reply-textarea"
+      rows="4"
+      [(ngModel)]="replyMessage"
+      placeholder="Écrivez votre réponse…"
+      [disabled]="isSendingReply()">
+    </textarea>
+
+  </div>
+
+  <div class="modal-footer-custom">
+    <button class="btn-cancel" (click)="modal.dismiss()">
+      Annuler
+    </button>
+    <button class="btn-send"
+            [disabled]="!replyMessage().trim() || isSendingReply()"
+            (click)="sendReply(modal)">
+      @if (isSendingReply()) {
+        <span class="spinner-border spinner-border-sm"
+              style="width:12px;height:12px;border-width:2px"></span>
+        Envoi…
+      } @else {
+        <i class="bi bi-send-fill"></i>
+        Envoyer
+      }
+    </button>
+  </div>
+
+</ng-template>

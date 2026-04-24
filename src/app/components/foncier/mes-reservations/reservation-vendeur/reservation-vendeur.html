@@ -1,0 +1,227 @@
+<div class="mr-wrap mt-4">
+
+  <!-- Header -->
+  <div class="mr-header">
+    <div class="mr-header__left">
+      <i class="bi bi-inbox-fill mr-header__icon"></i>
+      <div>
+        <h1 class="mr-header__title">Réservations reçues</h1>
+        <p class="mr-header__sub">Gérez les demandes de réservation de vos parcelles</p>
+      </div>
+    </div>
+    <div class="mr-header__actions">
+      <select class="mr-select" (change)="onFiltreChange($any($event.target).value)">
+        <option value="">— Tous les statuts —</option>
+        <option value="EN_ATTENTE">En attente</option>
+        <option value="NEGOCIATION">Négociation</option>
+        <option value="ATTRIBUEE">Attribuées</option>
+        <option value="REJETEE">Rejetées</option>
+        <option value="EXPIREE">Expirées</option>
+      </select>
+      <button class="mr-btn mr-btn--outline" (click)="charger()">
+        <i class="bi bi-arrow-clockwise me-1"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="mr-stats">
+    <div class="mr-stat">
+      <span class="mr-stat__val">{{ stats().total }}</span>
+      <span class="mr-stat__lbl">Total</span>
+    </div>
+    <div class="mr-stat mr-stat--active">
+      <span class="mr-stat__val">{{ stats().en_attente }}</span>
+      <span class="mr-stat__lbl">En attente</span>
+    </div>
+    <div class="mr-stat mr-stat--negociation">
+      <span class="mr-stat__val">{{ stats().negociation }}</span>
+      <span class="mr-stat__lbl">Négociation</span>
+    </div>
+    <div class="mr-stat mr-stat--ok">
+      <span class="mr-stat__val">{{ stats().attribuees }}</span>
+      <span class="mr-stat__lbl">Attribuées</span>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="mr-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement…</span>
+    </div>
+  }
+
+  @if (!loading() && reservations().length === 0) {
+    <div class="mr-empty">
+      <i class="bi bi-inbox"></i>
+      <p>Aucune réservation reçue.</p>
+    </div>
+  }
+
+  <div class="mr-list">
+    @for (r of reservations(); track r.id) {
+      <div class="mr-card"
+           [class.mr-card--attribuee]="r.statut === 'ATTRIBUEE'"
+           [class.mr-card--rejetee]="r.statut === 'REJETEE'">
+
+        <div class="mr-card__header">
+          <div class="mr-card__parcelle">
+            <i class="bi bi-person-fill me-2 text-success"></i>
+            <strong>{{ r.client_nom }}</strong>
+            <span class="mr-card__lot">→ Parcelle {{ r.parcelle_numero }}</span>
+          </div>
+          <span [class]="'mr-badge ' + statutClass(r.statut)">
+            {{ statutLabel(r.statut) }}
+          </span>
+        </div>
+
+        <div class="mr-card__body">
+          <dl class="mr-card__dl">
+            <dt>Parcelle</dt>
+            <dd>{{ r.parcelle_nom }} — {{ r.lotissement_nom }}</dd>
+            <dt>Réservé le</dt>
+            <dd>{{ r.created_at | relativeTime }}</dd>
+            <dt>Expire dans</dt>
+            <dd [class.text-danger]="r.heures_restantes > 0 && r.heures_restantes < 24">
+              @if (r.heures_restantes > 0) { {{ r.heures_restantes }}h }
+              @else { — }
+            </dd>
+          </dl>
+
+          @if (r.message_initial) {
+            <div class="mr-card__msg">
+              <i class="bi bi-chat-square-text me-1"></i> {{ r.message_initial }}
+            </div>
+          }
+        </div>
+
+        <!-- Offre active du vendeur -->
+        @if (getOffreActive(r); as offre) {
+          <div class="mr-offre mr-offre--vendeur">
+            <div class="mr-offre__header">
+              <i class="bi bi-tags-fill me-2"></i>
+              <strong>Votre offre en cours</strong>
+              <span class="mr-offre__statut">Tour {{ offre.tour }}</span>
+            </div>
+            <div class="mr-offre__prix">
+              {{ offre.prix_vendeur | number }} XAF
+              <span class="mr-offre__type">
+                / {{ offre.type_prix === 'PAR_M2' ? 'm²' : 'total' }}
+              </span>
+            </div>
+            @if (offre.prix_client) {
+              <div class="mr-offre__contre mr-offre__contre--client">
+                Contre-offre client : <strong>{{ offre.prix_client | number }} XAF</strong>
+              </div>
+            }
+            @if (offre.message_client) {
+              <p class="mr-offre__msg">{{ offre.message_client }}</p>
+            }
+
+            <!-- Actions vendeur selon le statut de l'offre -->
+            <div class="mr-offre__actions">
+              @if (['EN_ATTENTE','ACCEPTEE_CLIENT','CONTRE_PROPOSEE']
+                    .includes(offre.statut)) {
+                <button class="mr-btn mr-btn--success" (click)="vendeurAccepter(offre)">
+                  <i class="bi bi-check-circle me-1"></i> Accepter → Attribuer
+                </button>
+              }
+              @if (['EN_ATTENTE','CONTRE_PROPOSEE'].includes(offre.statut)) {
+                <button class="mr-btn mr-btn--danger-outline" 
+                        (click)="vendeurRejeter(offre)">
+                  <i class="bi bi-x-circle me-1"></i> Rejeter
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Actions card — créer/renouveler offre -->
+        <div class="mr-card__footer">
+          @if (['EN_ATTENTE','NEGOCIATION'].includes(r.statut)) {
+            @if (!getOffreActive(r)) {
+              <button class="mr-btn mr-btn--primary" (click)="ouvrirOffre(r)">
+                <i class="bi bi-tags me-1"></i> Faire une offre de prix
+              </button>
+            } @else {
+              <button class="mr-btn mr-btn--outline" (click)="ouvrirOffre(r)">
+                <i class="bi bi-arrow-repeat me-1"></i> Nouvelle offre
+              </button>
+            }
+          }
+          @if (r.statut === 'ATTRIBUEE') {
+            <div class="mr-attribuee-msg">
+              <i class="bi bi-patch-check-fill me-2 text-success"></i>
+              Attribuée à {{ r.client_nom }}
+            </div>
+          }
+        </div>
+
+      </div>
+    }
+  </div>
+
+  <!-- Panel formulaire offre -->
+  @if (reservationActive()) {
+    <div class="mr-panel-overlay" (click)="fermerOffre()"></div>
+    <div class="mr-panel">
+      <div class="mr-panel__header">
+        <h3>
+          <i class="bi bi-tags-fill me-2 text-success"></i>
+          Offre pour la parcelle {{ reservationActive().parcelle_numero }}
+        </h3>
+        <button class="mr-panel__close" (click)="fermerOffre()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <div class="mr-panel__body">
+        <div class="mr-panel__recap">
+          <span>Client</span>
+          <strong>{{ reservationActive().client_nom }}</strong>
+        </div>
+
+        <div class="mr-panel__field">
+          <label class="mr-panel__label">Type de prix</label>
+          <select class="mr-panel__input" [(ngModel)]="typePrix">
+            <option value="PAR_M2">Prix au m²</option>
+            <option value="TOTAL">Prix total</option>
+          </select>
+        </div>
+
+        <div class="mr-panel__field">
+          <label class="mr-panel__label">
+            Votre prix (XAF {{ typePrix === 'PAR_M2' ? '/m²' : 'total' }})
+          </label>
+          <input type="number" class="mr-panel__input"
+                 [(ngModel)]="prixVendeur"
+                 placeholder="Ex: 15000" min="1">
+        </div>
+
+        <div class="mr-panel__field">
+          <label class="mr-panel__label">Message (optionnel)</label>
+          <textarea class="mr-panel__textarea" rows="3"
+                    [(ngModel)]="messageVendeur"
+                    placeholder="Précisions sur l'offre…"></textarea>
+        </div>
+
+        <div class="mr-panel__actions">
+          <button class="mr-btn mr-btn--outline" (click)="fermerOffre()">
+            Annuler
+          </button>
+          <button class="mr-btn mr-btn--success"
+                  [disabled]="submittingOffre()"
+                  (click)="envoyerOffre()">
+            @if (submittingOffre()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            } @else {
+              <i class="bi bi-send me-1"></i>
+            }
+            Envoyer l'offre
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

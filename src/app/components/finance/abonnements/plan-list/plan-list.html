@@ -1,0 +1,147 @@
+<div class="abo-plans-wrap mt-5">
+
+  <!-- ══ Header ══ -->
+  <div class="abo-plans-header">
+    <div class="abo-plans-title-wrap">
+      <i class="bi bi-patch-check-fill abo-plans-icon"></i>
+      <div>
+        <h5 class="abo-plans-title">Plans d'abonnement</h5>
+        <span class="abo-plans-sub">Choisissez le plan adapté à votre activité</span>
+      </div>
+    </div>
+
+    <!-- Abonnement actif résumé -->
+    @if (abonnement()?.est_actif) {
+      <div class="abo-current-badge">
+        <i class="bi bi-check-circle-fill me-1"></i>
+        Plan actuel :
+        <strong>{{ abonnement()!.plan_detail.nom }}</strong>
+        — {{ abonnement()!.jours_restants }} j. restants
+        <button class="abo-resilier-link" (click)="resilier()">
+          Résilier
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- ══ Grille plans ══ -->
+  @if (isLoading()) {
+    <div class="abo-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement des plans…</span>
+    </div>
+  } @else if (plans().length === 0) {
+    <div class="abo-empty">Aucun plan disponible.</div>
+  }
+  @else {
+    <div class="abo-plans-grid">
+      @for (plan of plans(); track plan.id) {
+        <div class="abo-plan-card"
+             [class.abo-plan-card--actuel]="estPlanActuel(plan)"
+             [class.abo-plan-card--pro]="plan.niveau === 'PROFESSIONNEL'">
+
+          <!-- Badge plan actuel -->
+          @if (estPlanActuel(plan)) {
+            <div class="abo-plan-actuel-ribbon">
+              <i class="bi bi-check2-circle me-1"></i> Plan actuel
+            </div>
+          }
+          @if (plan.niveau === 'PROFESSIONNEL' && !estPlanActuel(plan)) {
+            <div class="abo-plan-popular-ribbon">
+              <i class="bi bi-star-fill me-1"></i> Le plus populaire
+            </div>
+          }
+
+          <!-- Niveau -->
+          <div class="abo-plan-niveau"
+               [style.background]="getNiveauBg(plan.niveau)"
+               [style.color]="getNiveauColor(plan.niveau)">
+            {{ plan.nom }}
+          </div>
+
+          <!-- Prix -->
+          <div class="abo-plan-prix">
+            <span class="abo-plan-prix-value">
+              {{ plan.prix_mensuel_fcfa | number }}
+            </span>
+            <span class="abo-plan-prix-unit">FCFA/mois</span>
+          </div>
+
+          <!-- Description -->
+          @if (plan.description) {
+            <p class="abo-plan-desc">{{ plan.description }}</p>
+          }
+
+          <!-- Features -->
+          <ul class="abo-plan-features">
+            <li>
+              <i class="bi bi-megaphone-fill"></i>
+              <span>{{ formatQuota(plan) }}</span>
+            </li>
+            <li [class.abo-feature--off]="plan.nb_boosts_inclus === 0">
+              <i class="bi"
+                 [class.bi-lightning-fill]="plan.nb_boosts_inclus > 0"
+                 [class.bi-lightning]="plan.nb_boosts_inclus === 0"></i>
+              <span>
+                @if (plan.nb_boosts_inclus > 0) {
+                  {{ plan.nb_boosts_inclus }} 
+                  boost{{ plan.nb_boosts_inclus > 1 ? 's' : '' }}/mois
+                } @else {
+                  Pas de boost inclus
+                }
+              </span>
+            </li>
+            <li [class.abo-feature--off]="!plan.stats_avancees">
+              <i class="bi"
+                 [class.bi-bar-chart-fill]="plan.stats_avancees"
+                 [class.bi-bar-chart]="!plan.stats_avancees"></i>
+              <span>
+                Statistiques {{ plan.stats_avancees ? 'avancées' : 'basiques' }}
+              </span>
+            </li>
+            <li [class.abo-feature--off]="!plan.export_stats">
+              <i class="bi"
+                 [class.bi-download]="plan.export_stats"
+                 [class.bi-x-lg]="!plan.export_stats"></i>
+              <span>
+                Export stats {{ plan.export_stats ? '' : '(non disponible)' }}
+              </span>
+            </li>
+            <li [class.abo-feature--off]="!plan.annonce_epinglee">
+              <i class="bi"
+                 [class.bi-pin-fill]="plan.annonce_epinglee"
+                 [class.bi-pin]="!plan.annonce_epinglee"></i>
+              <span>
+                Annonce épinglée {{ plan.annonce_epinglee ? '' : '(non disponible)' }}
+              </span>
+            </li>
+          </ul>
+
+          <!-- CTA -->
+          <button class="abo-plan-btn"
+                  [class.abo-plan-btn--actuel]="estPlanActuel(plan)"
+                  [class.abo-plan-btn--pro]="plan.niveau === 'PROFESSIONNEL'"
+                  [disabled]="estPlanActuel(plan) || submitting() === plan.id"
+                  (click)="souscrire(plan)">
+            @if (submitting() === plan.id) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            @if (estPlanActuel(plan)) {
+              <i class="bi bi-check-lg me-1"></i> Plan actif
+            } @else if (abonnement()?.est_actif) {
+              @if (plan.ordre > (abonnement()?.plan_detail?.ordre ?? 0)) {
+                <i class="bi bi-arrow-up-circle me-1"></i> Passer à ce plan
+              } @else {
+                <i class="bi bi-arrow-down-circle me-1"></i> Rétrograder
+              }
+            } @else {
+              <i class="bi bi-patch-check me-1"></i> Souscrire
+            }
+          </button>
+
+        </div>
+      }
+    </div>
+  }
+
+</div>

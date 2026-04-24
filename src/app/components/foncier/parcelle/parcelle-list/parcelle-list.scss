@@ -1,0 +1,413 @@
+// ── Toggle + toolbar ─────────────────────────────────────────
+.pf-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pf-statut-filter {
+  width: auto;
+  min-width: 180px;
+}
+
+// ── Stats row ─────────────────────────────────────────────────
+.pf-stats-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pf-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 18px;
+  border-radius: 8px;
+  min-width: 90px;
+
+  &__val { font-size: 1.4rem; font-weight: 700; line-height: 1; }
+  &__lbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; }
+
+  &--disponible { background: #DCFCE7; color: #166534; }
+  &--attribuee  { background: #DBEAFE; color: #1E40AF; }
+  &--reservee   { background: #FEF3C7; color: #92400E; }
+  &--refusee    { background: #FEE2E2; color: #991B1B; }
+}
+
+// ── Layout carte ─────────────────────────────────────────────
+.pf-map-layout {
+  display: flex;
+  height: calc(100vh - 260px);
+  min-height: 500px;
+  gap: 0;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+// ── Sidebar liste parcelles ───────────────────────────────────
+.pf-map-sidebar {
+  width: 260px;
+  min-width: 220px;
+  background: #fff;
+  border-right: 1px solid #E5E7EB;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+
+  &__count {
+    padding: 10px 14px;
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #6B7280;
+    border-bottom: 1px solid #F3F4F6;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+.pf-parcelle-cards {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pf-parcelle-card {
+  padding: 9px 11px;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: #fff;
+
+  &:hover { border-color: #008753; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+
+  &--selected {
+    border-color: #008753;
+    background: #F0FDF4;
+    box-shadow: 0 0 0 2px rgba(0,135,83,0.2);
+  }
+
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+  }
+
+  &__num {
+    font-weight: 700;
+    font-size: 0.82rem;
+    font-family: monospace;
+    color: #1A3557;
+  }
+
+  &__bot {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #6B7280;
+  }
+
+  &__no-geom {
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: #F59E0B;
+    i { margin-right: 4px; }
+  }
+}
+
+.pf-map-empty {
+  text-align: center;
+  padding: 24px 12px;
+  color: #9CA3AF;
+  font-size: 0.85rem;
+  i { display: block; font-size: 1.8rem; margin-bottom: 8px; }
+}
+
+// ── Zone carte ────────────────────────────────────────────────
+.pf-map-wrap {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+  background: #e8edf2;
+}
+
+.pf-ol-map {
+  width: 100%;
+  height: 100%;
+}
+
+// ── Légende ───────────────────────────────────────────────────
+.pf-map-legend {
+  position: absolute;
+  bottom: 4px;
+  left: 10px;
+  background: rgba(255,255,255,0.92);
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 0.72rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  z-index: 50;
+}
+
+.pf-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pf-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+// ── Panneau info parcelle sélectionnée ────────────────────────
+.pf-map-info {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 210px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+  z-index: 60;
+  border-top: 3px solid #008753;
+
+  &__close {
+    position: absolute;
+    top: 6px; right: 9px;
+    background: none; border: none;
+    cursor: pointer; font-size: 0.9rem; color: #9CA3AF;
+    &:hover { color: #111827; }
+  }
+
+  &__num {
+    margin: 0 0 2px;
+    font-size: 0.9rem;
+    font-family: monospace;
+    color: #1A3557;
+  }
+
+  &__nom {
+    font-size: 0.78rem;
+    color: #6B7280;
+    margin: 0 0 8px;
+  }
+
+  &__dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 10px;
+    font-size: 0.78rem;
+    margin: 0;
+
+    dt { color: #9CA3AF; font-weight: 600; }
+    dd { margin: 0; }
+  }
+}
+
+// ── Pas de géom ───────────────────────────────────────────────
+.pf-map-no-geom {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.85);
+  color: #6B7280;
+  gap: 8px;
+  font-size: 0.9rem;
+  z-index: 40;
+  i { font-size: 2rem; color: #FCD116; }
+}
+
+// ── Badges statut ─────────────────────────────────────────────
+.badge-statut {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge-disponible { background: #DCFCE7; color: #166534; }
+.badge-attribuee  { background: #DBEAFE; color: #1E40AF; }
+.badge-reservee   { background: #FEF3C7; color: #92400E; }
+.badge-refusee    { background: #FEE2E2; color: #991B1B; }
+
+// ═══════════════════════════════════════════════════════════════
+// OL OVERRIDES — admin-map.scss + parcelle-list.scss
+// ═══════════════════════════════════════════════════════════════
+
+// ── 1. Masquer les contrôles OL natifs ─────────────────────────
+.ol-zoom,
+.ol-rotate,
+.ol-full-screen {
+  display: none !important;
+}
+
+// ── 2. Attribution OSM ─────────────────────────────────────────
+// Problème : OL injecte `.ol-attribution` avec position:absolute
+// et top/right via son propre CSS. Quand collapsed:true, il reste
+// un petit bouton "©" mais OL le positionne en haut à gauche
+// si le conteneur a overflow:hidden ou une hauteur contrainte.
+//
+// Fix : on écrase TOUTES les propriétés de position avec !important,
+// on masque complètement le texte déplié (on garde juste le "©"),
+// et on le colle en bas à droite, taille minimale.
+
+.ol-attribution {
+  // ── Position — forcer bas à droite sans exception ──────────
+  position:      absolute !important;
+  bottom:        4px     !important;
+  right:         4px     !important;
+  top:           auto    !important;
+  left:          auto    !important;
+
+  // ── Apparence discrète ──────────────────────────────────────
+  background:    rgba(255, 255, 255, 0.80) !important;
+  backdrop-filter: blur(3px);
+  border-radius: 4px !important;
+  padding:       2px 5px !important;
+  font-size:     10px !important;
+  color:         #9ca3af !important;
+  line-height:   1.4;
+  box-shadow:    none !important;
+  border:        none !important;
+
+  // ── Liste de crédits : visible seulement quand déplié ──────
+  ul {
+    margin:      0 !important;
+    padding:     0 !important;
+    font-size:   10px !important;
+    color:       #6b7280;
+    white-space: nowrap;
+  }
+
+  &.ol-collapsed ul { display: none; }
+  &:not(.ol-collapsed) ul { display: block; }
+
+  // ── Bouton toggle © ─────────────────────────────────────────
+  button {
+    background:  transparent !important;
+    border:      none        !important;
+    padding:     0           !important;
+    margin:      0           !important;
+    font-size:   10px        !important;
+    color:       #9ca3af     !important;
+    cursor:      pointer;
+    line-height: 1.4;
+
+    &:hover { color: #374151 !important; }
+
+    // Masquer la flèche OL (▶ / ◀) — on garde juste le texte ©
+    &::after { display: none !important; }
+  }
+}
+
+// ── 3. Contrôles carte custom ──────────────────────────────────
+// Groupe de 3 boutons : zoom+, zoom-, fit-all
+// Positionnés en bas à droite, au-dessus de l'attribution.
+// Les icônes sont des SVG inline dans le HTML (pas de caractères Unicode).
+
+.map-controls {
+  position:       absolute;
+  right:          10px;
+  bottom:         28px;   // 4px attribution + 4px gap + 20px hauteur © = ~28px
+  z-index:        400;
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+.map-ctrl-btn {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           28px;
+  height:          28px;
+  padding:         0;
+  background:      rgba(255, 255, 255, 0.95);
+  border:          1px solid #e5e7eb;
+  border-radius:   5px;
+  color:           #374151;
+  cursor:          pointer;
+  box-shadow:      0 1px 3px rgba(0, 0, 0, 0.10);
+  transition:      background 0.12s, border-color 0.12s, box-shadow 0.12s, transform 0.08s;
+  user-select:     none;
+
+  svg {
+    width:          14px;
+    height:         14px;
+    stroke:         currentColor;
+    stroke-width:   2;
+    fill:           none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink:    0;
+  }
+
+  &:hover {
+    background:   #f9fafb;
+    border-color: #9ca3af;
+    box-shadow:   0 2px 6px rgba(0, 0, 0, 0.13);
+  }
+
+  &:active {
+    transform:  scale(0.90);
+    background: #f3f4f6;
+  }
+
+  // Séparateur visuel entre zoom et fit-all
+  &.map-ctrl-btn--fit {
+    margin-top:   4px;
+    border-color: #d1d5db;
+    color:        #1A3557;
+
+    svg {
+      stroke-width: 1.75;
+    }
+  }
+}
+
+// ── 4. position:relative sur les conteneurs ────────────────────
+.map-canvas-wrap,
+.pf-map-wrap {
+  position: relative;
+}
+
+.map-attribution {
+  position:        absolute;
+  bottom:          4px;
+  right:           6px;       // ← changer en left:6px pour mettre à gauche
+  z-index:         400;
+  font-size:       10px;
+  line-height:     1.5;
+  color:           #9ca3af;
+  background:      rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(2px);
+  padding:         1px 5px;
+  border-radius:   3px;
+  pointer-events:  auto;
+  white-space:     nowrap;
+ 
+  a {
+    color:           #9ca3af;
+    text-decoration: none;
+    font-weight:     500;
+    &:hover { color: #374151; text-decoration: underline; }
+  }
+}

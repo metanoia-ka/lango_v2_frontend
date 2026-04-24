@@ -1,0 +1,67 @@
+<header class="main-header">
+
+  <div class="header-left"></div>
+
+  <div class="header-right">
+    <app-language-selector />
+
+    
+@if (isAuthLoading()) {
+
+  <!-- Skeleton pendant le chargement initial — évite le flash -->
+  <div class="header-auth-skeleton">
+    <div class="skeleton-avatar"></div>
+    <div class="skeleton-bar" style="width:80px"></div>
+  </div>
+
+} @else if (!user()) {
+
+  <!-- Non connecté -->
+  <div class="auth-buttons">
+    <a class="btn-auth btn-login" routerLink="/auth/login">
+      <i class="bi bi-box-arrow-in-right"></i>
+      <span>Connexion</span>
+    </a>
+    <a class="btn-auth btn-register" routerLink="/auth/register">
+      <i class="bi bi-person-plus"></i>
+      <span>Inscription</span>
+    </a>
+    <button class="btn-auth btn-register" (click)="contactTeam()">
+      <i class="bi bi-send"></i> Contacter l'équipe
+    </button>
+  </div>
+
+} @else {
+
+  <!-- Connecté -->
+  <div class="header-user-zone">
+    <!-- <app-credit-badge-solde /> -->
+    <!-- @if (user()) {
+      <button class="btn-auth btn-register me-2"
+              (click)="onLogout()">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Déconnexion</span>
+      </button>
+    } -->
+    @if (!isAgent) {
+      <app-badge-solde />
+    }
+    <app-notification-dropdown />
+
+    <!-- Avatar + nom cliquable -->
+    <div class="header-user-chip">
+      <div class="header-user-avatar">
+        @if (user()?.avatar_user) {
+          <img [src]="user()!.avatar_user" [alt]="user()!.username" />
+        } @else {
+          <i class="bi bi-person-fill"></i>
+        }
+      </div>
+      <span class="header-user-name">{{ user()?.username }}</span>
+    </div>
+  </div>
+
+}
+  </div>
+
+</header>

@@ -1,0 +1,829 @@
+// zones-competence.component.scss
+
+$green: #008753;
+$green-light: #E8F5EE;
+$blue: #2563EB;
+$amber: #F59E0B;
+$orange: #F97316;
+$red: #EF4444;
+$dark: #111827;
+$gray: #6B7280;
+$gray-light: #F3F4F6;
+$border: #E5E7EB;
+$white: #ffffff;
+$radius: 10px;
+$radius-sm: 6px;
+$shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+$shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+// ── Layout ───────────────────────────────────────────────────────────────
+.zones-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+// ── Header ───────────────────────────────────────────────────────────────
+.zones-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  &__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: $green-light;
+    color: $green;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  &__title {
+    margin: 0 0 4px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: $dark;
+  }
+  
+  &__sub {
+    margin: 0;
+    font-size: 0.85rem;
+    color: $gray;
+  }
+}
+
+// ── Stats ────────────────────────────────────────────────────────────────
+.zones-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+  
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: $radius;
+  
+  &__icon {
+    font-size: 1.5rem;
+  }
+  
+  &__val {
+    margin: 0 0 2px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: $dark;
+    line-height: 1.2;
+  }
+  
+  &__lbl {
+    margin: 0;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: $gray;
+  }
+  
+  &--agents .stat-card__icon { color: $blue; }
+  &--zones .stat-card__icon { color: $green; }
+  &--principales .stat-card__icon { color: $amber; }
+  &--secondaires .stat-card__icon { color: $orange; }
+  &--sans-zone .stat-card__icon { color: $red; }
+}
+
+// ── Tabs ─────────────────────────────────────────────────────────────────
+.zones-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid $border;
+}
+
+.zones-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-radius: $radius-sm $radius-sm 0 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: $gray;
+  cursor: pointer;
+  transition: all 0.15s;
+  
+  &:hover {
+    background: $gray-light;
+    color: $dark;
+  }
+  
+  &--active {
+    background: $green-light;
+    color: $green;
+    border-bottom: 2px solid $green;
+  }
+  
+  i { font-size: 1rem; }
+}
+
+// ── Filtres ──────────────────────────────────────────────────────────────
+.zones-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: $radius;
+}
+
+.search-wrapper {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $gray;
+  font-size: 0.9rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 14px 10px 40px;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+  
+  &:focus {
+    border-color: $green;
+  }
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $gray;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.filter-chip {
+  padding: 5px 12px;
+  background: $gray-light;
+  border: 1px solid $border;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: $gray;
+  cursor: pointer;
+  transition: all 0.15s;
+  
+  &:hover {
+    background: darken($gray-light, 3%);
+  }
+  
+  &--active {
+    background: $green;
+    border-color: $green;
+    color: $white;
+  }
+  
+  &--principale.filter-chip--active {
+    background: $amber;
+    border-color: $amber;
+  }
+  
+  &--secondaire.filter-chip--active {
+    background: $orange;
+    border-color: $orange;
+  }
+}
+
+.btn-clear-filters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: none;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  font-size: 0.8rem;
+  color: $gray;
+  cursor: pointer;
+  
+  &:hover {
+    background: $gray-light;
+  }
+}
+
+// ── Loading / Empty ──────────────────────────────────────────────────────
+.zones-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px;
+  color: $gray;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid $gray-light;
+  border-top-color: $green;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  
+  &--sm {
+    width: 18px;
+    height: 18px;
+  }
+  
+  &--light {
+    border-color: rgba(255, 255, 255, 0.3);
+    border-top-color: $white;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.zones-empty {
+  text-align: center;
+  padding: 48px 24px;
+  background: $white;
+  border: 1px dashed $border;
+  border-radius: $radius;
+  
+  i {
+    font-size: 2.5rem;
+    color: $gray;
+    margin-bottom: 12px;
+  }
+  
+  p {
+    margin: 0 0 4px;
+    font-weight: 600;
+    color: $dark;
+  }
+  
+  span {
+    font-size: 0.85rem;
+    color: $gray;
+  }
+}
+
+// ── Table ────────────────────────────────────────────────────────────────
+.zones-table-wrapper {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: $radius;
+  overflow: hidden;
+}
+
+.zones-table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  th {
+    padding: 14px 16px;
+    background: $gray-light;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: $gray;
+    text-align: left;
+    border-bottom: 1px solid $border;
+  }
+  
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid $border;
+    font-size: 0.9rem;
+    
+    &:last-child {
+      text-align: right;
+    }
+  }
+  
+  tr:last-child td {
+    border-bottom: none;
+  }
+  
+  tr:hover td {
+    background: $gray-light;
+  }
+}
+
+.agent-cell,
+.arrondissement-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  i {
+    color: $gray;
+    font-size: 0.9rem;
+  }
+}
+
+.priorite-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  
+  &.priorite--principale {
+    background: #FEF3C7;
+    color: #92400E;
+  }
+  
+  &.priorite--secondaire {
+    background: #FFF7ED;
+    color: #9A3412;
+  }
+}
+
+.status-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: $gray-light;
+  border: 1px solid $border;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: $gray;
+  cursor: pointer;
+  transition: all 0.15s;
+  
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $gray;
+  }
+  
+  &--active {
+    background: #DCFCE7;
+    border-color: #BBF7D0;
+    color: #166534;
+    
+    .status-dot {
+      background: $green;
+    }
+  }
+}
+
+.actions-cell {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: $white;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+  color: $gray;
+  cursor: pointer;
+  transition: all 0.15s;
+  
+  &:hover {
+    background: $gray-light;
+  }
+  
+  &--edit:hover {
+    border-color: $blue;
+    color: $blue;
+  }
+  
+  &--delete:hover {
+    border-color: $red;
+    color: $red;
+  }
+}
+
+// ── Form ─────────────────────────────────────────────────────────────────
+.zones-form-section {
+  max-width: 680px;
+}
+
+.form-card {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 24px;
+}
+
+.form-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: $dark;
+  
+  i {
+    color: $green;
+  }
+}
+
+.form-description {
+  margin: 0 0 20px;
+  font-size: 0.9rem;
+  color: $gray;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $dark;
+  
+  i {
+    color: $gray;
+    margin-right: 4px;
+  }
+  
+  .required {
+    color: $red;
+    margin-left: 2px;
+  }
+}
+
+.form-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid $border;
+  border-radius: $radius-sm;
+  font-size: 0.9rem;
+  color: $dark;
+  background: $white;
+  outline: none;
+  transition: border-color 0.15s;
+  
+  &:focus {
+    border-color: $green;
+  }
+  
+  &.is-invalid {
+    border-color: $red;
+  }
+  
+  &:disabled {
+    background: $gray-light;
+    color: $gray;
+  }
+}
+
+.form-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: $gray;
+}
+
+// Priorité selector
+.priorite-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.priorite-option {
+  display: flex;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1.5px solid $border;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: all 0.15s;
+  
+  input[type="radio"] {
+    display: none;
+  }
+  
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    
+    i {
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+    }
+    
+    strong {
+      font-size: 0.95rem;
+      color: $dark;
+    }
+    
+    small {
+      font-size: 0.8rem;
+      color: $gray;
+    }
+  }
+  
+  &--selected {
+    border-color: $green;
+    background: $green-light;
+    
+    .priorite-option__content i {
+      color: $green;
+    }
+  }
+  
+  &:hover {
+    border-color: $green;
+  }
+}
+
+// Checkbox
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  
+  input[type="checkbox"] {
+    display: none;
+  }
+  
+  .checkbox-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid $border;
+    border-radius: 4px;
+    transition: all 0.15s;
+    
+    &::after {
+      content: '';
+      display: block;
+      width: 12px;
+      height: 12px;
+      margin: 2px;
+      background: $green;
+      border-radius: 2px;
+      transform: scale(0);
+      transition: transform 0.15s;
+    }
+  }
+  
+  input:checked + .checkbox-custom {
+    border-color: $green;
+    
+    &::after {
+      transform: scale(1);
+    }
+  }
+}
+
+// Form actions
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid $border;
+}
+
+// ── Buttons ──────────────────────────────────────────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: $radius-sm;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  
+  &--primary {
+    background: $green;
+    color: $white;
+    
+    &:hover:not(:disabled) {
+      background: darken($green, 8%);
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+  
+  &--outline {
+    background: transparent;
+    border: 1px solid $border;
+    color: $gray;
+    
+    &:hover {
+      background: $gray-light;
+    }
+  }
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: $green;
+  font-size: 0.85rem;
+  cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ── Bulk section ─────────────────────────────────────────────────────────
+.bulk-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid $border;
+}
+
+.bulk-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  
+  h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $dark;
+  }
+}
+
+.bulk-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.bulk-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  color: $gray;
+}
+
+.bulk-empty {
+  text-align: center;
+  padding: 32px;
+  background: $gray-light;
+  border-radius: $radius-sm;
+  color: $gray;
+  
+  i {
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
+}
+
+.bulk-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid $border;
+  border-radius: $radius-sm;
+}
+
+.bulk-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid $border;
+  transition: background 0.15s;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background: $gray-light;
+  }
+  
+  &--selected {
+    background: $green-light;
+  }
+  
+  &__checkbox {
+    display: flex;
+    cursor: pointer;
+    
+    input {
+      display: none;
+    }
+    
+    .checkbox-custom {
+      width: 18px;
+      height: 18px;
+      border: 2px solid $border;
+      border-radius: 4px;
+      
+      &::after {
+        width: 10px;
+        height: 10px;
+        margin: 2px;
+      }
+    }
+    
+    input:checked + .checkbox-custom {
+      border-color: $green;
+      
+      &::after {
+        transform: scale(1);
+      }
+    }
+  }
+  
+  &__name {
+    flex: 1;
+    font-size: 0.9rem;
+    color: $dark;
+  }
+  
+  &__priorite {
+    padding: 4px 8px;
+    border: 1px solid $border;
+    border-radius: $radius-sm;
+    font-size: 0.8rem;
+    background: $white;
+    cursor: pointer;
+  }
+}
+
+.bulk-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid $border;
+}
+
+.bulk-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: $gray;
+}

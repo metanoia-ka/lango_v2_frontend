@@ -1,0 +1,464 @@
+.custom-input-sm {
+  height: 32px;
+  padding: 5px 12px !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+.form-input:focus, .form-select:focus {
+  background: rgba(255, 255, 255, 0.9);
+  outline: none; /* Supprime l'outline par défaut du navigateur */
+  /* Nouveau style pour un "blur" plus doux et fin */
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.05), /* Ombre interne subtile */
+    0 0 0 2px rgba(102, 126, 234, 0.1); /* Ombre externe très légère et transparente */
+    /* Alternative pour un gris très doux : 0 0 0 2px rgba(173, 181, 189, 0.2); */
+}
+
+/* Si vous utilisez aussi .form-control directement, appliquez le même style */
+.form-control:focus {
+  outline: none;
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.05),
+    0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.vd-header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1.125rem 1.375rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  background: #fff;
+  border-radius: 9px 9px 0 0;
+}
+
+.vd-header-avatar {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vd-header-avatar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e6f4ee, #d1fae5);
+  animation: pulse-ring 2.5s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% { transform: scale(1);     opacity: 1;   }
+  50%       { transform: scale(1.08);  opacity: 0.7; }
+}
+
+.vd-header-avatar-icon {
+  font-size: 1.5rem;
+  color: #008753;
+  position: relative;
+  z-index: 1;
+}
+
+.vd-header-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.vd-header-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.vd-header-sub {
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.vd-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 50%;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+
+  &:hover { background: #e5e7eb; color: #111827; }
+}
+
+.vd-body {
+  padding: 1.25rem 1.375rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+  overflow-y: auto;
+  //max-height: calc(90vh - 180px);
+}
+
+// ── Meta (type + statut) ──────────────────────────────────────────────────────
+
+.vd-meta {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.vd-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.875rem 1.125rem;
+
+  &:first-child { border-right: 1px solid #f0f0f0; }
+}
+
+.vd-meta-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  i { font-size: 0.8rem; }
+}
+
+.vd-meta-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+// ── Badge statut ──────────────────────────────────────────────────────────────
+
+.vd-statut-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  width: fit-content;
+
+  .vd-statut-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &.vd-statut--valide  { background: #e6f4ee; color: #008753; border: 1px solid #b3d9c8;
+    .vd-statut-dot { background: #008753; animation: pulse-dot 2s infinite; } }
+  &.vd-statut--attente { background: #fffbeb; color: #b45309; border: 1px solid #fcd34d;
+    .vd-statut-dot { background: #f59e0b; } }
+  &.vd-statut--rejete  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;
+    .vd-statut-dot { background: #dc2626; } }
+  &.vd-statut--encours { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe;
+    .vd-statut-dot { background: #3b82f6; } }
+  &.vd-statut--corriger{ background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe;
+    .vd-statut-dot { background: #7c3aed; } }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1);   }
+  50%       { opacity: 0.6; transform: scale(1.3); }
+}
+
+// ── Sections ──────────────────────────────────────────────────────────────────
+
+.vd-section {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.vd-section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.125rem;
+  border-bottom: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+
+.vd-section-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.vd-section-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #374151;
+  flex: 1;
+}
+
+// ── Téléchargement ────────────────────────────────────────────────────────────
+
+.vd-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border: 1.5px solid #008753;
+  border-radius: 8px;
+  background: transparent;
+  color: #008753;
+  font-size: 0.775rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: #008753; color: #fff; }
+}
+
+// ── PDF ───────────────────────────────────────────────────────────────────────
+
+.vd-pdf-wrap {
+  padding: 0;
+  background: #f9fafb;
+}
+
+.vd-pdf-frame {
+  display: block;
+  border: none;
+}
+
+.vd-no-doc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1.25rem;
+  font-size: 0.8125rem;
+  color: #92400e;
+  font-weight: 500;
+  background: #fffbeb;
+
+  i { font-size: 1.1rem; }
+}
+
+// ── Commentaire ───────────────────────────────────────────────────────────────
+
+.vd-comment-wrap {
+  padding: 0.875rem 1.125rem;
+}
+
+.vd-textarea {
+  width: 100%;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+  padding: 0.7rem 0.875rem;
+  font-size: 0.875rem;
+  color: #111827;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  line-height: 1.5;
+
+  &::placeholder { color: #d1d5db; }
+
+  &:focus {
+    border-color: #008753;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0,135,83,0.1);
+  }
+}
+
+// ── Erreur inline ─────────────────────────────────────────────────────────────
+
+.vd-error-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8125rem;
+  color: #dc2626;
+
+  i { font-size: 1rem; flex-shrink: 0; }
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+
+.vd-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 1rem 1.375rem;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+  flex-wrap: wrap;
+  border-radius: 0 0 9px 9px;
+}
+
+.vd-footer-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+// ── Boutons ───────────────────────────────────────────────────────────────────
+
+.vd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: 9px;
+  border: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+  &:active:not(:disabled) { transform: translateY(0); }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  &--cancel {
+    background: #f3f4f6;
+    color: #6b7280;
+    &:hover:not(:disabled) { background: #e5e7eb; opacity: 1; }
+  }
+
+  &--valider {
+    background: linear-gradient(135deg, #008753, #00a86b);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0,135,83,0.25);
+    &:hover:not(:disabled) { box-shadow: 0 4px 12px rgba(0,135,83,0.35); }
+  }
+
+  &--corriger {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(124,58,237,0.2);
+  }
+
+  &--encours {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.2);
+  }
+
+  &--rejeter {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(220,38,38,0.2);
+  }
+}
+
+// Spinner inline dans le bouton valider
+.vd-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+
+.vd-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px 24px;
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--surface-1, #f8f9fa);
+  border-radius: 12px;
+  border: 1px solid var(--border, #e0e0e0);
+
+  .vd-info-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+    }
+  }
+
+  .vd-info-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary, #6c757d);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .vd-info-value {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary, #212529);
+    word-break: break-word;
+  }
+
+  // Variante compacte (optionnel)
+  &.compact {
+    gap: 12px;
+    padding: 12px;
+
+    .vd-info-row {
+      padding: 6px 10px;
+    }
+
+    .vd-info-label {
+      font-size: 0.75rem;
+    }
+
+    .vd-info-value {
+      font-size: 0.875rem;
+    }
+  }
+
+  // Responsive mobile
+  @media (max-width: 576px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

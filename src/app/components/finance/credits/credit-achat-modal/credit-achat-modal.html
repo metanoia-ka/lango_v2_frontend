@@ -1,0 +1,88 @@
+<div class="cam-header">
+  <div class="cam-header-icon"><i class="bi bi-cart-plus"></i></div>
+  <div>
+    <h5 class="cam-title">Acheter un pack</h5>
+    <span class="cam-sub">{{ pack.nom }} — {{ pack.total_credits }} crédits</span>
+  </div>
+  <button class="cam-close" (click)="annuler()">
+    <i class="bi bi-x-lg"></i>
+  </button>
+</div>
+
+<div class="cam-body">
+
+  <!-- Résumé du pack -->
+  <div class="cam-pack-recap">
+    <div class="cam-pack-recap-credits">
+      <span class="cam-pack-recap-val">{{ pack.total_credits }}</span>
+      <span class="cam-pack-recap-unit">crédits</span>
+    </div>
+    @if (pack.bonus_credits > 0) {
+      <span class="cam-pack-recap-bonus">
+        dont +{{ pack.bonus_credits }} crédits bonus inclus
+      </span>
+    }
+    <div class="cam-pack-recap-prix">{{ pack.prix_fcfa | number }} FCFA</div>
+  </div>
+
+  <!-- Alertes -->
+  @if (successMessage()) {
+    <div class="cam-alert cam-alert--success">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ successMessage() }}
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="cam-alert cam-alert--error">
+      <i class="bi bi-exclamation-circle-fill me-2"></i>{{ errorMessage() }}
+    </div>
+  }
+
+  <!-- Choix méthode -->
+  <p class="cam-section-label">
+    <i class="bi bi-wallet2 me-1"></i>
+    Méthode de paiement
+  </p>
+
+  <div class="cam-methodes">
+    @for (m of methodes; track m.value) {
+      <div class="cam-methode"
+           [class.cam-methode--active]="methodeChoisie() === m.value"
+           (click)="choisirMethode(m.value)">
+        <div class="cam-methode-icon">
+          <i [class]="'bi ' + m.icon"></i>
+        </div>
+        <div class="cam-methode-info">
+          <span class="cam-methode-label">{{ m.label }}</span>
+          <span class="cam-methode-desc">{{ m.desc }}</span>
+        </div>
+        @if (methodeChoisie() === m.value) {
+          <i class="bi bi-check-circle-fill cam-methode-check"></i>
+        }
+      </div>
+    }
+  </div>
+
+  <p class="cam-note">
+    <i class="bi bi-info-circle me-1"></i>
+    Votre achat sera en attente jusqu'à confirmation du paiement.
+    Pour MTN et Orange Money, vous recevrez une notification de validation.
+  </p>
+
+</div>
+
+<div class="cam-footer">
+  <button class="cam-btn cam-btn--cancel"
+          (click)="annuler()" [disabled]="isSubmitting()">
+    Annuler
+  </button>
+  <button class="cam-btn cam-btn--confirm"
+          (click)="confirmer()"
+          [disabled]="!methodeChoisie() || isSubmitting()">
+    @if (isSubmitting()) {
+      <span class="spinner-border spinner-border-sm me-2"></span>
+    } @else {
+      <i class="bi bi-check-circle me-2"></i>
+    }
+    Confirmer — {{ pack.prix_fcfa | number }} FCFA
+  </button>
+</div>

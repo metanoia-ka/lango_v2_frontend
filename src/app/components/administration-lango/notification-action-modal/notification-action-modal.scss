@@ -1,0 +1,209 @@
+:root {
+    --green:       #008753;
+    --green-hover: #006b42;
+    --green-light: #e6f4ee;
+    --green-mid:   #b3d9c8;
+    --yellow:      #FCD116;
+    --text:        #111827;
+    --muted:       #6b7280;
+    --border:      #e5e7eb;
+    --bg:          #f9fafb;
+    --radius:      9px;
+  }
+
+  .nam {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13.5px;
+    color: var(--text);
+  }
+
+  /* ── Header ───────────────────────── */
+  .nam-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1.125rem;
+    border-bottom: 1px solid var(--border);
+    gap: 0.75rem;
+  }
+
+  .nam-header-left { display: flex; align-items: center; gap: 0.625rem; }
+
+  .nam-type-icon {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .nam-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 260px;
+  }
+
+  /* ── Body ─────────────────────────── */
+  .nam-body { padding: 1rem 1.125rem; display: flex; flex-direction: column; gap: 0.875rem; }
+
+  .nam-message {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 0.875rem;
+  }
+
+  /* ── Cas 1 : Documents ────────────── */
+  .nam-docs-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .nam-doc-item {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.625rem 0.875rem;
+    background: #fff;
+  }
+
+  .nam-doc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+  }
+
+  .nam-doc-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .nam-doc-req {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 0.1rem 0.4rem;
+    border-radius: 100px;
+  }
+  .nam-doc-req.obligatoire { background: #fef2f2; color: #ef4444; }
+  .nam-doc-req.optionnel   { background: var(--bg); color: var(--muted); }
+
+  .nam-doc-desc {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-bottom: 0.375rem;
+  }
+
+  .nam-doc-hint {
+    font-size: 11.5px;
+    color: #9ca3af;
+  }
+
+  .nam-file-input {
+    width: 100%;
+    border: 1px dashed var(--border);
+    border-radius: 7px;
+    padding: 0.375rem 0.625rem;
+    font-size: 13px;
+    font-family: inherit;
+    background: var(--bg);
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .nam-file-input:focus { outline: none; border-color: var(--green); }
+  .nam-file-input.has-file { border-color: var(--green-mid); background: var(--green-light); }
+
+  /* ── Cas 2 : Confirmer action ─────── */
+  .nam-options { display: flex; flex-direction: column; gap: 0.375rem; }
+
+  .nam-option {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.12s;
+    background: #fff;
+  }
+
+  .nam-option:hover { border-color: var(--green-mid); background: var(--green-light); }
+  .nam-option.selected { border-color: var(--green); background: var(--green-light); }
+
+  .nam-option input[type="radio"] { accent-color: var(--green); width: 15px; height: 15px; }
+
+  .nam-option-label { font-size: 13.5px; font-weight: 500; color: var(--text); }
+
+  /* Textarea commentaire */
+  .nam-textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 0.5rem 0.75rem;
+    font-size: 13.5px;
+    font-family: inherit;
+    color: var(--text);
+    resize: vertical;
+    min-height: 72px;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+  }
+  .nam-textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,135,83,0.08); }
+
+  .nam-field-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #9ca3af;
+    margin-bottom: 0.3rem;
+  }
+
+  /* ── Footer ───────────────────────── */
+  .nam-footer {
+    padding: 0.75rem 1.125rem;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .nam-btn {
+    height: 34px;
+    padding: 0 1rem;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+
+  .nam-btn-cancel {
+    background: #fff;
+    border-color: var(--border);
+    color: var(--muted);
+  }
+  .nam-btn-cancel:hover { background: #f3f4f6; }
+
+  .nam-btn-submit {
+    background: var(--green);
+    color: #fff;
+    border-color: var(--green);
+  }
+  .nam-btn-submit:hover:not(:disabled) { background: var(--green-hover); }
+  .nam-btn-submit:disabled { background: #e5e7eb; color: #9ca3af; border-color: #e5e7eb; cursor: not-allowed; }

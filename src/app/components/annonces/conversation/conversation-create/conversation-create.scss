@@ -1,0 +1,17 @@
+.form-input:focus {
+  background: rgba(255, 255, 255, 0.9);
+  outline: none; /* Supprime l'outline par défaut du navigateur */
+  /* Nouveau style pour un "blur" plus doux et fin */
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.05), /* Ombre interne subtile */
+    0 0 0 2px rgba(102, 126, 234, 0.1); /* Ombre externe très légère et transparente */
+    /* Alternative pour un gris très doux : 0 0 0 2px rgba(173, 181, 189, 0.2); */
+}
+
+/* Si vous utilisez aussi .form-control directement, appliquez le même style */
+.form-control:focus {
+  outline: none;
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.05),
+    0 0 0 2px rgba(102, 126, 234, 0.1);
+}

@@ -1,0 +1,88 @@
+<aside class="sidebar" [class.open]="isOpen()">
+  <button type="button" class="burger" aria-label="Toggle sidebar" 
+          title="Toggle sidebar" (click)="toggleSidebar()">
+    <span class="line" [class.cross]="isCrossVisible()" aria-hidden="true"></span>
+  </button>
+
+  
+
+  <div class="sidebar-inner">
+
+    <nav class="menu" aria-label="Menu principal">
+      @for (m of menus; track $index) {
+      <ng-container>
+        @if (hasRole(m.roles)) {
+          <a
+            [routerLink]="m.path"
+            routerLinkActive="active"
+            class="menu-item">
+            <!-- <span class="icon" [ngClass]="getMenuIcon(m.label)"></span> -->
+            <span class="menu-item-content" [class.hidden]="!isOpen()">{{ m.label }}</span>
+          <!-- <span 
+            [ngClass]="canAccess(m) ? 'bi bi-folder' : 'bi bi-lock'">
+          </span> -->
+          </a>
+        }
+      </ng-container>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <ng-container>
+        <button class="btn btn-secondary-custom sm auth-btn" (click)="onLogout()">
+          <span class="icon bi bi-box-arrow-right"></span>
+          <span class="menu-item-content" [class.hidden]="!isOpen()">Déconnexion</span>
+        </button>
+      </ng-container>
+      <ng-template>
+        <a routerLink="/auth/login" class="btn btn-secondary-custom sm auth-btn">
+          <span class="icon bi bi-box-arrow-in-right"></span>
+          <span class="menu-item-content" [class.hidden]="!isOpen()">Se connexion</span>
+        </a>
+      </ng-template>
+    </div>
+
+    <div class="sidebar-footer footer-meta">
+      <small>&copy; {{ timeCopy }} Agiris — v mini-4o</small>
+      <small>Made with ❤️ by Metanoia-ka</small>
+    </div>
+  </div>
+</aside>
+
+<header class="app-header">
+  <div class="header-inner">
+    <a class="navbar-brand" routerLink="/home">
+      <strong class="text-agiris-animated">AGIRIS</strong>
+    </a>
+    
+    <div class="d-flex justify-content-center align-items-center gap-2">
+      <div class="ms-auto">
+        <button class="btn btn-sm"
+                ngbTooltip="Rechercher..."
+                placement="bottom"
+                triggers="hover"
+                style="padding: 4px 8px;
+                        border-radius: 6px;
+                        border: 1px solid #ccc;
+                        background: #f8f9fa;
+                        cursor: pointer;">
+          <i class="bi bi-search"></i>
+        </button>
+      </div>
+      <div class="me-5">
+        <app-language-selector />
+      </div>
+      <!-- <div class="ms-auto">
+        <app-notification-annonce />
+      </div> -->
+      <div>
+        <span style="padding-right: 16px;">
+            Bienvenue,&nbsp;
+            <strong class="text-gradient-accent">
+              {{ user()?.identifier || user()?.phone }}&nbsp;({{ user()?.roles }})
+            </strong>
+          </span>
+      </div>
+    </div>
+  </div>
+</header>

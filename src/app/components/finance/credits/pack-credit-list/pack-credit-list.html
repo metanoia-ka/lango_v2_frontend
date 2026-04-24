@@ -1,0 +1,142 @@
+<div class="cr-admin-wrap w-75 mx-auto mt-5">
+
+  <!-- ══ Header ══ -->
+  <div class="cr-admin-header">
+    <div class="cr-admin-title-wrap">
+      <div class="cr-admin-icon">
+        <i class="bi bi-box-seam-fill"></i>
+      </div>
+      <div>
+        <h5 class="cr-admin-title">Packs de crédits</h5>
+        <span class="cr-admin-sub">
+          {{ packs().length }} pack{{ packs().length > 1 ? 's' : '' }} 
+          configuré{{ packs().length > 1 ? 's' : '' }}
+        </span>
+      </div>
+    </div>
+    <button class="tf-btn tf-btn--primary" (click)="ouvrirCreation()">
+      <i class="bi bi-plus-lg me-1"></i> Nouveau pack
+    </button>
+  </div>
+
+  <!-- Alerte erreur -->
+  @if (errorMessage) {
+    <app-alert type="danger" title="Erreur" (onClose)="errorMessage = ''">
+      <p class="mb-0 small">{{ errorMessage }}</p>
+    </app-alert>
+  }
+
+  <!-- ══ Chargement ══ -->
+  @if (isLoading()) {
+    <div class="cr-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement…</span>
+    </div>
+  }
+
+  <!-- ══ Liste vide ══ -->
+  @else if (packs().length === 0) {
+    <div class="cr-empty">
+      <i class="bi bi-box-seam"></i>
+      <p>Aucun pack configuré.</p>
+      <button class="tf-btn tf-btn--primary" (click)="ouvrirCreation()">
+        <i class="bi bi-plus-lg me-1"></i> Créer le premier pack
+      </button>
+    </div>
+  }
+
+  <!-- ══ Tableau des packs ══ -->
+  @else {
+    <div class="cr-table-wrap">
+      <table class="cr-table">
+        <thead>
+          <tr>
+            <th>Ordre</th>
+            <th>Nom</th>
+            <th>Prix (FCFA)</th>
+            <th>Crédits</th>
+            <th>Bonus</th>
+            <th>Total</th>
+            <th>FCFA / cr.</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (pack of packs(); track pack.id) {
+            <tr [class.cr-row--inactive]="!pack.est_actif">
+
+              <td class="cr-td-center">
+                <span class="cr-ordre-badge">{{ pack.ordre }}</span>
+              </td>
+
+              <td>
+                <div class="cr-pack-name">{{ pack.nom }}</div>
+                @if (pack.description) {
+                  <div class="cr-pack-desc-sm">{{ pack.description }}</div>
+                }
+              </td>
+
+              <td class="cr-td-right">
+                <strong>{{ pack.prix_fcfa | number }}</strong>
+              </td>
+
+              <td class="cr-td-center">{{ pack.nb_credits }}</td>
+
+              <td class="cr-td-center">
+                @if (pack.bonus_credits > 0) {
+                  <span class="cr-bonus-chip">+{{ pack.bonus_credits }}</span>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+
+              <td class="cr-td-center">
+                <strong>{{ pack.total_credits }}</strong>
+              </td>
+
+              <td class="cr-td-center">
+                @if (pack.cout_par_credit) {
+                  {{ pack.cout_par_credit | number:'1.0-1' }}
+                } @else {
+                  —
+                }
+              </td>
+
+              <td class="cr-td-center">
+                <button class="cr-toggle-btn"
+                        [class.cr-toggle-btn--active]="pack.est_actif"
+                        [class.cr-toggle-btn--inactive]="!pack.est_actif"
+                        (click)="toggleActif(pack)"
+                        ngbTooltip="{{ pack.est_actif ? 'Désactiver' : 'Activer' }}"
+                        placement="top" triggers="hover">
+                  <i class="bi"
+                     [class.bi-toggle-on]="pack.est_actif"
+                     [class.bi-toggle-off]="!pack.est_actif"></i>
+                  {{ pack.est_actif ? 'Actif' : 'Inactif' }}
+                </button>
+              </td>
+
+              <td>
+                <div class="cr-actions">
+                  <button class="cr-act-btn cr-act-btn--edit"
+                          (click)="ouvrirEdition(pack)"
+                          ngbTooltip="Modifier" placement="top" triggers="hover">
+                    <i class="bi bi-pencil-fill"></i>
+                  </button>
+                  <button class="cr-act-btn cr-act-btn--delete"
+                          (click)="supprimerPack(pack)"
+                          ngbTooltip="Supprimer" placement="top" triggers="hover">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>

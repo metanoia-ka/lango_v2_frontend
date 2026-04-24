@@ -1,0 +1,156 @@
+<div class="ar">
+
+  <div class="ar-header">
+    <h5 class="ar-title">
+      <i class="bi bi-chat-square-text"></i>
+      Réponses reçues
+      @if (reponses().length > 0) {
+        <span class="ar-count">{{ reponses().length }}</span>
+      }
+    </h5>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="ar-loading">
+      <span class="spinner-border spinner-border-sm" role="status"></span>
+      Chargement des réponses…
+    </div>
+
+  <!-- Vide -->
+  } @else if (reponses().length === 0) {
+    <div class="ar-empty">
+      <i class="bi bi-inbox"></i>
+      Aucune réponse pour cette notification.
+    </div>
+
+  <!-- Liste -->
+  } @else {
+    @for (rep of reponses(); track rep.id) {
+      <div class="ar-card">
+
+        <!-- Header -->
+        <div class="ar-card-header">
+          <div class="ar-card-left">
+            <div class="ar-avatar">
+              {{ (rep.utilisateur_nom || '?').charAt(0).toUpperCase() }}
+            </div>
+            <div>
+              <div class="ar-username">{{ rep.utilisateur_nom || '—' }}</div>
+              <div class="ar-date">
+                {{ rep.date_reponse | date:'dd/MM/yyyy à HH:mm' }}
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:0.375rem">
+            <span class="ar-action-badge" [class]="rep.action">
+              {{ getActionLabel(rep.action) }}
+            </span>
+            <span class="ar-status" [class.traitee]="rep.traitee" 
+                  [class.attente]="!rep.traitee">
+              <i class="bi" [class.bi-check-circle-fill]="rep.traitee"
+                            [class.bi-clock]="!rep.traitee"></i>
+              {{ rep.traitee ? 'Traitée' : 'En attente' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Corps -->
+        <div class="ar-card-body">
+
+          @if (rep.message) {
+
+            @let parsed = parseMessage(rep.message);
+
+  <!-- CAS 1 : confirmer_action → affichage structuré -->
+  @if (parsed.type === 'confirmation') {
+    <div class="ar-confirm-block">
+
+      <!-- Choix principal -->
+      <div class="ar-confirm-row">
+        <span class="ar-confirm-label">
+          <i class="bi bi-hand-index me-1"></i>
+          Choix
+        </span>
+        <span class="ar-confirm-value"
+              [style.background]="getChoixStyle(parsed.choix!).background"
+              [style.color]="getChoixStyle(parsed.choix!).color">
+          <i class="bi"
+             [class.bi-check-circle-fill]="['oui','yes','confirme'].includes(parsed.choix!.toLowerCase())"
+             [class.bi-x-circle-fill]="['non','no','refuse'].includes(parsed.choix!.toLowerCase())"
+             [class.bi-circle]="!['oui','yes','confirme','non','no','refuse'].includes(parsed.choix!.toLowerCase())">
+          </i>
+          {{ getChoixLabel(parsed.choix!) }}
+        </span>
+      </div>
+
+      <!-- Commentaire (si non vide) -->
+      @if (parsed.commentaire) {
+        <div class="ar-confirm-row">
+          <span class="ar-confirm-label">
+            <i class="bi bi-chat-text me-1"></i>
+            Commentaire
+          </span>
+          <span class="ar-confirm-comment">{{ parsed.commentaire }}</span>
+        </div>
+      }
+
+    </div>
+
+  <!-- CAS 2 : texte libre normal -->
+  } @else if (parsed.type === 'texte') {
+    <div class="ar-message">{{ parsed.texte }}</div>
+  }
+          }
+
+          @if (rep.fichiers.length > 0) {
+            <div class="ar-fichiers-label">
+              <i class="bi bi-paperclip"></i>
+              {{ rep.fichiers.length }} fichier(s) joint(s)
+            </div>
+            <div class="ar-fichiers-list">
+              @for (f of rep.fichiers; track f.id) {
+                <a [href]="f.url" target="_blank" class="ar-fichier-chip">
+                  <i class="bi" [class]="getFileIcon(f.mime_type)"></i>
+                  {{ f.nom_original }}
+                  <span style="font-size:11px;color:#9ca3af">
+                    ({{ (f.taille / 1024).toFixed(0) }} Ko)
+                  </span>
+                </a>
+              }
+            </div>
+          }
+
+        </div>
+
+        <!-- Footer -->
+        <div class="ar-card-footer">
+          @if (rep.traitee && rep.traitee_le) {
+            <span class="ar-traitee-info">
+              <i class="bi bi-check-circle-fill"></i>
+              Traitée le {{ rep.traitee_le | date:'dd/MM/yyyy à HH:mm' }}
+            </span>
+          } @else {
+            <span></span>
+          }
+
+          @if (!rep.traitee) {
+            <button type="button" class="ar-btn-traiter"
+                    [disabled]="traitementEnCours[rep.id]"
+                    (click)="traiter(rep)">
+              @if (traitementEnCours[rep.id]) {
+                <span class="spinner-border spinner-border-sm" role="status"></span>
+              } @else {
+                <i class="bi bi-check2"></i>
+              }
+              Marquer comme traitée
+            </button>
+          }
+        </div>
+
+      </div>
+    }
+  }
+
+</div>

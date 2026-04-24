@@ -1,0 +1,152 @@
+<div class="pa-wrap mt-5">
+
+  <!-- Header -->
+  <div class="pa-header">
+    <div class="pa-header-left">
+      <div class="pa-icon"><i class="bi bi-patch-check-fill"></i></div>
+      <div>
+        <h5 class="pa-title">Plans d'abonnement</h5>
+        <span class="pa-sub">
+          {{ plans().length }} 
+          plan{{ plans().length > 1 ? 's' : '' }} 
+          configuré{{ plans().length > 1 ? 's' : '' }}
+        </span>
+      </div>
+    </div>
+    <button class="lt-btn lt-btn--primary" (click)="ouvrirCreation()">
+      <i class="bi bi-plus-lg me-1"></i> Nouveau plan
+    </button>
+  </div>
+
+  <!-- Alerte erreur -->
+  @if (errorMessage) {
+    <app-alert type="danger" title="Erreur" (onClose)="errorMessage = ''">
+      <p class="mb-0 small">{{ errorMessage }}</p>
+    </app-alert>
+  }
+
+  <!-- Chargement -->
+  @if (isLoading()) {
+    <div class="pa-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement…</span>
+    </div>
+  }
+
+  <!-- Vide -->
+  @else if (plans().length === 0) {
+    <div class="pa-empty">
+      <i class="bi bi-patch-check"></i>
+      <p>Aucun plan configuré.</p>
+      <button class="lt-btn lt-btn--primary" (click)="ouvrirCreation()">
+        <i class="bi bi-plus-lg me-1"></i> Créer le premier plan
+      </button>
+    </div>
+  }
+
+  <!-- Tableau -->
+  @else {
+    <div class="pa-table-wrap">
+      <table class="pa-table">
+        <thead>
+          <tr>
+            <th>Ordre</th>
+            <th>Plan</th>
+            <th>Niveau</th>
+            <th>Prix/mois</th>
+            <th>Annonces</th>
+            <th>Boosts</th>
+            <th>Stats avancées</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (plan of plans(); track plan.id) {
+            <tr [class.pa-row--inactive]="!plan.est_actif">
+
+              <td class="pa-td-center">
+                <span class="pa-ordre">{{ plan.ordre }}</span>
+              </td>
+
+              <td>
+                <div class="pa-plan-nom">{{ plan.nom }}</div>
+                @if (plan.description) {
+                  <div class="pa-plan-desc">{{ plan.description }}</div>
+                }
+              </td>
+
+              <td>
+                <span class="pa-niveau-badge"
+                      [style.background]="getNiveauBg(plan.niveau)"
+                      [style.color]="getNiveauColor(plan.niveau)">
+                  {{ plan.niveau }}
+                </span>
+              </td>
+
+              <td class="pa-td-right">
+                <strong>{{ plan.prix_mensuel_fcfa | number }}</strong> FCFA
+              </td>
+
+              <td class="pa-td-center">
+                @if (plan.nb_annonces_max === -1) {
+                  <span class="pa-chip pa-chip--green">∞</span>
+                } @else {
+                  {{ plan.nb_annonces_max }}
+                }
+              </td>
+
+              <td class="pa-td-center">
+                @if (plan.nb_boosts_inclus > 0) {
+                  <span class="pa-chip pa-chip--purple">
+                    {{ plan.nb_boosts_inclus }}
+                  </span>
+                } @else {
+                  <span class="pa-muted">—</span>
+                }
+              </td>
+
+              <td class="pa-td-center">
+                @if (plan.stats_avancees) {
+                  <i class="bi bi-check-circle-fill text-success"></i>
+                } @else {
+                  <i class="bi bi-x-circle text-muted"></i>
+                }
+              </td>
+
+              <td class="pa-td-center">
+                <button class="pa-toggle-btn"
+                        [class.pa-toggle-btn--on]="plan.est_actif"
+                        [class.pa-toggle-btn--off]="!plan.est_actif"
+                        (click)="toggleActif(plan)"
+                        ngbTooltip="{{ plan.est_actif ? 'Désactiver' : 'Activer' }}"
+                        placement="top" triggers="hover">
+                  <i class="bi" [class.bi-toggle-on]="plan.est_actif"
+                     [class.bi-toggle-off]="!plan.est_actif"></i>
+                  {{ plan.est_actif ? 'Actif' : 'Inactif' }}
+                </button>
+              </td>
+
+              <td>
+                <div class="pa-actions">
+                  <button class="pa-act-btn pa-act-btn--edit"
+                          (click)="ouvrirEdition(plan)"
+                          ngbTooltip="Modifier" placement="top" triggers="hover">
+                    <i class="bi bi-pencil-fill"></i>
+                  </button>
+                  <button class="pa-act-btn pa-act-btn--delete"
+                          (click)="supprimerPlan(plan)"
+                          ngbTooltip="Supprimer" placement="top" triggers="hover">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>

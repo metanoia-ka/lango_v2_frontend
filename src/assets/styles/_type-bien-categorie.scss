@@ -1,0 +1,436 @@
+// type-bien-crud.scss ══════════════════════════════════════════════════════════
+
+$green:   #008753;
+$green-l: #E8F5EE;
+$dark:    #111827;
+$gray:    #6B7280;
+$gray-l:  #F3F4F6;
+$gray-m:  #E5E7EB;
+$white:   #ffffff;
+$danger:  #EF4444;
+
+// ── Wrap ──────────────────────────────────────────────────────────────────
+.tb-wrap { max-width: 900px; margin: 0 auto; padding: 0 1rem 3rem; }
+
+// ── Header ────────────────────────────────────────────────────────────────
+.tb-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  flex-wrap:       wrap;
+  gap:             12px;
+  margin-bottom:   1.5rem;
+
+  &__left { display: flex; align-items: center; gap: 14px; }
+  &__icon { font-size: 1.6rem; color: $green; }
+  &__title { font-size: 1.2rem; font-weight: 700; color: $dark; margin: 0 0 2px; }
+  &__sub   { font-size: 0.8rem; color: $gray; margin: 0; }
+}
+
+// ── Alertes ───────────────────────────────────────────────────────────────
+.tb-alert {
+  padding: 10px 14px; border-radius: 8px; font-size: 0.82rem;
+  margin-bottom: 12px;
+  &--danger { background: #FEF2F2; color: #991B1B; border: 1px solid #FCA5A5; }
+}
+
+.tb-loading {
+  display: flex; align-items: center; gap: 10px;
+  color: $gray; font-size: 0.88rem; padding: 1rem 0;
+}
+
+// ── Onglets ───────────────────────────────────────────────────────────────
+.tb-tabs {
+  display:       flex;
+  gap:           4px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid $gray-m;
+  padding-bottom: 0;
+}
+
+.tb-tab {
+  display:       inline-flex;
+  align-items:   center;
+  padding:       9px 18px;
+  border:        none;
+  border-bottom: 3px solid transparent;
+  background:    none;
+  color:         $gray;
+  font-size:     0.85rem;
+  font-weight:   600;
+  cursor:        pointer;
+  margin-bottom: -2px;
+  transition:    all 0.15s;
+
+  &:hover { color: $dark; }
+
+  &--active {
+    color:         $green;
+    border-bottom-color: $green;
+    background:    $green-l;
+    border-radius: 6px 6px 0 0;
+  }
+
+  &__badge {
+    margin-left:   6px;
+    background:    $gray-m;
+    color:         $gray;
+    font-size:     0.7rem;
+    padding:       1px 6px;
+    border-radius: 10px;
+    font-weight:   700;
+  }
+}
+
+// ── Section ───────────────────────────────────────────────────────────────
+.tb-section { display: flex; flex-direction: column; gap: 16px; }
+
+// ── Formulaire card ───────────────────────────────────────────────────────
+.tb-form-card {
+  background:    $white;
+  border:        1px solid $gray-m;
+  border-radius: 10px;
+  padding:       16px 20px;
+
+  &__title {
+    font-size:     0.88rem;
+    font-weight:   700;
+    color:         $dark;
+    margin:        0 0 12px;
+    display:       flex;
+    align-items:   center;
+  }
+}
+
+.tb-form { }
+
+.tb-form-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   12px;
+}
+
+.tb-field {
+  display:        flex;
+  flex-direction: column;
+  gap:            5px;
+  &--full { grid-column: 1 / -1; }
+}
+
+.tb-label {
+  font-size:   0.75rem;
+  font-weight: 600;
+  color:       $gray;
+  .req { color: $danger; }
+}
+
+.tb-input {
+  padding:       8px 12px;
+  border:        1px solid $gray-m;
+  border-radius: 7px;
+  font-size:     0.875rem;
+  color:         $dark;
+  outline:       none;
+  transition:    border-color 0.15s;
+  background:    $white;
+  width:         100%;
+
+  &:focus      { border-color: $green; }
+  &--error     { border-color: $danger; }
+  &--textarea  { resize: vertical; }
+  &--sm        { font-size: 0.78rem; padding: 5px 8px; }
+}
+
+select.tb-input { cursor: pointer; }
+
+.tb-error { font-size: 0.73rem; color: $danger; }
+
+.tb-form-actions {
+  display:         flex;
+  justify-content: flex-end;
+  gap:             10px;
+  margin-top:      14px;
+  padding-top:     12px;
+  border-top:      1px solid $gray-m;
+}
+
+// ── Icon + color picker ───────────────────────────────────────────────────
+.tb-icon-picker {
+  display:     flex;
+  align-items: center;
+  flex-wrap:   wrap;
+  gap:         6px;
+}
+
+.tb-icon-opt {
+  width:         32px;
+  height:        32px;
+  border-radius: 6px;
+  border:        1.5px solid $gray-m;
+  background:    $white;
+  cursor:        pointer;
+  display:       flex;
+  align-items:   center;
+  justify-content: center;
+  font-size:     1rem;
+  color:         $gray;
+  transition:    all 0.12s;
+
+  &:hover      { border-color: $green; color: $green; }
+  &--sel       { border-color: $green; background: $green-l; color: $green; }
+}
+
+.tb-color-picker { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.tb-color-dot {
+  width:         24px;
+  height:        24px;
+  border-radius: 50%;
+  border:        2px solid transparent;
+  cursor:        pointer;
+  transition:    transform 0.12s;
+  padding:       0;
+
+  &:hover  { transform: scale(1.15); }
+  &--sel   { border-color: $dark; transform: scale(1.2); }
+}
+
+.tb-color-input {
+  width:  36px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid $gray-m;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+// ── Filtre chips ──────────────────────────────────────────────────────────
+.tb-filter {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  flex-wrap:   wrap;
+
+  &__label {
+    font-size:   0.78rem;
+    font-weight: 600;
+    color:       $gray;
+    white-space: nowrap;
+  }
+
+  &__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+}
+
+.tb-chip {
+  padding:       5px 12px;
+  border-radius: 20px;
+  border:        1.5px solid $gray-m;
+  background:    $white;
+  color:         $gray;
+  font-size:     0.78rem;
+  font-weight:   600;
+  cursor:        pointer;
+  transition:    all 0.12s;
+
+  &:hover    { border-color: $green; color: $green; }
+  &--active  { border-color: $green; background: $green-l; color: $green; }
+}
+
+// ── Liste / cards ─────────────────────────────────────────────────────────
+.tb-list { display: flex; flex-direction: column; gap: 8px; }
+
+.tb-card {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding:         12px 16px;
+  background:      $white;
+  border:          1px solid $gray-m;
+  border-radius:   10px;
+  gap:             12px;
+  transition:      box-shadow 0.15s;
+
+  &:hover        { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  &--inactive    { opacity: 0.65; }
+  &--type        { border-left: 3px solid $green; }
+
+  &__left {
+    display:     flex;
+    align-items: center;
+    gap:         12px;
+    flex:        1;
+    min-width:   0;
+  }
+
+  &__nom {
+    font-size:   0.88rem;
+    font-weight: 700;
+    color:       $dark;
+    margin:      0 0 2px;
+    display:     flex;
+    align-items: center;
+    gap:         6px;
+    flex-wrap:   wrap;
+  }
+
+  &__sub {
+    font-size: 0.75rem;
+    color:     $gray;
+    margin:    0;
+  }
+
+  &__actions {
+    display:     flex;
+    align-items: center;
+    gap:         8px;
+    flex-shrink: 0;
+  }
+}
+
+.tb-cat-icon {
+  width:           36px;
+  height:          36px;
+  border-radius:   8px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       1.1rem;
+  flex-shrink:     0;
+}
+
+.tb-type-cat-tag {
+  font-size:     0.68rem;
+  font-weight:   700;
+  padding:       2px 8px;
+  border-radius: 10px;
+  background:    $green-l;
+  color:         $green;
+  white-space:   nowrap;
+  flex-shrink:   0;
+}
+
+.tb-mono { font-family: monospace; font-size: 0.72rem !important; }
+
+// ── Drapeaux métier ───────────────────────────────────────────────────────
+.tb-flags {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       14px;
+}
+
+.tb-flag-item {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  cursor:      pointer;
+  font-size:   0.82rem;
+  color:       $dark;
+
+  &:hover { color: $green; }
+}
+
+.tb-checkbox {
+  width:         16px;
+  height:        16px;
+  accent-color:  $green;
+  cursor:        pointer;
+  flex-shrink:   0;
+}
+
+.tb-flag-badge {
+  font-size:     0.66rem;
+  font-weight:   700;
+  padding:       1px 6px;
+  border-radius: 10px;
+
+  &--meuble   { background: #FEF3C7; color: #92400E; }
+  &--parcelle { background: #FEE2E2; color: #991B1B; }
+}
+
+// ── Badges statut ─────────────────────────────────────────────────────────
+.tb-badge {
+  font-size:     0.7rem;
+  font-weight:   700;
+  padding:       2px 8px;
+  border-radius: 20px;
+  white-space:   nowrap;
+
+  &--on  { background: $green-l; color: $green; }
+  &--off { background: $gray-l;  color: $gray; }
+}
+
+// ── Boutons ───────────────────────────────────────────────────────────────
+.tb-btn {
+  display:       inline-flex;
+  align-items:   center;
+  padding:       8px 16px;
+  border-radius: 7px;
+  font-size:     0.82rem;
+  font-weight:   600;
+  border:        none;
+  cursor:        pointer;
+  transition:    all 0.15s;
+  text-decoration: none;
+
+  &--primary {
+    background: $green; color: $white;
+    &:hover:not(:disabled) { background: #006B42; }
+  }
+  &--outline {
+    background: $white; color: $gray; border: 1px solid $gray-m;
+    &:hover { background: $gray-l; }
+  }
+  &--ghost {
+    background: transparent; color: $gray; border: 1px solid $gray-m;
+    &:hover { background: $gray-l; }
+  }
+  &--sm { padding: 6px 12px; font-size: 0.78rem; }
+  &:disabled { opacity: 0.6; cursor: default; }
+}
+
+.tb-action-btn {
+  width:           30px;
+  height:          30px;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  border:          1px solid $gray-m;
+  border-radius:   6px;
+  background:      $white;
+  color:           $gray;
+  cursor:          pointer;
+  font-size:       0.85rem;
+  transition:      all 0.12s;
+
+  &:hover        { background: $gray-l; color: $dark; }
+  &--danger:hover { background: #FEF2F2; color: $danger; border-color: #FCA5A5; }
+}
+
+.tb-toggle-btn {
+  font-size:  1.3rem;
+  border:     none;
+  background: none;
+  cursor:     pointer;
+  color:      $gray;
+  padding:    0 4px;
+  transition: color 0.12s;
+
+  &--on  { color: $green; }
+  &:hover { opacity: 0.8; }
+}
+
+// ── Empty ─────────────────────────────────────────────────────────────────
+.tb-empty {
+  text-align: center;
+  padding:    2rem;
+  color:      $gray;
+
+  i { display: block; font-size: 2rem; margin-bottom: 8px; color: $gray-m; }
+  p { margin: 0; font-size: 0.88rem; }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .tb-form-grid { grid-template-columns: 1fr; }
+  .tb-header { flex-direction: column; align-items: flex-start; }
+}

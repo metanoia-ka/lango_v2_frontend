@@ -1,0 +1,649 @@
+<div class="form-page">
+
+  <!-- ── Loader ─────────────────────────────────────────────────────────── -->
+  <div class="page-loader" *ngIf="loading()">
+    <div class="spinner"></div><p>Chargement…</p>
+  </div>
+
+  <!-- ── Erreur globale ─────────────────────────────────────────────────── -->
+  <div class="page-error" *ngIf="globalError() && !loading()">
+    <i class="bi bi-exclamation-octagon-fill"></i>
+    <p>{{ globalError() }}</p>
+    <button class="btn-back" (click)="onBack()">
+      <i class="bi bi-arrow-left"></i>
+      <span>Retour</span>
+    </button>
+  </div>
+
+  <ng-container *ngIf="!loading() && !globalError()">
+
+    <!-- ── Header ──────────────────────────────────────────────────────── -->
+    <header class="form-header">
+      <div class="form-header-inner">
+        <button class="btn-back" (click)="onBack()">
+          <i class="bi bi-arrow-left"></i>
+          <span>Mes espaces</span>
+        </button>
+        <div>
+          <h1>{{ isEdit() ? 'Modifier l\'espace' : 'Publier un espace événementiel' }}</h1>
+          <p class="header-hint" *ngIf="espaceId()">
+            <i class="bi bi-check-circle-fill"></i>
+            Espace créé — remplissez chaque étape 
+            et sauvegardez avant de passer à la suivante.
+          </p>
+          <p class="header-hint" *ngIf="!espaceId()">
+            Commencez par les informations générales puis complétez étape par étape.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <div class="form-layout">
+
+      <!-- ── Wizard nav ────────────────────────────────────────────────── -->
+      <nav class="wizard-nav">
+        <button
+          class="wizard-step"
+          *ngFor="let step of STEPS; let i = index"
+          [class.active]="i === activeStep()"
+          [class.done]="i < activeStep()"
+          [class.locked]="i > 0 && !espaceId() && i !== activeStep()"
+          (click)="goToStep(i)"
+          type="button"
+        >
+          <span class="step-circle">
+            <i class="bi bi-check-lg" *ngIf="i < activeStep()"></i>
+            <i [class]="'bi ' + step.icon" *ngIf="i >= activeStep()"></i>
+          </span>
+          <span class="step-label">{{ step.label }}</span>
+        </button>
+      </nav>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           ÉTAPE 0 — Informations générales
+      ═════════════════════════════════════════════════════════════════ -->
+      <div class="form-card" *ngIf="activeStep() === 0">
+        <div class="card-head">
+          <i class="bi bi-building"></i>
+          <div>
+            <h2>Informations générales</h2>
+            <p>Nom, type et description de votre espace</p>
+          </div>
+        </div>
+
+        <div class="form-fields" [formGroup]="infoForm">
+
+          <div class="field-group">
+            <label class="field-label req">Nom de l'espace</label>
+            <input formControlName="nom" type="text" class="field-input"
+              [class.err]="fieldError(infoForm,'nom')"
+              placeholder="Ex : Salle Prestige Centre-ville" maxlength="200"/>
+            <span class="ferr" *ngIf="fieldError(infoForm,'nom')">
+              {{ fieldError(infoForm,'nom') }}
+            </span>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label req">Type d'espace</label>
+            <div class="type-grid">
+              <label class="type-card" *ngFor="let opt of typeOptions"
+                [class.sel]="infoForm.get('type_espace')?.value === opt.value">
+                <input type="radio" formControlName="type_espace" [value]="opt.value" hidden/>
+                <i [class]="'bi ' + opt.icon"></i>
+                <span>{{ opt.label }}</span>
+              </label>
+            </div>
+            <span class="ferr" *ngIf="fieldError(infoForm,'type_espace')">
+              {{ fieldError(infoForm,'type_espace') }}
+            </span>
+          </div>
+
+          <!-- ══════════════════════════════════════════════════════════
+         SECTION LOCALISATION (cascade géographique)
+    ══════════════════════════════════════════════════════════ -->
+    
+    <fieldset class="geo-fieldset">
+      <legend class="geo-legend">
+        <i class="bi bi-geo-alt-fill"></i> Localisation géographique
+      </legend>
+
+      <!-- Région -->
+      <div class="field-group">
+        <label class="field-label">Région</label>
+        <select class="field-select" (change)="onRegionChange($any($event.target).value)">
+          <option value="">— Sélectionner une région —</option>
+          @for (r of regions(); track r.id) {
+            <option [value]="r.id">{{ r.nom }}</option>
+          }
+        </select>
+        <span class="fhint">
+          <i class="bi bi-info-circle"></i>
+          Le département détermine automatiquement la région.
+        </span>
+      </div>
+
+      <!-- Département -->
+      <div class="field-group">
+        <label class="field-label req">Département</label>
+        <select class="field-select" 
+                [class.err]="!departements().length && infoForm.get('departement_id')?.touched"
+                (change)="onDepartementChange($any($event.target).value)">
+          <option value="">— Sélectionner un département —</option>
+          @if (departements().length > 0) {
+            @for (d of departements(); track d.id) {
+              <option [value]="d.id">{{ d.nom }} ({{ d.abreviation }})</option>
+            }
+          } @else {
+            <!-- Afficher tous les départements si aucune région sélectionnée -->
+            @for (r of regions(); track r.id) {
+              <optgroup [label]="r.nom">
+                @for (d of r.departements; track d.id) {
+                  <option [value]="d.id">{{ d.nom }} ({{ d.abreviation }})</option>
+                }
+              </optgroup>
+            }
+          }
+        </select>
+      </div>
+
+      <!-- Arrondissement -->
+      <div class="field-group">
+        <label class="field-label req">Arrondissement</label>
+        <select class="field-select"
+                [class.err]="!arrondissements().length && infoForm.get('arrondissement_id')?.touched"
+                (change)="onArrondissementChange($any($event.target).value)">
+          <option value="">— Sélectionner un arrondissement —</option>
+          @for (a of arrondissements(); track a.id) {
+            <option [value]="a.id">
+              {{ a.nom }}
+              @if (a.ville_reference) {
+                ({{ a.ville_reference }})
+              }
+            </option>
+          }
+        </select>
+      </div>
+
+      <!-- Quartier -->
+      <div class="field-group" *ngIf="quartiers().length > 0">
+        <label class="field-label">Quartier</label>
+        <select class="field-select"
+                (change)="onQuartierChange($any($event.target).value)">
+          <option value="">— Sélectionner un quartier —</option>
+          @for (q of quartiers(); track q.id) {
+            <option [value]="q.id">{{ q.nom }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Lieu-dit -->
+      <div class="field-group" *ngIf="lieuxDits().length > 0">
+        <label class="field-label">Lieu-dit <span class="opt">(optionnel)</span></label>
+        <select class="field-select"
+                (change)="onLieuDitChange($any($event.target).value)">
+          <option value="">— Sélectionner un lieu-dit —</option>
+          @for (ld of lieuxDits(); track ld.id) {
+            <option [value]="ld.id">
+              {{ ld.nom }}
+              @if (ld.a_tarif_bati || ld.a_tarif_non_bati) {
+                🏷️
+              }
+            </option>
+          }
+        </select>
+      </div>
+
+      <!-- Localisation approximative (auto-générée) -->
+      <div class="field-group">
+        <label class="field-label req">Localisation approximative</label>
+        <input 
+          formControlName="localisation_approx" 
+          type="text" 
+          class="field-input"
+          [class.err]="fieldError(infoForm,'localisation_approx')"
+          placeholder="Générée automatiquement…" 
+          maxlength="255"
+          readonly
+        />
+        <span class="fhint">
+          <i class="bi bi-lightbulb"></i>
+          Générée à partir de votre sélection — modifiable après création.
+        </span>
+        <span class="ferr" *ngIf="fieldError(infoForm,'localisation_approx')">
+          {{ fieldError(infoForm,'localisation_approx') }}
+        </span>
+      </div>
+    </fieldset>
+
+          <!-- <div class="field-group">
+            <label class="field-label req">Localisation approximative</label>
+            <input formControlName="localisation_approx" type="text" class="field-input"
+              [class.err]="fieldError(infoForm,'localisation_approx')"
+              placeholder="Ex : Bastos, Yaoundé" maxlength="255"/>
+            <span class="fhint">
+              Affiché publiquement 
+              — l'adresse exacte est transmise après réservation confirmée.
+            </span>
+            <span class="ferr" *ngIf="fieldError(infoForm,'localisation_approx')">
+              {{ fieldError(infoForm,'localisation_approx') }}
+            </span>
+          </div> -->
+
+          <div class="field-group">
+            <label class="field-label">Adresse complète <span class="opt">(optionnel)</span></label>
+            <input formControlName="adresse_complete" type="text" class="field-input"
+              placeholder="Ex : Rue 1.435, face station Total"/>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label req">Description</label>
+            <textarea formControlName="description" class="field-textarea" rows="5"
+              [class.err]="fieldError(infoForm,'description')"
+              placeholder="Décrivez l'ambiance, la décoration, les avantages, les règles d'utilisation…"></textarea>
+            <div class="fhint-row">
+              <span class="ferr" *ngIf="fieldError(infoForm,'description')">{{ fieldError(infoForm,'description') }}</span>
+              <span class="char-count">{{ infoForm.get('description')?.value?.length ?? 0 }} / min. 30</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           ÉTAPE 1 — Capacité
+      ═════════════════════════════════════════════════════════════════ -->
+      <div class="form-card" *ngIf="activeStep() === 1">
+        <div class="card-head">
+          <i class="bi bi-people"></i>
+          <div><h2>Capacité & superficie</h2><p>Combien de personnes peut accueillir votre espace ?</p></div>
+        </div>
+
+        <div class="form-fields" [formGroup]="capaciteForm">
+          <div class="fields-row3">
+
+            <div class="field-group">
+              <label class="field-label req">Capacité minimale</label>
+              <div class="input-unit">
+                <input formControlName="capacite_min" type="number" class="field-input"
+                  [class.err]="fieldError(capaciteForm,'capacite_min')" min="1" placeholder="10"/>
+                <span class="unit">pers.</span>
+              </div>
+              <span class="ferr" *ngIf="fieldError(capaciteForm,'capacite_min')">{{ fieldError(capaciteForm,'capacite_min') }}</span>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label req">Capacité maximale</label>
+              <div class="input-unit">
+                <input formControlName="capacite_max" type="number" class="field-input"
+                  [class.err]="fieldError(capaciteForm,'capacite_max') || (capaciteForm.hasError('capaciteInvalide') && capaciteForm.touched)"
+                  min="1" placeholder="300"/>
+                <span class="unit">pers.</span>
+              </div>
+              <span class="ferr" *ngIf="fieldError(capaciteForm,'capacite_max')">{{ fieldError(capaciteForm,'capacite_max') }}</span>
+              <span class="ferr" *ngIf="capaciteForm.hasError('capaciteInvalide') && capaciteForm.touched">La capacité max doit être ≥ au min.</span>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Superficie <span class="opt">(optionnel)</span></label>
+              <div class="input-unit">
+                <input formControlName="superficie_m2" type="number" class="field-input" min="1" placeholder="450"/>
+                <span class="unit">m²</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           ÉTAPE 2 — Tarifs
+      ═════════════════════════════════════════════════════════════════ -->
+      <div class="form-card" *ngIf="activeStep() === 2">
+        <div class="card-head">
+          <i class="bi bi-cash-stack"></i>
+          <div><h2>Grilles tarifaires</h2><p>Définissez un ou plusieurs tarifs selon l'unité de location</p></div>
+        </div>
+
+        <div class="form-fields" [formGroup]="tarifsForm">
+          <div class="tarifs-list" formArrayName="tarifs">
+            <div class="tarif-row" *ngFor="let _ of tarifsArray.controls; let i = index" [formGroupName]="i">
+
+              <div class="field-group">
+                <label class="field-label req">Unité</label>
+                <select formControlName="unite" class="field-select"
+                  [class.err]="tarifGroup(i).get('unite')?.invalid && tarifGroup(i).get('unite')?.touched">
+                  <option value="" disabled>Choisir…</option>
+                  <option *ngFor="let u of uniteOptions" [value]="u.value">{{ u.label }}</option>
+                </select>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label req">Prix (FCFA)</label>
+                <div class="input-unit">
+                  <input formControlName="prix" type="number" class="field-input"
+                    [class.err]="tarifGroup(i).get('prix')?.invalid && tarifGroup(i).get('prix')?.touched"
+                    min="0" placeholder="50 000"/>
+                  <span class="unit">FCFA</span>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label req">Durée min.</label>
+                <div class="input-unit">
+                  <input formControlName="duree_min" type="number" class="field-input" min="1" placeholder="1"/>
+                  <span class="unit">unité(s)</span>
+                </div>
+              </div>
+
+              <button type="button" class="btn-del" (click)="removeTarif(i)"
+                [disabled]="tarifsArray.length === 1" title="Supprimer ce tarif">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="btn-add-row" (click)="addTarif()">
+            <i class="bi bi-plus-lg"></i> Ajouter un tarif
+          </button>
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           ÉTAPE 3 — Équipements
+      ═════════════════════════════════════════════════════════════════ -->
+      <div class="form-card" *ngIf="activeStep() === 3">
+        <div class="card-head">
+          <i class="bi bi-tools"></i>
+          <div>
+            <h2>Équipements</h2>
+            <p>Listez les équipements disponibles — inclus dans le tarif ou en option payante.</p>
+          </div>
+        </div>
+
+        <div class="form-fields" [formGroup]="equipForm">
+
+          <div class="equip-empty" *ngIf="equipArray.length === 0">
+            <i class="bi bi-tools"></i>
+            <p>Aucun équipement ajouté. Vous pouvez passer cette étape ou en ajouter ci-dessous.</p>
+          </div>
+
+          <div formArrayName="equipements">
+            <div class="equip-row" *ngFor="let _ of equipArray.controls; let i = index" [formGroupName]="i">
+
+              <div class="field-group fg-sm">
+                <label class="field-label">Icône</label>
+                <select formControlName="icone" class="field-select">
+                  <option *ngFor="let ic of iconeOptions" [value]="ic.value">{{ ic.label }}</option>
+                </select>
+              </div>
+
+              <div class="equip-icon-preview">
+                <i [class]="'bi ' + (equipGroup(i).get('icone')?.value || 'bi-check-circle')"></i>
+              </div>
+
+              <div class="field-group fg-grow">
+                <label class="field-label req">Nom de l'équipement</label>
+                <input formControlName="nom" type="text" class="field-input"
+                  [class.err]="equipGroup(i).get('nom')?.invalid && equipGroup(i).get('nom')?.touched"
+                  placeholder="Ex : WiFi, Sono, Parking…" maxlength="100"/>
+                <span class="ferr" *ngIf="equipGroup(i).get('nom')?.invalid && equipGroup(i).get('nom')?.touched">Champ obligatoire.</span>
+              </div>
+
+              <div class="field-group fg-sm">
+                <label class="field-label">Inclus ?</label>
+                <label class="toggle">
+                  <input type="checkbox" formControlName="inclus"/>
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                  <span class="toggle-lbl">{{ equipInclus(i) ? 'Inclus' : 'Option' }}</span>
+                </label>
+              </div>
+
+              <div class="field-group fg-sm" *ngIf="!equipInclus(i)">
+                <label class="field-label">Prix option (FCFA)</label>
+                <input formControlName="prix_option" type="number" class="field-input" min="0" placeholder="25 000"/>
+              </div>
+
+              <button type="button" class="btn-del" (click)="removeEquipement(i)" title="Supprimer">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+
+          <button type="button" class="btn-add-row" (click)="addEquipement()">
+            <i class="bi bi-plus-lg"></i> Ajouter un équipement
+          </button>
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           ÉTAPE 4 — Disponibilités / Blocages
+      ═════════════════════════════════════════════════════════════════ -->
+      <div class="form-card" *ngIf="activeStep() === 4">
+        <div class="card-head mb-2">
+          <i class="bi bi-calendar-week"></i>
+          <div>
+            <h2>Blocages & indisponibilités</h2>
+            <p>Indiquez les créneaux où l'espace ne peut pas être loué 
+              (entretien, usage personnel…)</p>
+          </div>
+        </div>
+
+        <div class="info-banner">
+          <i class="bi bi-info-circle-fill"></i>
+          Les réservations confirmées créent automatiquement des créneaux.
+          Cette étape est uniquement pour vos propres blocages.
+        </div>
+
+        <div class="form-fields" [formGroup]="dispoForm">
+
+          <div class="dispo-empty" *ngIf="dispoArray.length === 0">
+            <i class="bi bi-calendar-check"></i>
+            <p>Aucun blocage — votre espace est totalement disponible. Vous pouvez passer cette étape.</p>
+          </div>
+
+          <div class="dispos-list" formArrayName="disponibilites">
+            <div class="dispo-row" *ngFor="let _ of dispoArray.controls; let i = index" [formGroupName]="i">
+
+              <div class="field-group fg-grow">
+                <label class="field-label req">Début</label>
+                <input formControlName="date_debut" type="datetime-local" class="field-input"
+                  [class.err]="dispoGroup(i).get('date_debut')?.invalid && dispoGroup(i).get('date_debut')?.touched"/>
+              </div>
+
+              <div class="field-group fg-grow">
+                <label class="field-label req">Fin</label>
+                <input formControlName="date_fin" type="datetime-local" class="field-input"
+                  [class.err]="dispoGroup(i).get('date_fin')?.invalid && dispoGroup(i).get('date_fin')?.touched"/>
+              </div>
+
+              <div class="field-group fg-sm">
+                <label class="field-label req">Motif</label>
+                <select formControlName="motif" class="field-select">
+                  <option *ngFor="let m of motifOptions" [value]="m.value">{{ m.label }}</option>
+                </select>
+              </div>
+
+              <button type="button" class="btn-del" (click)="removeDispo(i)" title="Supprimer">
+                <i class="bi bi-trash3"></i>
+              </button>
+
+              <div class="dispo-err ferr" *ngIf="dispoInvalide(i)">
+                La date de fin doit être postérieure à la date de début.
+              </div>
+
+            </div>
+          </div>
+
+          <button type="button" class="btn-add-row" (click)="addDispo()">
+            <i class="bi bi-plus-lg"></i> Ajouter un blocage
+          </button>
+        </div>
+      </div>
+
+      <!-- ═════════════════════════════════════════════════════════════════
+           ÉTAPE 5 — Photos
+      ═════════════════════════════════════════════════════════════════ -->
+      <div class="form-card" *ngIf="activeStep() === 5">
+        <div class="card-head mb-2">
+          <i class="bi bi-images"></i>
+          <div>
+            <h2>Photos de l'espace</h2>
+            <p>
+              Ajoutez jusqu'à {{ MAX_PHOTOS }} photos.
+              Glissez-les pour changer leur ordre — la première sera la photo principale.
+            </p>
+          </div>
+        </div>
+
+        <!-- Compteurs -->
+        <div class="photo-stats" *ngIf="photos().length > 0">
+          <span class="pstat ok" *ngIf="photosUploaded() > 0">
+            <i class="bi bi-check-circle-fill"></i> {{ photosUploaded() }} uploadée(s)
+          </span>
+          <span class="pstat pending" *ngIf="photosPending() > 0">
+            <i class="bi bi-clock"></i> {{ photosPending() }} en attente
+          </span>
+          <span class="pstat err" *ngIf="photosWithError() > 0">
+            <i class="bi bi-exclamation-triangle-fill"></i> {{ photosWithError() }} en erreur
+          </span>
+        </div>
+
+        <!-- Zone de drop -->
+        <div class="drop-zone"
+          [class.drag-over]="photosDragOver()"
+          [class.full]="photos().length >= MAX_PHOTOS"
+          (drop)="onDrop($event)"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave()"
+          *ngIf="photos().length < MAX_PHOTOS">
+          <i class="bi bi-cloud-arrow-up"></i>
+          <p>Glissez vos photos ici ou</p>
+          <label class="btn-upload-label">
+            <input type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif"
+              (change)="onFilesSelected($event)" hidden/>
+            Choisir des fichiers
+          </label>
+          <small>JPG, PNG, WEBP, GIF — max 5 Mo par photo</small>
+        </div>
+
+        <!-- Grille des photos -->
+        <div class="photos-grid" *ngIf="photos().length > 0">
+          <div class="photo-item"
+            *ngFor="let ph of photos(); let i = index"
+            [class.is-principale]="ph.uploaded?.est_principale"
+            [class.has-error]="ph.uploadError">
+
+            <!-- Miniature -->
+            <div class="photo-thumb">
+              <img [src]="ph.previewUrl" [alt]="'Photo ' + (i + 1)" loading="lazy"/>
+
+              <!-- Spinner upload en cours -->
+              <div class="photo-overlay uploading-overlay" *ngIf="ph.uploading">
+                <div class="spinner-sm"></div>
+                <span>Upload…</span>
+              </div>
+
+              <!-- Erreur upload -->
+              <div class="photo-overlay error-overlay" *ngIf="ph.uploadError">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>{{ ph.uploadError }}</span>
+              </div>
+
+              <!-- Badges -->
+              <span class="badge-principale" *ngIf="ph.uploaded?.est_principale">
+                <i class="bi bi-star-fill"></i> Principale
+              </span>
+              <span class="badge-ok" *ngIf="ph.uploaded && !ph.uploaded.est_principale">
+                <i class="bi bi-check-lg"></i>
+              </span>
+              <span class="badge-ordre">{{ i + 1 }}</span>
+            </div>
+
+            <!-- Légende -->
+            <input
+              type="text"
+              class="legende-input"
+              [value]="ph.legende"
+              (input)="updateLegende(i, $any($event.target).value)"
+              placeholder="Légende (optionnel, max 200 car.)"
+              maxlength="200"
+            />
+
+            <!-- Actions -->
+            <div class="photo-actions">
+              <!-- Réordonner -->
+              <div class="order-btns">
+                <button type="button" class="btn-order" (click)="movePhotoUp(i)"
+                  [disabled]="i === 0" title="Monter">
+                  <i class="bi bi-arrow-up"></i>
+                </button>
+                <button type="button" class="btn-order" (click)="movePhotoDown(i)"
+                  [disabled]="i === photos().length - 1" title="Descendre">
+                  <i class="bi bi-arrow-down"></i>
+                </button>
+              </div>
+
+              <!-- Définir principale (seulement si uploadée et pas déjà principale) -->
+              <button type="button" class="btn-principale"
+                *ngIf="ph.uploaded && !ph.uploaded.est_principale"
+                (click)="setPrincipale(i)" title="Définir comme photo principale">
+                <i class="bi bi-star"></i>
+              </button>
+
+              <!-- Supprimer -->
+              <button type="button" class="btn-del-photo" (click)="removePhoto(i)"
+                title="Supprimer cette photo">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- État vide -->
+        <div class="photos-empty-hint" *ngIf="photos().length === 0">
+          <i class="bi bi-images"></i>
+          <p>Aucune photo ajoutée. Vous pouvez publier sans photo et en ajouter plus tard.</p>
+        </div>
+
+      </div><!-- /étape 5 -->
+
+      <!-- ── Bannière d'erreur de l'étape ──────────────────────────────── -->
+      <div class="step-error-banner" *ngIf="stepError(activeStep())">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        {{ stepError(activeStep()) }}
+      </div>
+
+      <!-- ── Barre d'actions ───────────────────────────────────────────── -->
+      <div class="form-actions">
+        <button type="button" class="btn-prev" *ngIf="activeStep() > 0" (click)="prevStep()">
+          <i class="bi bi-arrow-left"></i> Précédent
+        </button>
+
+        <div class="actions-right">
+          <button type="button" class="btn-save-step"
+            (click)="saveStepAndNext()"
+            [disabled]="stepSaving()">
+            <span class="spinner-sm" *ngIf="stepSaving()"></span>
+            <ng-container *ngIf="!stepSaving()">
+              <ng-container *ngIf="!isLastStep()">
+                <i class="bi bi-floppy"></i>
+                {{ activeStep() === 0 && !espaceId()
+                    ? 'Créer l\'espace & continuer'
+                    : 'Sauvegarder & continuer' }}
+                <i class="bi bi-arrow-right"></i>
+              </ng-container>
+              <ng-container *ngIf="isLastStep()">
+                <i class="bi bi-cloud-upload"></i>
+                {{ photosPending() > 0
+                    ? 'Uploader ' + photosPending() + ' photo(s) & terminer'
+                    : 'Terminer' }}
+              </ng-container>
+            </ng-container>
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /form-layout -->
+  </ng-container>
+</div>

@@ -1,0 +1,266 @@
+<div class="nego-modal">
+
+  <!-- Header -->
+  <div class="nego-modal__header">
+    <div class="nego-modal__header-left">
+      <i class="bi bi-tags-fill nego-modal__icon"></i>
+      <div>
+        <h3 class="nego-modal__title">Négociation de prix</h3>
+        <p class="nego-modal__sub">
+          {{ conversation.annonce_titre }}
+          <span [class]="'nego-badge ms-2 ' + 
+          (conversation.fermee ? 'nego-badge--danger' : 'nego-badge--success')">
+            {{ conversation.fermee ? 'Fermée' : 'Ouverte' }}
+          </span>
+        </p>
+      </div>
+    </div>
+    <div class="nego-modal__header-actions">
+      @if (peutFermer()) {
+        <button class="nego-btn nego-btn--danger-outline"
+                [disabled]="loadingAction()"
+                (click)="fermerConversation()">
+          <i class="bi bi-x-circle me-1"></i> Fermer la conversation
+        </button>
+      }
+      <button class="nego-modal__close" (click)="fermer()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Corps -->
+  <div class="nego-modal__body">
+
+    <!-- Alertes -->
+    @if (success()) {
+      <div class="nego-alert nego-alert--success">
+        <i class="bi bi-check-circle-fill me-2"></i>{{ success() }}
+      </div>
+    }
+    @if (error()) {
+      <div class="nego-alert nego-alert--danger">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+      </div>
+    }
+
+    <!-- Accord conclu -->
+    @if (conversation.fermee && conversation.prix_accord) {
+      <div class="nego-accord">
+        <i class="bi bi-patch-check-fill nego-accord__icon"></i>
+        <div>
+          <p class="nego-accord__label">Accord conclu</p>
+          <p class="nego-accord__prix">{{ formatPrix(conversation.prix_accord) }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="nego-loading">
+        <span class="spinner-border spinner-border-sm text-success"></span>
+        Chargement…
+      </div>
+    }
+
+    <!-- Participants -->
+    <div class="nego-participants">
+      <div class="nego-part">
+        <i class="bi bi-person-fill-gear me-1"></i>
+        <strong>{{ conversation.vendor_nom }}</strong>
+        <span class="nego-part__role">Vendeur</span>
+      </div>
+      <i class="bi bi-arrow-left-right nego-part__arrow"></i>
+      <div class="nego-part">
+        <i class="bi bi-person-fill me-1"></i>
+        <strong>{{ conversation.purchaser_nom }}</strong>
+        <span class="nego-part__role">Acheteur</span>
+      </div>
+    </div>
+
+    <!-- ── Historique des offres ─────────────────────────────────────────── -->
+    @if (!loading() && offres().length > 0) {
+      <div class="nego-historique">
+        <h4 class="nego-section-title">
+          <i class="bi bi-clock-history me-2"></i>Historique des propositions
+        </h4>
+        <div class="nego-timeline">
+          @for (offre of offres(); track offre.id) {
+            <div class="nego-timeline-item"
+                 [class.nego-timeline-item--mine]="offre.est_mon_offre">
+
+              <div class="nego-bubble"
+                   [class.nego-bubble--mine]="offre.est_mon_offre"
+                   [class.nego-bubble--other]="!offre.est_mon_offre">
+
+                <div class="nego-bubble__actor">
+                  <i class="bi bi-person-fill me-1"></i>
+                  {{ offre.initiateur_nom }}
+                  @if (offre.est_mon_offre) { <em class="nego-vous">(vous)</em> }
+                  <span class="nego-bubble__tour">Tour {{ offre.tour }}</span>
+                </div>
+
+                <div class="nego-bubble__prix">{{ formatPrix(offre.prix_propose) }}</div>
+
+                @if (offre.message) {
+                  <p class="nego-bubble__msg">« {{ offre.message }} »</p>
+                }
+
+                @if (offre.prix_final) {
+                  <div class="nego-bubble__final">
+                    <i class="bi bi-check2-circle me-1"></i>
+                    Accord : {{ formatPrix(offre.prix_final) }}
+                  </div>
+                }
+
+                <div class="nego-bubble__meta">
+                  <span [class]="'nego-badge ' + STATUT_CLASSES[offre.statut]">
+                    {{ STATUT_LABELS[offre.statut] }}
+                  </span>
+                  <span class="nego-bubble__date">
+                    {{ offre.created_at | date:'dd/MM à HH:mm' }}
+                  </span>
+                </div>
+
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (!loading() && offres().length === 0) {
+      <div class="nego-empty">
+        <i class="bi bi-tags"></i>
+        <p>Aucune proposition de prix encore envoyée.</p>
+        <p class="nego-empty__hint">Commencez la négociation en proposant un prix.</p>
+      </div>
+    }
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         ZONES D'ACTION
+         ════════════════════════════════════════════════════════════════════ -->
+    @if (!conversation.fermee) {
+
+      <!-- CAS A : pas d'offre active → envoyer une offre -->
+      @if (peutEnvoyerOffre()) {
+        <div class="nego-action-zone">
+          <h4 class="nego-section-title">
+            <i class="bi bi-send-fill me-2"></i>
+            {{ estVendeur() ? 'Proposer un prix de vente' : 'Faire une offre d\'achat' }}
+          </h4>
+          <div class="nego-prix-row">
+            <div class="nego-input-group">
+              <input type="number" class="nego-input"
+                     placeholder="ex. 15 000 000" min="1"
+                     [ngModel]="prixSaisi()"
+                     (ngModelChange)="prixSaisi.set($event)">
+              <span class="nego-input-unit">XAF</span>
+            </div>
+          </div>
+          <input type="text" class="nego-input nego-input--msg"
+                 placeholder="Note courte (optionnel)"
+                 [(ngModel)]="messageSaisi" maxlength="300">
+          <button class="nego-btn nego-btn--primary"
+                  [disabled]="!prixSaisi() || (prixSaisi() ?? 0) <= 0 || loadingAction()"
+                  (click)="envoyerOffre()">
+            @if (loadingAction()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+            } @else {
+              <i class="bi bi-send me-2"></i>
+            }
+            Envoyer la proposition
+          </button>
+        </div>
+      }
+
+      <!-- CAS B : offre active destinée à moi → répondre -->
+      @if (peutRepondre()) {
+        <div class="nego-action-zone nego-action-zone--repondre">
+          <h4 class="nego-section-title">
+            <i class="bi bi-reply-fill me-2"></i>
+            Offre reçue de {{ offreActive()!.initiateur_nom }}
+          </h4>
+
+          <div class="nego-offre-recue">
+            <span class="nego-offre-recue__label">Prix proposé</span>
+            <strong class="nego-offre-recue__prix">
+              {{ formatPrix(offreActive()!.prix_propose) }}
+            </strong>
+          </div>
+
+          <button class="nego-btn nego-btn--success"
+                  [disabled]="loadingAction()"
+                  (click)="accepterOffre()">
+            <i class="bi bi-check-circle me-1"></i> Accepter — conclure l'accord
+          </button>
+
+          <div class="nego-separator">ou négocier</div>
+
+          <div class="nego-prix-row">
+            <div class="nego-input-group">
+              <input type="number" class="nego-input"
+                     placeholder="Votre contre-offre" min="1"
+                     [ngModel]="contrePropose()"
+                     (ngModelChange)="contrePropose.set($event)">
+              <span class="nego-input-unit">XAF</span>
+            </div>
+          </div>
+          <input type="text" class="nego-input nego-input--msg"
+                 placeholder="Note (optionnel)"
+                 [(ngModel)]="contreMessage" maxlength="300">
+
+          <div class="nego-action-btns">
+            <button class="nego-btn nego-btn--outline"
+                    [disabled]="!contrePropose() || (contrePropose() ?? 0) <= 0 || loadingAction()"
+                    (click)="contreProposer()">
+              <i class="bi bi-reply me-1"></i> Contre-proposer
+            </button>
+            <button class="nego-btn nego-btn--ghost"
+                    [disabled]="loadingAction()"
+                    (click)="refuserOffre()">
+              <i class="bi bi-x-circle me-1"></i> Refuser
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- CAS C : offre active que j'ai envoyée → attente -->
+      @if (offreActive() && offreActive()!.est_mon_offre) {
+        <div class="nego-waiting">
+          <i class="bi bi-hourglass-split"></i>
+          <div>
+            <p>Votre offre de
+              <strong>{{ formatPrix(offreActive()!.prix_propose) }}</strong>
+              a été envoyée.</p>
+            <p class="nego-waiting__sub">En attente de réponse…</p>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- Conversation fermée sans accord -->
+    @if (conversation.fermee && !conversation.prix_accord) {
+      <div class="nego-waiting nego-waiting--closed">
+        <i class="bi bi-lock-fill"></i>
+        <div>
+          <p>Cette conversation a été fermée par le vendeur.</p>
+          <p class="nego-waiting__sub">Aucun accord n'a été conclu.</p>
+        </div>
+      </div>
+    }
+
+  </div>
+
+  <!-- Footer -->
+  <div class="nego-modal__footer">
+    <button class="nego-btn nego-btn--ghost" (click)="fermer()">Fermer</button>
+    @if (!conversation.fermee) {
+      <span class="nego-footer-hint">
+        <i class="bi bi-info-circle me-1"></i>
+        Accepter une offre ferme automatiquement la conversation et enregistre le prix.
+      </span>
+    }
+  </div>
+
+</div>

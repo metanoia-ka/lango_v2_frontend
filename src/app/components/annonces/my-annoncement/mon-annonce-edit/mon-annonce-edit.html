@@ -1,0 +1,118 @@
+
+<div class="mf-header">
+  <div class="mf-header-left">
+    <div class="mf-header-icon mf-header-icon--edit" >
+      <i class="bi bi-pencil-fill"></i>
+    </div>
+    <div>
+      <p class="mf-header-title">Modifier l'annonce</p>
+      <span class="mf-header-sub">Modifiez les informations de l'annonce</span>
+    </div>
+  </div>
+  <button class="mf-close-btn" (click)="onCancel()"><i class="bi bi-x-lg"></i></button>
+</div>
+
+<div class="mf-body">
+  @if (isLoading()) {
+    <div class="mf-loading"><div class="mf-spinner"></div><span>Chargement…</span></div>
+  } @else {
+    <form [formGroup]="annonceForm" (ngSubmit)="onSubmit($event)">
+
+      @if (successMessage) {
+        <app-alert type="success" title="Information !" [autoClose]="true" [autoCloseDelay]="4000" (onClose)="clearSuccessMessage()">
+          <p class="mb-0 small">{{ successMessage }}</p>
+        </app-alert>
+      } @else if (errorMessage) {
+        <app-alert type="danger" title="Erreur" (onClose)="clearErrorMessage()">
+          <p class="mb-0 small">{{ errorMessage }}</p>
+        </app-alert>
+      }
+
+      <!-- Titre + Type -->
+      <div class="row g-2 mb-3">
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input type="text" id="titre" formControlName="titre" class="form-control"
+                   placeholder="Titre"
+                   [class.is-invalid]="annonceForm.get('titre')?.touched && annonceForm.get('titre')?.invalid">
+            <label for="titre">Titre <span class="text-danger">*</span></label>
+            <div class="invalid-feedback">Le titre est obligatoire.</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-floating">
+            <select id="type_annonce_id" formControlName="type_annonce_id" class="form-select"
+                    [class.is-invalid]="annonceForm.get('type_annonce_id')?.touched && annonceForm.get('type_annonce_id')?.invalid">
+              <option value="" disabled>-- Sélectionner --</option>
+              @for (type of typeAnnonces; track type.id) {
+                <option [value]="type.id">{{ type.nom }}</option>
+              }
+            </select>
+            <label for="type_annonce_id">Type d'annonce <span class="text-danger">*</span></label>
+            <div class="invalid-feedback">Le type est obligatoire.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prix + Dates -->
+      <div class="row g-2 mb-3">
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input id="prix" type="number" class="form-control" formControlName="prix"
+                   placeholder="Prix"
+                   [class.is-invalid]="annonceForm.get('prix')?.touched && annonceForm.get('prix')?.invalid">
+            <label for="prix">Prix (XAF) <span class="text-danger">*</span></label>
+            <div class="invalid-feedback">Le prix est obligatoire.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input id="date_debut" type="date" class="form-control" formControlName="date_debut">
+            <label for="date_debut">Date de début</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input id="date_fin" type="date" class="form-control" formControlName="date_fin">
+            <label for="date_fin">Date de fin</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image -->
+      <div class="mb-3">
+        <p class="mf-section-label"><i class="bi bi-image"></i> Image principale</p>
+        <div class="mf-dropzone position-relative" (click)="fileInput.click()">
+          <input #fileInput type="file" class="mf-file-input" (change)="onFileChange($event)" accept=".jpg,.jpeg,.png">
+          <div class="mf-dropzone-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+          <p class="mf-dropzone-label">Cliquez pour choisir une image</p>
+          <p class="mf-dropzone-hint">JPG, PNG — max 1.5 MB</p>
+        </div>
+      </div>
+
+      <!-- Contenu -->
+      <div class="mf-field">
+        <div class="form-floating">
+          <textarea id="contenu" formControlName="contenu"
+                    class="form-control mf-textarea" style="height:110px"
+                    placeholder="Description"></textarea>
+          <label for="contenu">Description <span class="text-danger">*</span></label>
+        </div>
+      </div>
+
+    </form>
+  }
+</div>
+
+<div class="mf-actions">
+  <button type="button" class="mf-btn mf-btn--cancel" (click)="onCancel()">
+    <i class="bi bi-x-lg"></i> Annuler
+  </button>
+  <button type="submit" class="mf-btn mf-btn--submit"
+          [disabled]="annonceForm.invalid || isSubmitting"
+          (click)="onSubmit()">
+    @if (isSubmitting) { <span class="spinner-border spinner-border-sm"></span> }
+    @else { <i class="bi bi-floppy me-1"></i> }
+    Mettre à jour
+  </button>
+</div>

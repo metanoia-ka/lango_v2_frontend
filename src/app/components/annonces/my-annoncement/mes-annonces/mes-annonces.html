@@ -1,0 +1,144 @@
+<!-- ══ En-tête de section ══ -->
+<div class="al-header mt-5">
+  <div class="al-header-left">
+    <div class="al-header-icon">
+      <i class="bi bi-megaphone-fill"></i>
+    </div>
+    <div>
+      <h5 class="al-header-title">Mes annonces</h5>
+      <span class="al-header-sub">
+        {{ annonces.length }} 
+        annonce{{ annonces.length > 1 ? 's' : '' }} 
+        disponible{{ annonces.length > 1 ? 's' : '' }}
+      </span>
+    </div>
+  </div>
+
+  @if (isApproved(['Admin', 'Vendor'])) {
+    <button class="al-btn-create" (click)="onCreate()">
+      <i class="bi bi-plus-lg"></i>
+      <span>Nouvelle annonce</span>
+    </button>
+  }
+</div>
+
+<!-- ══ Alertes ══ -->
+@if (successMessage) {
+  <app-alert type="success" title="Information !" [autoClose]="true"
+             [autoCloseDelay]="4000" (onClose)="clearSuccessMessage()">
+    <p class="mb-0 small">{{ successMessage }}</p>
+  </app-alert>
+} @else if (errorMessage) {
+  <app-alert type="danger" title="Erreur" (onClose)="clearErrorMessage()">
+    <p class="mb-0 small">{{ errorMessage }}</p>
+  </app-alert>
+}
+
+<!-- ══ Loading ══ -->
+@if (isLoading) {
+  <div class="al-loading">
+    <div class="al-spinner"></div>
+    <span>Chargement des annonces…</span>
+  </div>
+}
+
+<!-- ══ État vide ══ -->
+@else if (!isLoading && annonces.length === 0) {
+  <div class="al-empty">
+    <div class="al-empty-icon">
+      <i class="bi bi-megaphone"></i>
+    </div>
+    <h6 class="al-empty-title">Aucune annonce trouvée</h6>
+    <p class="al-empty-sub">
+      Cliquez sur <strong>Nouvelle annonce</strong> pour commencer.
+    </p>
+    @if (isApproved(['Admin', 'Vendor'])) {
+      <button class="al-btn-create al-btn-create--center" (click)="onCreate()">
+        <i class="bi bi-plus-lg"></i>
+        <span>Créer ma première annonce</span>
+      </button>
+    }
+  </div>
+}
+
+<!-- ══ Grille d'annonces ══ -->
+@else if (!isLoading && annonces.length > 0) {
+  <div class="al-grid">
+    @for (annonce of annonces; track annonce.id) {
+      <div class="al-card">
+
+        <!-- Image -->
+        <div class="al-card-img">
+          @if (annonce.image_principale) {
+            <img [src]="annonce.image_principale"
+                 [alt]="annonce.titre"
+                 class="al-card-img-el" />
+          } @else {
+            <div class="al-card-img-placeholder">
+              <i class="bi bi-image"></i>
+            </div>
+          }
+
+          <!-- Badge statut flottant -->
+          <span class="al-statut-badge"
+                [class]="'al-statut-badge--' + annonce.statut.toLowerCase()">
+            {{ getStatusLabel(annonce.statut) }}
+          </span>
+        </div>
+
+        <!-- Corps -->
+        <div class="al-card-body">
+
+          <!-- Type -->
+          <span class="al-type-tag">
+            <i class="bi bi-tag-fill me-1"></i>
+            {{ annonce.type_annonce.nom || '—' }}
+          </span>
+
+          <!-- Titre -->
+          <h6 class="al-card-title">{{ annonce.titre }}</h6>
+
+          <!-- Prix -->
+          @if (annonce.prix) {
+            <div class="al-prix">
+              <span class="al-prix-value">{{ annonce.prix | number }}</span>
+              <span class="al-prix-unit">XAF <!-- /m² --></span>
+            </div>
+          }
+
+          <!-- Date -->
+          <div class="al-card-meta">
+            <i class="bi bi-clock me-1"></i>
+            {{ annonce.created_at | relativeTime }}
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="al-card-footer">
+          <button class="al-action-btn al-action-btn--view"
+                  (click)="onDetail(annonce)"
+                  ngbTooltip="Voir le détail" placement="top" triggers="hover">
+            <i class="bi bi-eye"></i>
+          </button>
+
+          @if (isApproved(['Admin', 'Vendor'])) {
+            <button class="al-action-btn al-action-btn--edit"
+                    (click)="onEdit(annonce)"
+                    ngbTooltip="Modifier" placement="top" triggers="hover">
+              <i class="bi bi-pencil-fill"></i>
+            </button>
+          }
+
+          @if (isApproved(['Admin'])) {
+            <button class="al-action-btn al-action-btn--delete"
+                    (click)="onDelete(annonce)"
+                    ngbTooltip="Supprimer" placement="top" triggers="hover">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          }
+        </div>
+
+      </div>
+    }
+  </div>
+}

@@ -1,0 +1,153 @@
+<!-- parcelle-reservation-modal.html -->
+<div class="resa-modal">
+
+  <!-- Header -->
+  <div class="resa-modal__header">
+    <div class="resa-modal__header-left">
+      <i class="bi bi-bookmark-plus-fill resa-modal__icon"></i>
+      <div>
+        <h3 class="resa-modal__title">Réserver des parcelles</h3>
+        <p class="resa-modal__sub">
+          Sélectionnez jusqu'à <strong>2 parcelles</strong>.
+          Chaque réservation ouvre une négociation de prix avec le vendeur.
+        </p>
+      </div>
+    </div>
+    <button class="resa-modal__close" (click)="fermer()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- Corps -->
+  <div class="resa-modal__body">
+
+    <!-- Liste parcelles disponibles -->
+    @if (parcellesDisponibles().length === 0) {
+      <div class="resa-empty">
+        <i class="bi bi-info-circle"></i>
+        Aucune parcelle disponible à réserver pour cette annonce.
+      </div>
+    }
+
+    <div class="resa-parcelles">
+      @for (p of parcellesDisponibles(); track p.id) {
+        <div class="resa-parcelle"
+             [class.resa-parcelle--selected]="estSelectionnee(p.id)"
+             [class.resa-parcelle--disabled]="!peutSelectionner(p) && !estSelectionnee(p.id)"
+             (click)="toggleParcelle(p)">
+
+          <!-- Checkbox -->
+          <div class="resa-parcelle__check">
+            @if (estSelectionnee(p.id)) {
+              <i class="bi bi-check-circle-fill text-success"></i>
+            } @else if (!peutSelectionner(p)) {
+              <i class="bi bi-dash-circle text-muted"></i>
+            } @else {
+              <i class="bi bi-circle text-muted"></i>
+            }
+          </div>
+
+          <!-- Infos -->
+          <div class="resa-parcelle__info">
+            <span class="resa-parcelle__num">{{ p.numero }}</span>
+            @if (p.superficie) {
+              <span class="resa-chip">{{ formatSuperficie(p.superficie) }}</span>
+            }
+            <span class="resa-chip resa-chip--dispo">Disponible</span>
+          </div>
+
+          <!-- Coût unitaire -->
+          <div class="resa-parcelle__cout">
+            <i class="bi bi-coin"></i>
+            {{ coutUnitaire }} cr.
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Résumé débit -->
+    @if (selection().length > 0) {
+      <div class="resa-resume">
+        <div class="resa-resume__row">
+          <span>Parcelles sélectionnées</span>
+          <strong>{{ selection().length }} / 2</strong>
+        </div>
+        <div class="resa-resume__row">
+          <span>Coût total</span>
+          <strong>{{ coutTotal() }} crédit(s)</strong>
+        </div>
+        <div class="resa-resume__row">
+          <span>Votre solde actuel</span>
+          <strong>{{ soldeActuel }} crédit(s)</strong>
+        </div>
+        <div class="resa-resume__row resa-resume__row--total">
+          <span>Solde après réservation</span>
+          <strong [class.text-danger]="!creditsOk()">
+            {{ soldeApres() }} crédit(s)
+          </strong>
+        </div>
+        @if (!creditsOk()) {
+          <div class="resa-alert resa-alert--danger mt-2">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Solde insuffisant.
+            <a routerLink="/lango/credits" (click)="fermer()">Acheter des crédits</a>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Info processus -->
+    <div class="resa-info-box">
+      <i class="bi bi-info-circle-fill"></i>
+      <div>
+        <strong>Comment ça marche ?</strong>
+        <ol class="resa-steps">
+          <li>Vous réservez 1 ou 2 parcelles disponibles → débit de {{ coutUnitaire }} crédit(s) par parcelle.</li>
+          <li>Le vendeur reçoit une notification et vous fait une offre de prix (XAF/m²).</li>
+          <li>Vous pouvez accepter ou faire une contre-proposition.</li>
+          <li>Si le vendeur accepte votre offre, la parcelle vous est automatiquement attribuée.</li>
+          <li>Si votre offre est refusée, <strong>35% de vos crédits vous sont restitués</strong>.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Erreur crédits -->
+    @if (erreurCredits()) {
+      <div class="resa-alert resa-alert--danger">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        Crédits insuffisants (solde : {{ erreurCredits()!.solde }},
+        coût requis : {{ erreurCredits()!.cout }}).
+        <a routerLink="/lango/credits" (click)="fermer()">Recharger</a>
+      </div>
+    }
+
+    <!-- Erreurs parcelle par parcelle -->
+    @if (erreurs().length > 0) {
+      <div class="resa-alert resa-alert--warn">
+        @for (e of erreurs(); track e.parcelle_id) {
+          <p class="mb-1"><i class="bi bi-exclamation-circle me-1"></i>{{ e.erreur }}</p>
+        }
+      </div>
+    }
+
+  </div>
+
+  <!-- Footer -->
+  <div class="resa-modal__footer">
+    <button class="resa-btn resa-btn--ghost" (click)="fermer()" [disabled]="loading()">
+      Annuler
+    </button>
+    <button class="resa-btn resa-btn--primary"
+            [disabled]="selection().length === 0 || loading() || !creditsOk()"
+            (click)="confirmer()">
+      @if (loading()) {
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        Réservation en cours…
+      } @else {
+        <i class="bi bi-bookmark-check me-1"></i>
+        Confirmer ({{ coutTotal() }} crédit(s))
+      }
+    </button>
+  </div>
+
+</div>

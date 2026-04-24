@@ -1,0 +1,266 @@
+<div class="vd-header">
+  <div class="vd-header-avatar">
+    <div class="vd-header-avatar-ring"></div>
+    <i class="bi bi-shield-check vd-header-avatar-icon"></i>
+  </div>
+  <div class="vd-header-text">
+    <h5 class="vd-header-title">Vérification du profil</h5>
+    <span class="vd-header-sub">
+      {{ personne.nom }} {{ personne.prenom || '' }}
+      <span class="vd-header-username">
+        <i class="bi bi-at"></i>{{ personne.user_details?.username }}
+      </span>
+    </span>
+  </div>
+  <button type="button" class="vd-close" aria-label="Fermer" (click)="cancel()">
+    <i class="bi bi-x-lg"></i>
+  </button>
+</div>
+
+<!-- ══ Body ══ -->
+<div class="vd-body">
+
+  <!-- Méta : type + statut courant (mis à jour après chaque action) -->
+  <div class="vd-meta">
+    <div class="vd-meta-item">
+      <span class="vd-meta-label">
+        <i class="bi bi-person-badge"></i> Type
+      </span>
+      <span class="vd-meta-value">
+        @if (personne.type_personne === 'PHYSIQUE') {
+          <i class="bi bi-person-fill me-1"></i> Personne physique
+        } @else {
+          <i class="bi bi-building me-1"></i> Personne morale
+        }
+      </span>
+    </div>
+
+    <div class="vd-meta-item">
+      <span class="vd-meta-label">
+        <i class="bi bi-toggle-on"></i> Statut
+      </span>
+      <!-- Statut mis à jour localement après action -->
+      <span class="vd-statut-badge"
+            [class.vd-statut--attente]="statut === 'EN_ATTENTE'"
+            [class.vd-statut--valide]="statut === 'VALIDE'"
+            [class.vd-statut--rejete]="statut === 'REJETE'"
+            [class.vd-statut--encours]="statut === 'EN_COURS'"
+            [class.vd-statut--corriger]="statut === 'A_CORRIGER'">
+        <span class="vd-statut-dot"></span>
+        {{ statut | titlecase }}
+      </span>
+    </div>
+
+    @if (personne.jours_attente && personne.jours_attente > 0) {
+      <div class="vd-meta-item">
+        <span class="vd-meta-label">
+          <i class="bi bi-clock-history"></i> En attente depuis
+        </span>
+        <span class="vd-meta-value"
+              [class.vd-urgence]="personne.jours_attente > 7">
+          {{ personne.jours_attente }} jour{{ personne.jours_attente > 1 ? 's' : '' }}
+          @if (personne.jours_attente > 7) { 
+            <i class="bi bi-exclamation-triangle-fill ms-1"></i> 
+          }
+        </span>
+      </div>
+    }
+  </div>
+
+  <!-- Alertes -->
+  @if (successMessage) {
+    <app-alert type="success" title="Succès !"
+               [autoClose]="true" [autoCloseDelay]="4000"
+               (onClose)="clearSuccessMessage()">
+      <p class="mb-0 small">{{ successMessage }}</p>
+    </app-alert>
+  }
+  @if (error()) {
+    <div class="vd-error-inline">
+      <i class="bi bi-exclamation-circle-fill"></i>
+      {{ error() }}
+      <button class="vd-error-close" (click)="clearError()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  }
+
+  <!-- ── Informations identité ── -->
+  <div class="vd-section">
+    <div class="vd-section-head">
+      <div class="vd-section-icon" style="background:#eff6ff;color:#3b82f6">
+        <i class="bi bi-person-lines-fill"></i>
+      </div>
+      <span class="vd-section-title">Informations d'identité</span>
+    </div>
+
+    <div class="vd-info-grid">
+      @if (personne.cin) {
+        <div class="vd-info-row">
+          <span class="vd-info-label">CIN</span>
+          <span class="vd-info-value">{{ personne.cin }}</span>
+        </div>
+      }
+      @if (personne.numero_registre) {
+        <div class="vd-info-row">
+          <span class="vd-info-label">Registre</span>
+          <span class="vd-info-value">{{ personne.numero_registre }}</span>
+        </div>
+      }
+      @if (personne.telephone) {
+        <div class="vd-info-row">
+          <span class="vd-info-label">Téléphone</span>
+          <span class="vd-info-value">{{ personne.telephone }}</span>
+        </div>
+      }
+      @if (personne.email) {
+        <div class="vd-info-row">
+          <span class="vd-info-label">Email</span>
+          <span class="vd-info-value">{{ personne.email }}</span>
+        </div>
+      }
+      @if (personne.adresse) {
+        <div class="vd-info-row">
+          <span class="vd-info-label">Adresse</span>
+          <span class="vd-info-value">{{ personne.adresse }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ── Preuve légale ── -->
+  <div class="vd-section">
+    <div class="vd-section-head">
+      <div class="vd-section-icon" style="background:#f5f3ff;color:#7c3aed">
+        <i class="bi bi-file-earmark-text-fill"></i>
+      </div>
+      <span class="vd-section-title">Preuve légale fournie</span>
+      @if (preuveLegaleSafeUrl()) {
+        <button class="vd-download-btn" (click)="downloadPreuve()">
+          <i class="bi bi-download me-1"></i> Télécharger
+        </button>
+      }
+    </div>
+
+    @if (preuveLegaleSafeUrl(); as safeUrl) {
+      <div class="vd-pdf-wrap">
+        <iframe [src]="safeUrl" width="100%" height="440"
+                frameborder="0" class="vd-pdf-frame">
+        </iframe>
+      </div>
+    } @else {
+      <div class="vd-no-doc">
+        <i class="bi bi-file-earmark-x"></i>
+        <span>Aucune preuve légale uploadée ou impossible à charger.</span>
+      </div>
+    }
+  </div>
+
+  <!-- ── Commentaire précédent (si existant) ── -->
+  @if (personne.commentaire_verification) {
+    <div class="vd-section">
+      <div class="vd-section-head">
+        <div class="vd-section-icon" style="background:#fef9c3;color:#92400e">
+          <i class="bi bi-chat-square-quote-fill"></i>
+        </div>
+        <span class="vd-section-title">Commentaire précédent</span>
+      </div>
+      <blockquote class="vd-quote">
+        {{ personne.commentaire_verification }}
+      </blockquote>
+    </div>
+  }
+
+  <!-- ── Commentaire pour la décision ── -->
+  <div class="vd-section">
+    <div class="vd-section-head">
+      <div class="vd-section-icon" style="background:#eff6ff;color:#3b82f6">
+        <i class="bi bi-chat-left-text-fill"></i>
+      </div>
+      <span class="vd-section-title">
+        Commentaire
+        <span class="vd-required-hint">
+          (obligatoire pour rejet / correction)
+        </span>
+      </span>
+    </div>
+    <div class="vd-comment-wrap">
+      <textarea class="vd-textarea" rows="4"
+                [ngModel]="commentaire()"
+                (ngModelChange)="commentaire.set($event)"
+                placeholder="Expliquez la raison de votre décision…">
+      </textarea>
+      <div class="vd-textarea-counter"
+           [class.vd-counter--warn]="commentaire().length > 450">
+        {{ commentaire().length }} / 500
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ Footer — Actions ══ -->
+<div class="vd-footer">
+
+  <button type="button" class="vd-btn vd-btn--cancel"
+          (click)="cancel()" [disabled]="loading()">
+    <i class="bi bi-x-lg"></i> Annuler
+  </button>
+
+  <div class="vd-footer-actions">
+
+    <!-- Prise en charge — disponible depuis EN_ATTENTE ou A_CORRIGER -->
+    <button type="button" class="vd-btn vd-btn--encours"
+            (click)="mettreEnCours()"
+            [disabled]="loading()
+              || statut === 'EN_COURS'
+              || statut === 'VALIDE'
+              || statut === 'REJETE'"
+            ngbTooltip="Prendre en charge ce dossier"
+            placement="top" triggers="hover">
+      @if (loading()) {
+        <span class="vd-spinner"></span>
+      } @else {
+        <i class="bi bi-hourglass-split"></i>
+      }
+      En cours
+    </button>
+
+    <!-- Demander correction — commentaire obligatoire -->
+    <button type="button" class="vd-btn vd-btn--corriger"
+            (click)="demanderCorrection()"
+            [disabled]="loading()
+              || statut === 'VALIDE'
+              || statut === 'A_CORRIGER'"
+            >
+      <i class="bi bi-pencil-fill"></i>
+      À corriger
+    </button>
+
+    <!-- Rejeter — commentaire obligatoire -->
+    <button type="button" class="vd-btn vd-btn--rejeter"
+            (click)="rejeter()"
+            [disabled]="loading()
+              || statut === 'VALIDE'
+              || statut === 'REJETE'"
+            >
+      <i class="bi bi-x-octagon-fill"></i>
+      Rejeter
+    </button>
+
+    <!-- Valider — toujours disponible sauf si déjà VALIDE -->
+    <button type="button" class="vd-btn vd-btn--valider"
+            (click)="valider()"
+            [disabled]="loading() || statut === 'VALIDE'"
+            ngbTooltip="Valider ce profil"
+            placement="top" triggers="hover">
+      @if (loading()) {
+        <span class="vd-spinner"></span>
+      } @else {
+        <i class="bi bi-check-circle-fill"></i>
+      }
+      Valider
+    </button>
+
+  </div>
+</div>

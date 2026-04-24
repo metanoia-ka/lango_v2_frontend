@@ -1,0 +1,401 @@
+// ═══════════════════════════════════════════════════════════
+//  SCSS à AJOUTER aux fichiers existants
+//  (annonce-edit-modal.scss et annonce-detail.scss)
+//  Palette : vert #008753 · or #FCD116
+// ═══════════════════════════════════════════════════════════
+
+
+// ══════════════════════════════════════════════════════
+//  1. annonce-edit-modal.scss  — coller à la fin
+// ══════════════════════════════════════════════════════
+
+// ── Bien verrouillé (mode édition) ────────────────────
+.mf-bien-locked {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .75rem 1rem;
+  background: #f0fdfa;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  margin-bottom: .5rem;
+
+  &__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    background: #008753;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__titre {
+    display: block;
+    font-weight: 700;
+    font-size: .88rem;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+    margin-top: .25rem;
+  }
+
+  &__badge {
+    font-size: .72rem;
+    font-weight: 700;
+    color: #008753;
+    background: #d1fae5;
+    border-radius: 999px;
+    padding: .2rem .6rem;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: .25rem;
+    flex-shrink: 0;
+  }
+}
+
+// ── Chips inline ──────────────────────────────────────
+.mf-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: .15rem .55rem;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 600;
+  border: 1px solid #e5e7eb;
+
+  &--trans {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+  }
+}
+
+// ── Aucun bien disponible ─────────────────────────────
+.mf-bien-empty {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .75rem 1rem;
+  background: #fffbe6;
+  border: 1px solid #fcd116;
+  border-radius: 8px;
+  font-size: .83rem;
+  color: #92400e;
+  margin-bottom: .75rem;
+
+  i { font-size: 1.2rem; color: #d97706; flex-shrink: 0; }
+}
+
+// ── Preview bien sélectionné ──────────────────────────
+.mf-bien-empty {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  text-align:     center;
+  padding:        2rem 1.5rem;
+  border:         0.5px solid var(--color-border-tertiary);
+  border-radius:  var(--border-radius-lg);
+  margin-bottom:  1rem;
+
+  &__icon {
+    width:           52px;
+    height:          52px;
+    border-radius:   50%;
+    background:      var(--color-background-secondary);
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    margin-bottom:   1rem;
+
+    i { font-size: 22px; color: var(--color-text-secondary); }
+  }
+
+  &__title {
+    font-size:   15px;
+    font-weight: 500;
+    color:       var(--color-text-primary);
+    margin:      0 0 6px;
+  }
+
+  &__sub {
+    font-size:   13px;
+    color:       var(--color-text-secondary);
+    line-height: 1.6;
+    max-width:   320px;
+    margin:      0 0 1.5rem;
+  }
+
+  &__hint {
+    font-size: 11px;
+    color:     var(--color-text-tertiary);
+    margin:    10px 0 0;
+  }
+}
+
+.mf-btn-create-bien {
+  display:     inline-flex;
+  align-items: center;
+  gap:         8px;
+  padding:     10px 20px;
+  background:  var(--color-background-primary);
+  border:      1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-md);
+  font-size:   13px;
+  font-weight: 500;
+  color:       var(--color-text-primary);
+  cursor:      pointer;
+  transition:  background 0.15s;
+
+  &:hover { background: var(--color-background-secondary); }
+
+  .bi-arrow-right { opacity: 0.45; font-size: 12px; }
+}
+
+// ── Loading inline biens ──────────────────────────────
+.mf-field-loading {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .82rem;
+  color: #6b7280;
+  padding: .5rem 0;
+}
+
+.mf-hint--warning {
+  color: #92400e;
+  background: #fffbe6;
+  border: 1px solid #fcd116;
+  border-radius: 6px;
+  padding: .35rem .65rem;
+  font-size: .78rem;
+  display: flex;
+  align-items: flex-start;
+  gap: .35rem;
+  margin-top: .35rem;
+}
+
+
+// ══════════════════════════════════════════════════════
+//  2. annonce-detail.scss  — coller à la fin
+// ══════════════════════════════════════════════════════
+
+// ── Block bien dans la colonne principale ─────────────
+.bien-detail-block {
+  margin-top: .75rem;
+}
+
+.bien-header {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  margin-bottom: 1rem;
+
+  &__icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #008753;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  &__info { flex: 1; }
+
+  &__titre {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 .35rem;
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+  }
+}
+
+// Chips du bien dans le détail
+.bien-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: .18rem .6rem;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 600;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  color: #374151;
+
+  &--type {
+    background: #f0fdf4;
+    color: #166534;
+    border-color: #bbf7d0;
+  }
+
+  &--vente {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+  }
+
+  &--location {
+    background: #fefce8;
+    color: #a16207;
+    border-color: #fde68a;
+  }
+
+  &--loc-vente {
+    background: #fdf4ff;
+    color: #7e22ce;
+    border-color: #e9d5ff;
+  }
+}
+
+// ── Grille de specs du bien ───────────────────────────
+.bien-specs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: .5rem;
+  margin-bottom: .75rem;
+}
+
+.bien-spec {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  padding: .55rem .75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+
+  i { color: #008753; font-size: .85rem; }
+
+  &__label {
+    font-size: .68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #9ca3af;
+  }
+
+  &__value {
+    font-size: .88rem;
+    font-weight: 700;
+    color: #111827;
+  }
+}
+
+// ── Description du bien ───────────────────────────────
+.bien-description {
+  font-size: .83rem;
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: .75rem;
+  padding: .5rem .75rem;
+  background: #f9fafb;
+  border-left: 3px solid #e5e7eb;
+  border-radius: 0 6px 6px 0;
+}
+
+// ── Photos du bien ────────────────────────────────────
+.bien-photos {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-top: .5rem;
+}
+
+.bien-photo-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #e5e7eb;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+// ── Badge transaction sur la carte liste ─────────────
+// (dans annonce-list.scss — coller à la fin)
+.img-badge-trans {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  padding: .2rem .55rem;
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+
+  &.vente       { background: #1d4ed8; color: #fff; }
+  &.location    { background: #a16207; color: #fff; }
+  &.location-vente { background: #7e22ce; color: #fff; }
+}
+
+// ── Bloc bien sur la carte liste ─────────────────────
+.card-bien {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .3rem;
+  margin-bottom: .4rem;
+  padding: .35rem .5rem;
+  background: #f0fdf4;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+  font-size: .75rem;
+
+  i { color: #008753; flex-shrink: 0; }
+
+  &__titre {
+    font-weight: 600;
+    color: #166534;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+
+  &__chip {
+    background: #fff;
+    border: 1px solid #d1fae5;
+    border-radius: 999px;
+    padding: .1rem .45rem;
+    font-size: .67rem;
+    font-weight: 600;
+    color: #374151;
+  }
+}
+
+

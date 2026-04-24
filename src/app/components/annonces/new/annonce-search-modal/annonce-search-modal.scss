@@ -1,0 +1,304 @@
+/* annonce-search-modal.scss ══════════════════════════════════════════════════ */
+
+$green:   #008753;
+$green-l: #E8F5EE;
+$yellow:  #FCD116;
+$dark:    #111827;
+$gray:    #6B7280;
+$gray-l:  #F3F4F6;
+$gray-m:  #E5E7EB;
+$white:   #ffffff;
+$radius:  10px;
+
+.srm {
+  padding:        0;
+  display:        flex;
+  flex-direction: column;
+  max-height:     90vh;
+  overflow-y:     auto;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────
+.srm-header {
+  display:     flex;
+  align-items: flex-start;
+  gap:         14px;
+  padding:     20px 24px 16px;
+  border-bottom: 1px solid $gray-m;
+  flex-shrink: 0;
+
+  &__icon {
+    width: 44px; height: 44px; background: $green-l; color: $green;
+    border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 1.3rem; flex-shrink: 0;
+  }
+  &__text { flex: 1; }
+  &__title { font-size: 1rem; font-weight: 700; color: $dark; margin: 0 0 3px; }
+  &__sub   { font-size: 0.78rem; color: $gray; margin: 0; }
+  &__skip  {
+    background: none; border: none; color: $gray; cursor: pointer;
+    padding: 4px 8px; border-radius: 6px; flex-shrink: 0;
+    &:hover { background: $gray-l; }
+  }
+}
+
+// ── Indicateur étapes ─────────────────────────────────────────────────────
+.srm-steps {
+  display:     flex;
+  align-items: center;
+  padding:     12px 24px;
+  gap:         0;
+  border-bottom: 1px solid $gray-m;
+  flex-shrink: 0;
+}
+
+.srm-step {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+  font-size:   0.75rem;
+  color:       $gray;
+
+  &--active { color: $green; font-weight: 700; }
+  &--done   { color: $green; }
+
+  &__num {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700;
+    background: $gray-m; color: $gray;
+
+    .srm-step--active & { background: $green; color: $white; }
+    .srm-step--done &   { background: $green-l; color: $green; }
+  }
+  &__lbl { white-space: nowrap; }
+}
+
+.srm-step__line {
+  flex: 1; height: 2px; background: $gray-m; margin: 0 8px;
+  &--done { background: $green; }
+}
+
+// ── Résumé ────────────────────────────────────────────────────────────────
+.srm-resume {
+  margin:        12px 24px 0;
+  padding:       8px 14px;
+  background:    $green-l;
+  border-radius: $radius;
+  font-size:     0.78rem;
+  color:         #166534;
+  font-weight:   600;
+}
+
+// ── Section ───────────────────────────────────────────────────────────────
+.srm-section {
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap:     14px;
+  flex:    1;
+}
+
+.srm-section__label {
+  font-size: 0.78rem; font-weight: 700; color: $gray;
+  text-transform: uppercase; letter-spacing: 0.04em; margin: 0;
+}
+
+// ── Intentions ────────────────────────────────────────────────────────────
+.srm-intentions { display: flex; flex-direction: column; gap: 10px; }
+
+.srm-intention {
+  display:       flex;
+  align-items:   center;
+  gap:           14px;
+  padding:       14px 16px;
+  background:    $white;
+  border:        2px solid $gray-m;
+  border-radius: $radius;
+  cursor:        pointer;
+  transition:    all 0.15s;
+  text-align:    left;
+  position:      relative;
+
+  &:hover { border-color: var(--color, $green); background: var(--bg, $green-l); }
+
+  &--active {
+    border-color: var(--color, $green);
+    background:   var(--bg, $green-l);
+  }
+
+  &__icon { font-size: 1.4rem; color: var(--color, $green); flex-shrink: 0; }
+  &__label { font-size: 0.9rem; font-weight: 700; color: $dark; }
+  &__desc  { font-size: 0.75rem; color: $gray; margin-left: auto; }
+  &__check {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    background: $green; color: $white;
+    display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+  }
+}
+
+// ── Villes chips ──────────────────────────────────────────────────────────
+.srm-villes {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+
+.srm-ville-chip {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           6px;
+  padding:       7px 14px;
+  background:    $white;
+  border:        1.5px solid $gray-m;
+  border-radius: 20px;
+  font-size:     0.82rem;
+  font-weight:   600;
+  cursor:        pointer;
+  transition:    all 0.15s;
+  color:         $dark;
+
+  &:hover   { border-color: $green; color: $green; }
+  &--active { border-color: $green; background: $green-l; color: $green; }
+
+  &__count {
+    background:    $gray-m;
+    color:         $gray;
+    font-size:     0.65rem;
+    padding:       1px 6px;
+    border-radius: 10px;
+    .srm-ville-chip--active & { background: rgba(0,135,83,.15); color: $green; }
+  }
+}
+
+// ── Catégories chips ──────────────────────────────────────────────────────
+.srm-cat-grid {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       8px;
+}
+
+.srm-cat-chip {
+  display:       inline-flex;
+  align-items:   center;
+  padding:       6px 14px;
+  background:    $white;
+  border:        1.5px solid $gray-m;
+  border-radius: 20px;
+  font-size:     0.78rem;
+  font-weight:   600;
+  cursor:        pointer;
+  transition:    all 0.15s;
+  color:         $dark;
+
+  &:hover   { border-color: $green; color: $green; }
+  &--active { border-color: $green; background: $green-l; color: $green; }
+}
+
+// ── Back button ───────────────────────────────────────────────────────────
+.srm-back {
+  display:       inline-flex;
+  align-items:   center;
+  background:    none;
+  border:        none;
+  color:         $gray;
+  font-size:     0.82rem;
+  cursor:        pointer;
+  padding:       4px 0;
+  font-weight:   600;
+  &:hover { color: $dark; }
+}
+
+// ── Champs ────────────────────────────────────────────────────────────────
+.srm-field {
+  display:        flex;
+  flex-direction: column;
+  gap:            6px;
+  &--mt { margin-top: 4px; }
+}
+
+.srm-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.srm-label {
+  font-size: 0.78rem; font-weight: 700; color: $gray;
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+}
+.srm-optional { font-size: 0.68rem; font-weight: 400; color: $gray; margin-left: 4px; }
+
+.srm-select {
+  padding: 9px 12px; border: 1.5px solid $gray-m; border-radius: 8px;
+  font-size: 0.875rem; color: $dark; outline: none; background: $white; cursor: pointer;
+  &:focus { border-color: $green; }
+}
+
+.srm-search-zone {
+  display: flex; align-items: center;
+  background: $white; border: 1.5px solid $gray-m; border-radius: 9px; overflow: hidden;
+  transition: border-color 0.15s;
+  &:focus-within { border-color: $green; }
+  &__icon  { padding: 0 12px; color: $green; font-size: 1rem; flex-shrink: 0; }
+  &__input {
+    flex: 1; border: none; outline: none;
+    padding: 10px 0; font-size: 0.875rem; color: $dark; background: transparent;
+    &::placeholder { color: $gray; }
+  }
+}
+
+.srm-hint {
+  font-size: 0.73rem; color: $gray; margin: 0;
+  display: flex; align-items: flex-start; gap: 4px;
+}
+
+.srm-quartiers-hint {
+  font-size: 0.72rem; color: $green; margin: 0;
+  padding: 5px 10px; background: $green-l; border-radius: 6px;
+}
+
+.srm-loading {
+  display: flex; align-items: center; padding: 1rem 0; color: $gray; font-size: 0.85rem;
+}
+
+.srm-empty-hint { font-size: 0.82rem; color: $gray; }
+
+.srm-skip-hint {
+  text-align: center; margin: 0;
+}
+.srm-link {
+  background: none; border: none; color: $gray; font-size: 0.8rem;
+  cursor: pointer; text-decoration: underline;
+  &:hover { color: $dark; }
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────
+.srm-footer {
+  display:         flex;
+  align-items:     center;
+  gap:             10px;
+  flex-wrap:       wrap;
+  padding-top:     12px;
+  border-top:      1px solid $gray-m;
+  margin-top:      auto;
+}
+
+.srm-btn {
+  display:       inline-flex;
+  align-items:   center;
+  padding:       9px 18px;
+  border-radius: $radius;
+  font-size:     0.82rem;
+  font-weight:   600;
+  border:        none;
+  cursor:        pointer;
+  transition:    all 0.15s;
+
+  &--primary { background: $green; color: $white; &:hover { background: #006B42; } }
+  &--next    { background: $white; color: $green; border: 1.5px solid $green; &:hover { background: $green-l; } }
+  &--ghost   { background: $white; color: $gray; border: 1px solid $gray-m; &:hover { background: $gray-l; } }
+}
+
+@media (max-width: 480px) {
+  .srm-header  { padding: 16px 16px 12px; }
+  .srm-section { padding: 14px 16px; }
+  .srm-row     { grid-template-columns: 1fr; }
+  .srm-footer  { flex-direction: column; }
+  .srm-btn     { width: 100%; justify-content: center; }
+}

@@ -1,0 +1,579 @@
+<!-- ══════════════════════════════════════════════════════════════════════════
+     annonce-detail.html — COMPLET selon les rôles
+     ══════════════════════════════════════════════════════════════════════════ -->
+
+<div class="detail-wrap mt-5 mx-4">
+
+  <!-- Topbar -->
+  <div class="detail-topbar">
+    <h5 class="detail-page-title">
+      <i class="bi bi-megaphone-fill"></i> Détail de l'annonce
+    </h5>
+    <button class="btn-back" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i> Retour
+    </button>
+  </div>
+
+  <!-- Alertes feedback -->
+  @if (successMessage) {
+    <app-alert type="success" title="Succès !" [autoClose]="true" [autoCloseDelay]="4000"
+               (onClose)="clearSuccessMessage()">
+      <p class="mb-0">{{ successMessage }}</p>
+    </app-alert>
+  }
+  @if (errorMessage) {
+    <app-alert type="danger" title="Erreur" (onClose)="clearErrorMessage()">
+      <p class="mb-0">{{ errorMessage }}</p>
+    </app-alert>
+  }
+
+  <!-- ══ Spinner de chargement ══ -->
+  @if (isLoading()) {
+    <div class="detail-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement des détails…</span>
+    </div>
+  }
+
+  <!-- ══ Contenu ══ -->
+  @if (!isLoading() && annonce(); as a) {
+
+    <!-- Bouton suivre auteur (uniquement si connecté et pas propriétaire) -->
+    @if (user() && auteurId !== currentUserId) {
+      <div class="nl-follow-wrap mb-3">
+        @if (statutAuteur()?.suivi) {
+          <button class="nl-follow-btn nl-follow-btn--following"
+                  [disabled]="followLoading()" (click)="nePlusSuivre()">
+            @if (followLoading()) { <span class="spinner-border spinner-border-sm"></span> }
+            @else { <i class="bi bi-bell-slash-fill"></i> }
+            Abonné
+            @if (statutAuteur()?.nb_abonnes) {
+              <span class="nl-follow-count">{{ statutAuteur()!.nb_abonnes }}</span>
+            }
+          </button>
+        } @else {
+          <button class="nl-follow-btn nl-follow-btn--follow"
+                  [disabled]="followLoading()" (click)="suivreAuteur()">
+            @if (followLoading()) { <span class="spinner-border spinner-border-sm"></span> }
+            @else { <i class="bi bi-bell-fill"></i> }
+            Suivre
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Bandeau accès limité -->
+    @if (detailLimite) {
+      <div class="acces-limite-banner mb-3">
+        <i class="bi bi-lock-fill me-2"></i>
+        @if (isVisiteur()) {
+          Aperçu limité.
+          <a routerLink="/auth/register" class="acces-link">Inscrivez-vous gratuitement</a>
+          pour accéder au détail complet.
+        } @else {
+          Aperçu limité — achetez des crédits pour le détail complet.
+          <a routerLink="/lango/credits" class="acces-link">Voir les packs crédits</a>
+        }
+      </div>
+    }
+
+    <!-- @if (user() && parcelleInfo) {
+      <div class="mt-3">
+        <app-parcelle-actions
+          [parcelle]="parcelleInfo!"
+          (actionEffectuee)="onActionPremium($event)">
+        </app-parcelle-actions>
+      </div>
+    } -->
+
+    <div class="row g-3">
+
+      <!-- ════════════════════════ Colonne principale ════════════════════════ -->
+      <div class="col-lg-8">
+
+        <!-- Bloc image + titre + meta -->
+        <div class="main-card">
+          @if (a.image_principale) {
+            <div class="image-wrap">
+              @if (isAdmin() || isManager() || isOwner()) {
+                <div class="statut-overlay">
+                  <span class="badge" [ngClass]="getStatutBadgeClass(a.statut)">
+                    {{ getStatutLabel(a.statut) }}
+                  </span>
+                </div>
+              }
+              <img [src]="a.image_principale" [alt]="a.titre" class="annonce-image">
+            </div>
+          } @else {
+            <div class="annonce-no-image"><i class="bi bi-image"></i></div>
+          }
+
+          <div class="main-card-body">
+            <h4 class="annonce-titre">{{ a.titre }}</h4>
+
+            @if (a.prix) {
+              <div class="prix-block">
+                <span class="prix-value">{{ a.prix | number }}</span>
+                <span class="prix-unit">
+                  {{ a.bien?.type_transaction === 'LOCATION' ? 'XAF/mois' : 'XAF/m²' }}
+                </span>
+              </div>
+            }
+
+            <div class="meta-grid">
+              <div class="meta-row">
+                <span class="meta-label">Auteur</span>
+                @if (isOwner()) { <span class="badge-vous">Vous</span> }
+                @else { <span class="meta-value">{{ a.auteur_nom }}</span> }
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Vues</span>
+                <span class="meta-value">{{ a.vues }}</span>
+              </div>
+              <div class="meta-row">
+                <span class="meta-label">Publié</span>
+                <span class="meta-value">{{ a.created_at | relativeTime }}</span>
+              </div>
+              @if (a.jours_restants !== null && a.jours_restants !== undefined) {
+                <div class="meta-row">
+                  <span class="meta-label">Expire</span>
+                  <span class="meta-value"
+                        [class.expire-danger]="a.jours_restants < 7"
+                        [class.expire-warning]="a.jours_restants >= 7 && a.jours_restants < 30">
+                    dans {{ a.jours_restants }} jours
+                  </span>
+                </div>
+              }
+            </div>
+
+            <!-- Description : complète ou tronquée selon accès -->
+            <div class="section-label"><i class="bi bi-text-paragraph"></i> Description</div>
+            @if (peutVoirComplet) {
+              <div class="description-box">{{ a.contenu }}</div>
+            } @else {
+              <div class="description-box description-box--limite">
+                {{ a.contenu | slice:0:150  }}…
+                <div class="description-cta">
+                  <i class="bi bi-lock-fill me-1"></i>
+                  @if (isVisiteur()) {
+                    <a routerLink="/auth/register">Inscrivez-vous</a> pour lire la suite
+                  } @else {
+                    <a routerLink="/lango/credits">Achetez des crédits</a> pour lire la suite
+                  }
+                </div>
+              </div>
+            }
+
+            <div class="stats-row">
+              <div class="stat-chip">
+                <i class="bi bi-chat-dots"></i>
+                <strong>{{ a.nb_commentaires }}</strong>
+                commentaire{{ a.nb_commentaires > 1 ? 's' : '' }}
+              </div>
+              <div class="stat-chip">
+                <i class="bi bi-chat-left-text"></i>
+                <strong>{{ a.nb_conversations }}</strong>
+                conversation{{ a.nb_conversations > 1 ? 's' : '' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Bloc bien enrichi (complet uniquement) ── -->
+        @if (a.bien && peutVoirComplet) {
+          <div class="bien-card mt-3">
+            <div class="bien-card-header">
+              <i class="bi bi-building-fill"></i>
+              <span>Bien immobilier associé</span>
+              @if (a.bien.is_verified) {
+                <span class="bien-verified-badge">
+                  <i class="bi bi-patch-check-fill"></i> Vérifié
+                </span>
+              }
+            </div>
+
+            @if (a.bien.photos?.length) {
+              <div class="bien-photos">
+                @for (photo of a.bien.photos; track photo.id) {
+                  <div class="bien-photo-wrap"
+                       [class.bien-photo-wrap--principale]="photo.is_principale">
+                    <img [src]="photo.url" [alt]="photo.legende ?? 'Photo'" class="bien-photo-img">
+                    @if (photo.is_principale) {
+                      <span class="bien-photo-badge">
+                        <i class="bi bi-star-fill"></i> Principale
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="bien-info-grid">
+              <div class="bien-info-row">
+                <span class="bien-info-label">Type</span>
+                <span class="bien-info-value">{{ a.bien.type_bien?.nom ?? '—' }}</span>
+              </div>
+              <div class="bien-info-row">
+                <span class="bien-info-label">Transaction</span>
+                <span class="bien-info-value">
+                  {{ a.bien.type_transaction_display ?? a.bien.type_transaction }}
+                </span>
+              </div>
+              <div class="bien-info-row">
+                <span class="bien-info-label">Localisation</span>
+                <span class="bien-info-value">{{ a.bien.localisation_approx }}</span>
+              </div>
+              @if (a.bien.superficie) {
+                <div class="bien-info-row">
+                  <span class="bien-info-label">Superficie</span>
+                  <span class="bien-info-value">{{ a.bien.superficie }} m²</span>
+                </div>
+              }
+              @if (a.bien.duree_bail_min_mois) {
+                <div class="bien-info-row">
+                  <span class="bien-info-label">Bail min.</span>
+                  <span class="bien-info-value">{{ a.bien.duree_bail_min_mois }} mois</span>
+                </div>
+              }
+              @if (a.bien.caution_mois) {
+                <div class="bien-info-row">
+                  <span class="bien-info-label">Caution</span>
+                  <span class="bien-info-value">{{ a.bien.caution_mois }} mois</span>
+                </div>
+              }
+            </div>
+
+            <!-- Chaîne foncière -->
+            @if (a.bien.parcelle) {
+              <div class="foncier-chain mt-3">
+                <div class="foncier-chain-title">
+                  <i class="bi bi-geo-alt-fill"></i> Rattachement foncier
+                </div>
+
+                <div class="foncier-node foncier-node--parcelle">
+                  <div class="foncier-node-icon"><i class="bi bi-grid-1x2-fill"></i></div>
+                  <div class="foncier-node-body">
+                    <span class="foncier-node-label">Parcelle</span>
+                    <strong>{{ a.bien.parcelle.numero }}</strong>
+                    @if (a.bien.parcelle.superficie) {
+                      <span class="foncier-chip">{{ a.bien.parcelle.superficie }} m²</span>
+                    }
+                    <span class="foncier-chip"
+                          [class.foncier-chip--dispo]="a.bien.parcelle.statut === 'DISPONIBLE'"
+                          [class.foncier-chip--attr]="a.bien.parcelle.statut === 'ATTRIBUEE'">
+                      {{ a.bien.parcelle.statut }}
+                    </span>
+                  </div>
+                </div>
+
+                @if (a.bien.parcelle.lotissement) {
+                  <div class="foncier-connector"></div>
+                  <div class="foncier-node foncier-node--lotissement">
+                    <div class="foncier-node-icon"><i class="bi bi-map-fill"></i></div>
+                    <div class="foncier-node-body">
+                      <span class="foncier-node-label">Lotissement</span>
+                      <strong>{{ a.bien.parcelle.lotissement.nom }}</strong>
+                      <span class="foncier-chip">Réf. {{ a.bien.parcelle.lotissement.reference }}</span>
+                      @if (a.bien.parcelle.lotissement.commune) {
+                        <span class="foncier-chip">
+                          <i class="bi bi-geo-alt"></i> {{ a.bien.parcelle.lotissement.commune }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+
+                  @if (a.bien.parcelle.titre_foncier) {
+                    <div class="foncier-connector"></div>
+                    <div class="foncier-node foncier-node--tf">
+                      <div class="foncier-node-icon">
+                        <i class="bi bi-file-earmark-check-fill"></i>
+                      </div>
+                      <div class="foncier-node-body">
+                        <span class="foncier-node-label">Titre foncier</span>
+                        <strong>{{ a.bien.parcelle.titre_foncier.numero }}</strong>
+                        @if (a.bien.parcelle.titre_foncier.est_verifie) {
+                          <span class="foncier-chip foncier-chip--verified">
+                            <i class="bi bi-patch-check-fill"></i> Vérifié
+                          </span>
+                        } @else {
+                          <span class="foncier-chip foncier-chip--unverified">
+                            <i class="bi bi-clock"></i> En attente
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (a.bien.parcelle.titre_foncier) {
+                    <div class="foncier-connector"></div>
+                    <div class="foncier-node foncier-node--tf">
+                      <div class="foncier-node-icon">
+                        <i class="bi bi-eye"></i>
+                      </div>
+                      <div class="foncier-node-body">
+                        <span class="foncier-node-label">Détail de la parcelle</span>
+                        <button class="pa-action-btn pa-action-btn--fiche" 
+                                (click)="visualisationParcel()">
+                          <i class="bi bi-eye"></i> Voir la parcelle
+                        </button>
+                      </div>
+                    </div>
+                  }
+                }
+              </div>
+
+              <!-- ══════════════════════════════════════════════════════════════
+                   PARCELLE-ACTIONS
+                   Positionné ici : juste sous la chaîne foncière, dans le bloc
+                   bien immobilier. Visible si l'utilisateur est connecté et
+                   que la parcelle est bien renseignée.
+                   ══════════════════════════════════════════════════════════════ -->
+              @if (user() && parcelleInfo) {
+                <div class="mt-3">
+                  <app-parcelle-actions
+                    [parcelle]="parcelleInfo!"
+                    (actionEffectuee)="onActionPremium($event)">
+                  </app-parcelle-actions>
+                </div>
+              }
+
+            } @else {
+              <p class="bien-no-parcelle">
+                <i class="bi bi-info-circle"></i>
+                Ce bien n'est pas rattaché à une parcelle cadastrale.
+              </p>
+            }
+          </div>
+        }
+
+        <!-- Bloc verrouillé pour visiteurs et sans crédits -->
+        @if (a.bien && !peutVoirComplet) {
+          <div class="bien-card bien-card--verrouille mt-3">
+            <div class="verrouille-overlay">
+              <i class="bi bi-lock-fill verrouille-icon"></i>
+              <p>Informations du bien masquées</p>
+              @if (isVisiteur()) {
+                <a routerLink="/auth/register" class="verrouille-btn">
+                  <i class="bi bi-person-plus me-1"></i> S'inscrire gratuitement
+                </a>
+              } @else {
+                <a routerLink="/lango/credits" class="verrouille-btn">
+                  <i class="bi bi-coin me-1"></i> Acheter des crédits
+                </a>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <!-- ════════════════════════════ Sidebar ══════════════════════════════ -->
+      <div class="col-lg-4">
+
+        <!-- ╔══════════════════════════════════════════════════════════╗
+             ║  VISITEUR — inciter à s'inscrire                       ║
+             ╚══════════════════════════════════════════════════════════╝ -->
+        @if (isVisiteur()) {
+          <div class="sidebar-card sidebar-card--visiteur">
+            <div class="sidebar-header">
+              <i class="bi bi-person-circle"></i> Accès complet
+            </div>
+            <div class="sidebar-body">
+              <p class="sidebar-hint">
+                Inscrivez-vous gratuitement pour contacter les vendeurs,
+                voir tous les détails et utiliser les services Premium fonciers.
+              </p>
+              <a routerLink="/auth/register" class="action-btn btn-register">
+                <i class="bi bi-person-plus"></i> Créer un compte gratuit
+              </a>
+              <a routerLink="/auth/login" class="action-btn btn-login mt-2">
+                <i class="bi bi-box-arrow-in-right"></i> Se connecter
+              </a>
+            </div>
+          </div>
+        }
+
+        <!-- ╔══════════════════════════════════════════════════════════╗
+             ║  PURCHASER — contact vendeur + hint crédits            ║
+             ╚══════════════════════════════════════════════════════════╝ -->
+        @if (isPurchaser()) {
+          <div class="sidebar-card">
+            <div class="sidebar-header">
+              <i class="bi bi-lightning-charge"></i> Actions
+            </div>
+            <div class="sidebar-body">
+              <button class="action-btn btn-contact" (click)="ouvrirConversation()">
+                <i class="bi bi-chat-dots"></i> Contacter le vendeur
+              </button>
+
+              @if (detailLimite) {
+                <div class="achat-hint mt-2">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Achetez des crédits pour le détail complet et les services fonciers.
+                  <a routerLink="/lango/credits" class="acces-link d-block mt-1">
+                    <i class="bi bi-coin me-1"></i> Voir les packs crédits
+                  </a>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ╔══════════════════════════════════════════════════════════╗
+             ║  VENDOR PROPRIÉTAIRE — actions selon statut            ║
+             ║  Boutons : publierVendor, mettreEnAttente, archiverVendor ║
+             ╚══════════════════════════════════════════════════════════╝ -->
+        @if (isAdmin() || (isOwner() && isVendor())) {
+          <div class="sidebar-card">
+            <div class="sidebar-header">
+              <i class="bi bi-person-check"></i> Mon annonce
+            </div>
+            <div class="sidebar-body">
+              <div class="owner-statut mb-2">
+                <span class="badge" [ngClass]="getStatutBadgeClass(a.statut)">
+                  {{ getStatutLabel(a.statut) }}
+                </span>
+              </div>
+
+              <!-- DRAFT → publier direct ou soumettre pour validation -->
+              @if (a.statut === 'DRAFT') {
+                <button class="action-btn btn-publish" (click)="publierVendor()">
+                  <i class="bi bi-check-circle"></i> Publier maintenant
+                </button>
+                <button class="action-btn btn-pending mt-2" (click)="mettreEnAttente()">
+                  <i class="bi bi-clock"></i> Soumettre pour validation
+                </button>
+                <button class="action-btn btn-edit mt-2" (click)="onEditAnnonce(a.id)">
+                  <i class="bi bi-pencil"></i> Modifier
+                </button>
+              }
+
+              <!-- PENDING → info attente + modification possible -->
+              @if (a.statut === 'PENDING') {
+                <p class="owner-info-text">
+                  <i class="bi bi-hourglass me-1"></i>
+                  En attente de validation par l'équipe.
+                </p>
+                <button class="action-btn btn-edit" (click)="onEditAnnonce(a.id)">
+                  <i class="bi bi-pencil"></i> Modifier
+                </button>
+              }
+
+              <!-- PUBLISHED → archiver uniquement (pas de retour en brouillon) -->
+              @if (a.statut === 'PUBLISHED') {
+                <p class="owner-info-text text-success">
+                  <i class="bi bi-check-circle-fill me-1"></i>
+                  Annonce publiée et visible.
+                </p>
+                <button class="action-btn btn-archive" (click)="archiverVendor()">
+                  <i class="bi bi-archive"></i> Archiver l'annonce
+                </button>
+                <p class="owner-info-text small text-muted mt-1">
+                  Une annonce publiée ne peut pas revenir en brouillon.
+                </p>
+              }
+
+              <!-- REJECTED → corriger et resoumettre -->
+              @if (a.statut === 'REJECTED') {
+                @if (a.motif_rejet) {
+                  <div class="rejet-box mb-2">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    {{ a.motif_rejet }}
+                  </div>
+                }
+                <button class="action-btn btn-edit" (click)="onEditAnnonce(a.id)">
+                  <i class="bi bi-pencil"></i> Corriger et resoumettre
+                </button>
+              }
+
+              <!-- ARCHIVED → aucune action -->
+              @if (a.statut === 'ARCHIVED') {
+                <p class="owner-info-text text-muted">
+                  <i class="bi bi-archive me-1"></i>
+                  Annonce archivée — non visible publiquement.
+                </p>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ╔══════════════════════════════════════════════════════════╗
+             ║  ADMIN / MANAGER — publication, rejet, suppression     ║
+             ╚══════════════════════════════════════════════════════════╝ -->
+        @if (isAdmin() || isManager()) {
+          <div class="sidebar-card">
+            <div class="sidebar-header">
+              <i class="bi bi-shield-check"></i> Administration
+            </div>
+            <div class="sidebar-body">
+              <div class="owner-statut mb-2">
+                <span class="badge" [ngClass]="getStatutBadgeClass(a.statut)">
+                  {{ getStatutLabel(a.statut) }}
+                </span>
+              </div>
+
+              <!-- PENDING ou DRAFT : publier ou rejeter -->
+              @if (a.statut === 'PENDING' || a.statut === 'DRAFT') {
+                <button class="action-btn btn-reject mt-2" (click)="onRejectAnnonce(a)">
+                  <i class="bi bi-x-circle"></i> Rejeter
+                </button>
+              }
+
+              <!-- Toujours disponible pour admin -->
+              <button class="action-btn btn-delete mt-2" (click)="supprimer()">
+                <i class="bi bi-trash"></i> Supprimer définitivement
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Motif rejet (visible pour tous) -->
+        @if (a.statut === 'REJECTED' && a.motif_rejet) {
+          <div class="rejet-box mt-2">
+            <div class="rejet-title">
+              <i class="bi bi-exclamation-triangle"></i> Annonce rejetée
+            </div>
+            <p>{{ a.motif_rejet }}</p>
+          </div>
+        }
+
+        <!-- Info validation -->
+        @if (a.date_validation && a.validee_par) {
+          <div class="validation-row mt-2">
+            <i class="bi bi-patch-check"></i>
+            <span>Validée <strong>{{ a.date_validation | relativeTime }}</strong></span>
+          </div>
+        }
+
+        <!-- Conversations vendor (propriétaire voit toutes ses conversations) -->
+        @if (isOwner()) {
+          <div class="sidebar-card mt-3">
+            <div class="sidebar-body p-0">
+              <app-conversation-list
+                [annonceId]="annonceId"
+                [isOwner]="isOwner()"
+                [currentUser]="user()?.username || ''">
+              </app-conversation-list>
+            </div>
+          </div>
+        }
+
+        <!-- Conversation purchaser (sa propre conversation avec le vendor) -->
+        @if (isPurchaser()) {
+          <div class="sidebar-card mt-3">
+            <div class="sidebar-header">
+              <i class="bi bi-chat-dots"></i> Votre conversation
+            </div>
+            <div class="sidebar-body p-0">
+              <app-purchaser-conversation [annonceId]="annonceId">
+              </app-purchaser-conversation>
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+
+  }
+
+</div>

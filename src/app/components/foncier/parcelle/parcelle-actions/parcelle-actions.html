@@ -1,0 +1,197 @@
+<div class="pa-wrap mt-5">
+
+  <!-- Header solde -->
+  <div class="pa-solde-row">
+    <i class="bi bi-coin me-1"></i>
+    <span>Solde : <strong>{{ solde() | number }}</strong> crédits</span>
+    @if (!estConnecte) {
+      <span class="pa-login-hint">
+        <i class="bi bi-lock me-1"></i>
+        Connectez-vous pour accéder aux services
+      </span>
+    }
+  </div>
+
+  <!-- ── Actions principales ── -->
+  <div class="pa-actions-grid">
+
+    <!-- Fiche complète — toujours disponible -->
+    <button class="pa-action-btn pa-action-btn--fiche"
+            [disabled]="!estConnecte 
+                       || loading() === 'fiche' 
+                       || !soldeSuffisant(TARIFS.fiche)"
+            (click)="accederFiche()"
+            ngbTooltip="{{ !soldeSuffisant(TARIFS.fiche) 
+            ? 'Solde insuffisant' 
+            : 'Accéder à la fiche détaillée' }}"
+            placement="top" triggers="hover">
+      @if (loading() === 'fiche') {
+        <span class="spinner-border spinner-border-sm"></span>
+      } @else {
+        <i class="bi bi-file-earmark-text-fill"></i>
+      }
+      <div class="pa-action-content">
+        <span class="pa-action-label">Fiche complète</span>
+        <span class="pa-action-cout">{{ TARIFS.fiche }} cr.</span>
+      </div>
+    </button>
+
+    <!-- Chaîne foncière -->
+    <button class="pa-action-btn pa-action-btn--chaine"
+            [disabled]="!estConnecte 
+                        || loading() === 'chaine' 
+                        || !soldeSuffisant(TARIFS.chaine)"
+            (click)="accederChaine()"
+            ngbTooltip="{{ !soldeSuffisant(TARIFS.chaine) 
+            ? 'Solde insuffisant' 
+            : 'Voir la chaîne foncière' }}"
+            placement="top" triggers="hover">
+      @if (loading() === 'chaine') {
+        <span class="spinner-border spinner-border-sm"></span>
+      } @else {
+        <i class="bi bi-diagram-3-fill"></i>
+      }
+      <div class="pa-action-content">
+        <span class="pa-action-label">Chaîne foncière</span>
+        <span class="pa-action-cout">{{ TARIFS.chaine }} cr.</span>
+      </div>
+    </button>
+
+    <!-- Réservation — uniquement si DISPONIBLE -->
+    <button class="pa-action-btn pa-action-btn--reservation"
+            [disabled]="!estConnecte || !estDisponible 
+                        || loading() === 'reservation' 
+                        || !soldeSuffisant(TARIFS.reservation)"
+            (click)="reserver()"
+            ngbTooltip="{{ !estDisponible 
+            ? 'Parcelle non disponible' : 
+            !soldeSuffisant(TARIFS.reservation) 
+            ? 'Solde insuffisant' 
+            : 'Réserver cette parcelle (7 jours)' }}"
+            placement="top" triggers="hover">
+      @if (loading() === 'reservation') {
+        <span class="spinner-border spinner-border-sm"></span>
+      } @else {
+        <i class="bi bi-calendar-check-fill"></i>
+      }
+      <div class="pa-action-content">
+        <span class="pa-action-label">Réserver</span>
+        <span class="pa-action-cout">{{ TARIFS.reservation }} cr.</span>
+      </div>
+      @if (!estDisponible) {
+        <span class="pa-action-disabled-tag">
+          {{ parcelle.statut | titlecase }}
+        </span>
+      }
+    </button>
+
+    <!-- Dossier foncier -->
+    <button class="pa-action-btn pa-action-btn--dossier"
+            [disabled]="!estConnecte 
+                        || loading() === 'dossier' 
+                        || !soldeSuffisant(TARIFS.dossier)"
+            (click)="commanderDossier()"
+            ngbTooltip="{{ !soldeSuffisant(TARIFS.dossier) 
+            ? 'Solde insuffisant' 
+            : 'Commander le dossier complet (PDF 30j)' }}"
+            placement="top" triggers="hover">
+      @if (loading() === 'dossier') {
+        <span class="spinner-border spinner-border-sm"></span>
+      } @else {
+        <i class="bi bi-folder2-open"></i>
+      }
+      <div class="pa-action-content">
+        <span class="pa-action-label">Dossier foncier</span>
+        <span class="pa-action-cout">{{ TARIFS.dossier }} cr.</span>
+      </div>
+    </button>
+
+    <!-- Contacter propriétaire -->
+    <button class="pa-action-btn pa-action-btn--contact"
+            [disabled]="!estConnecte || 
+                        loading() === 'contact' || 
+                        !soldeSuffisant(TARIFS.contact)"
+            (click)="afficherContact.set(!afficherContact())"
+            ngbTooltip="{{ !soldeSuffisant(TARIFS.contact) 
+            ? 'Solde insuffisant' 
+            : 'Contacter le propriétaire' }}"
+            placement="top" triggers="hover">
+      <i class="bi bi-chat-dots-fill"></i>
+      <div class="pa-action-content">
+        <span class="pa-action-label">Contacter</span>
+        <span class="pa-action-cout">{{ TARIFS.contact }} cr.</span>
+      </div>
+    </button>
+
+    <!-- Alerte disponibilité -->
+    <button class="pa-action-btn pa-action-btn--alerte"
+            [disabled]="!estConnecte || 
+                        loading() === 'alerte' || 
+                        !soldeSuffisant(TARIFS.alerte) || estDisponible"
+            (click)="activerAlerte()"
+            ngbTooltip="{{ estDisponible 
+            ? 'Déjà disponible' 
+            : !soldeSuffisant(TARIFS.alerte) 
+            ? 'Solde insuffisant' 
+            : 'Être notifié dès disponibilité' }}"
+            placement="top" triggers="hover">
+      @if (loading() === 'alerte') {
+        <span class="spinner-border spinner-border-sm"></span>
+      } @else {
+        <i class="bi bi-bell-fill"></i>
+      }
+      <div class="pa-action-content">
+        <span class="pa-action-label">Alerte dispo.</span>
+        <span class="pa-action-cout">{{ TARIFS.alerte }} cr.</span>
+      </div>
+    </button>
+
+  </div>
+
+  <!-- ── Formulaire contact (expandable) ── -->
+  @if (afficherContact()) {
+    <div class="pa-contact-form">
+      <div class="pa-contact-header">
+        <i class="bi bi-chat-dots-fill me-2" style="color:#1d4ed8"></i>
+        <span>Message au propriétaire</span>
+        <span class="pa-contact-cout">— {{ TARIFS.contact }} crédits</span>
+      </div>
+      <textarea class="pa-textarea"
+                rows="4"
+                [(ngModel)]="messageContact"
+                placeholder="Décrivez votre intérêt pour cette parcelle, 
+                             vos questions ou votre projet… (min. 20 caractères)">
+      </textarea>
+      <div class="pa-contact-footer">
+        <span class="pa-char-count"
+              [class.pa-char-count--warn]="messageContact.length < 20">
+          {{ messageContact.length }} / 20 min.
+        </span>
+        <div class="pa-contact-btns">
+          <button class="pa-btn-cancel"
+                  (click)="afficherContact.set(false); messageContact = ''">
+            Annuler
+          </button>
+          <button class="pa-btn-send"
+                  [disabled]="messageContact.trim().length < 20 || loading() === 'contact'"
+                  (click)="envoyerContact()">
+            @if (loading() === 'contact') {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            } @else {
+              <i class="bi bi-send me-1"></i>
+            }
+            Envoyer ({{ TARIFS.contact }} cr.)
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Note légale ── -->
+  <p class="pa-legal-note">
+    <i class="bi bi-shield-check me-1"></i>
+    Les crédits sont débités uniquement après confirmation.
+    Remboursement partiel si la demande de contact est refusée.
+  </p>
+
+</div>

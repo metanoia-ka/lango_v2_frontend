@@ -1,0 +1,221 @@
+<div class="cr-wrap w-75 mx-auto mt-5">
+
+  <!-- ══ Header solde ══ -->
+  <div class="cr-header">
+    <div class="cr-header-left">
+      <div class="cr-header-icon"><i class="bi bi-coin"></i></div>
+      <div>
+        <h1 class="cr-title">Mes crédits</h1>
+        <p class="cr-subtitle">Gérez votre solde et consultez vos transactions</p>
+      </div>
+    </div>
+    <div class="cr-solde-card">
+      <span class="cr-solde-label">Solde disponible</span>
+      <span class="cr-solde-value">
+        {{ solde() | number }}
+        <span class="cr-solde-unit">crédits</span>
+      </span>
+    </div>
+  </div>
+
+  @if (isAdmin || isAdminOrManager) {
+    <button class="cr-pack-btn mb-3" (click)="onTarifActions()">
+      <i class="bi bi-arrow-right me-1"></i> Mes tarifs
+    </button>
+  }
+
+  <!-- ══ Onglets ══ -->
+  <div class="cr-tabs">
+    <button class="cr-tab" [class.cr-tab--active]="onglet() === 'packs'"
+            (click)="changerOnglet('packs')">
+      <i class="bi bi-box-seam me-1"></i> Acheter des crédits
+    </button>
+    <button class="cr-tab" [class.cr-tab--active]="onglet() === 'historique'"
+            (click)="changerOnglet('historique')">
+      <i class="bi bi-clock-history me-1"></i> Historique
+    </button>
+    <button class="cr-tab" [class.cr-tab--active]="onglet() === 'achats'"
+            (click)="changerOnglet('achats')">
+      <i class="bi bi-receipt me-1"></i> Mes achats
+    </button>
+  </div>
+
+  <!-- ══ Onglet : Packs ══ -->
+  @if (onglet() === 'packs') {
+    @if (isLoading()) {
+      <div class="cr-loading">
+        <div class="spinner-border spinner-border-sm text-success"></div>
+        <span>Chargement des packs…</span>
+      </div>
+    } @else if (packs().length === 0) {
+      <div class="cr-empty">
+        <i class="bi bi-box-seam"></i>
+        <p>Aucun pack disponible pour le moment.</p>
+      </div>
+    } @else if (!isLoading()) {
+      <div class="cr-packs-grid">
+        @for (pack of packs(); track pack.id) {
+          <div class="cr-pack-card" [class.cr-pack-card--popular]="pack.ordre === 2">
+            @if (pack.ordre === 2) {
+              <div class="cr-pack-badge">Le plus populaire</div>
+            }
+            <div class="cr-pack-header">
+              <h3 class="cr-pack-nom">{{ pack.nom }}</h3>
+              @if (pack.bonus_credits > 0) {
+                <span class="cr-pack-bonus">+{{ pack.bonus_credits }} bonus</span>
+              }
+            </div>
+            <div class="cr-pack-credits">
+              <span class="cr-pack-credits-value">{{ pack.total_credits }}</span>
+              <span class="cr-pack-credits-unit">crédits</span>
+            </div>
+            @if (pack.cout_par_credit) {
+              <div class="cr-pack-rate">
+                {{ pack.cout_par_credit | number:'1.0-1' }} FCFA / crédit
+              </div>
+            }
+            @if (pack.description) {
+              <p class="cr-pack-desc">{{ pack.description }}</p>
+            }
+            <div class="cr-pack-prix">{{ pack.prix_fcfa | number }} FCFA</div>
+            <button class="cr-pack-btn"
+                    [class.cr-pack-btn--popular]="pack.ordre === 2"
+                    (click)="ouvrirAchatModal(pack)">
+              <i class="bi bi-cart-plus me-1"></i> Acheter ce pack
+            </button>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══ Onglet : Historique ══ -->
+  @if (onglet() === 'historique') {
+    <div class="cr-filters">
+      <div class="cr-filter-group">
+        <label class="cr-filter-label">Type</label>
+        <select class="cr-select" [ngModel]="filtreType()"
+                (ngModelChange)="filtreType.set($event); appliquerFiltres()">
+          @for (t of typesTransaction; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="cr-filter-group">
+        <label class="cr-filter-label">Cause</label>
+        <select class="cr-select" [ngModel]="filtreCause()"
+                (ngModelChange)="filtreCause.set($event); appliquerFiltres()">
+          @for (c of causes; track c.value) {
+            <option [value]="c.value">{{ c.label }}</option>
+          }
+        </select>
+      </div>
+      <button class="cr-filter-reset" (click)="resetFiltres()">
+        <i class="bi bi-x-circle me-1"></i> Réinitialiser
+      </button>
+    </div>
+
+    @if (isLoading()) {
+      <div class="cr-loading">
+        <div class="spinner-border spinner-border-sm text-success"></div>
+        <span>Chargement…</span>
+      </div>
+    } @else if (transactions().length === 0) {
+      <div class="cr-empty">
+        <i class="bi bi-clock-history"></i>
+        <p>Aucune transaction trouvée.</p>
+      </div>
+    } @else {
+      <div class="cr-tx-list">
+        @for (tx of transactions(); track tx.id) {
+          <div class="cr-tx-row" [class]="getTypeClass(tx.type_transaction)">
+            <div class="cr-tx-icon">
+              @if (tx.type_transaction === 'CREDIT' 
+                   || tx.type_transaction === 'REMBOURSEMENT'
+                   ) {
+                <i class="bi bi-arrow-down-circle-fill"></i>
+              } @else {
+                <i class="bi bi-arrow-up-circle-fill"></i>
+              }
+            </div>
+            <div class="cr-tx-info">
+              <span class="cr-tx-desc">
+                {{ tx.description || getCauseLabel(tx.cause) }}
+              </span>
+              <span class="cr-tx-meta">
+                {{ tx.created_at | relativeTime }}
+                @if (tx.reference_type) { · {{ tx.reference_type }} }
+              </span>
+            </div>
+            <div class="cr-tx-montant">
+              <span class="cr-tx-sign">{{ getTypeSign(tx.type_transaction) }}</span>
+              <span class="cr-tx-val">{{ tx.montant | number }}</span>
+              <span class="cr-tx-unit">cr.</span>
+            </div>
+            <div class="cr-tx-solde">
+              <span class="cr-tx-solde-label">Solde après</span>
+              <span class="cr-tx-solde-val">{{ tx.solde_apres | number }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══ Onglet : Mes achats ══ -->
+  @if (onglet() === 'achats') {
+    @if (isLoading()) {
+      <div class="cr-loading">
+        <div class="spinner-border spinner-border-sm text-success"></div>
+        <span>Chargement…</span>
+      </div>
+    } @else if (achats().length === 0) {
+      <div class="cr-empty">
+        <i class="bi bi-receipt"></i>
+        <p>Aucun achat effectué.</p>
+        <button class="cr-btn-secondary" (click)="changerOnglet('packs')">
+          <i class="bi bi-box-seam me-1"></i> Voir les packs
+        </button>
+      </div>
+    } @else {
+      <div class="cr-achats-list">
+        @for (achat of achats(); track achat.id) {
+          <div class="cr-achat-row">
+            <div class="cr-achat-pack">
+              <span class="cr-achat-pack-nom">{{ achat.pack_nom }}</span>
+              <span class="cr-achat-credits">
+                {{ achat.credits_octroyes | number }} crédits
+              </span>
+            </div>
+            <div class="cr-achat-methode">
+              <i class="bi bi-credit-card me-1"></i>
+              {{ getMethodeLabel(achat.methode_paiement) }}
+            </div>
+            <div class="cr-achat-montant">{{ achat.montant_fcfa | number }} FCFA</div>
+            <div class="cr-achat-statut">
+              <span class="badge" [class]="getStatutClass(achat.statut)">
+                {{ achat.statut_label }}
+              </span>
+            </div>
+
+            <div class="cr-achat-actions">
+              @if (isAdmin && achat.statut === 'PENDING') {
+                <button class="btn btn-sm text-white shadow-sm" 
+                        [style.background-color]="'#008753'"
+                        (click)="onConfirm(achat)"
+                        title="Confirmer la réception du paiement">
+                  <i class="bi bi-check-lg"></i> Confirmer
+                </button>
+              }
+              <div class="cr-achat-date text-muted small">
+                {{ achat.created_at | relativeTime }}
+              </div>
+            </div>
+            
+          </div>
+        }
+      </div>
+    }
+  }
+
+</div>

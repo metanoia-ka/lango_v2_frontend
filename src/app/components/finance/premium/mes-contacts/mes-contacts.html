@@ -1,0 +1,78 @@
+<div class="prem-wrap">
+  <div class="prem-header">
+    <div class="prem-header-icon" style="background:#eff6ff;color:#1d4ed8">
+      <i class="bi bi-chat-dots-fill"></i>
+    </div>
+    <div>
+      <h5 class="prem-title">Demandes de contact</h5>
+      <span class="prem-sub">Mises en relation avec les propriétaires de parcelles</span>
+    </div>
+  </div>
+ 
+  @if (isLoading()) {
+    <div class="prem-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement…</span>
+    </div>
+  } @else if (contacts().length === 0) {
+    <div class="prem-empty">
+      <i class="bi bi-chat-square"></i>
+      <p>Aucune demande envoyée.</p>
+      <span class="prem-empty-hint">
+        Contactez un propriétaire depuis la fiche d'une parcelle (15 crédits).
+      </span>
+    </div>
+  } @else {
+    <div class="prem-list">
+      @for (c of contacts(); track c.id) {
+        <div class="prem-card prem-card--contact">
+ 
+          <div class="prem-card-left">
+            <div class="prem-card-icon" style="background:#eff6ff;color:#1d4ed8">
+              <i class="bi bi-person-lines-fill"></i>
+            </div>
+            <div class="prem-card-info">
+              <span class="prem-card-title">Parcelle {{ c.parcelle_numero }}</span>
+              <p class="prem-contact-message">{{ c.message }}</p>
+              @if (c.note_manager) {
+                <div class="prem-note-manager">
+                  <i class="bi bi-info-circle me-1"></i>
+                  <em>{{ c.note_manager }}</em>
+                </div>
+              }
+              @if (c.date_expiration) {
+                <span class="prem-card-meta">
+                  <i class="bi bi-clock me-1"></i>
+                  Expire le {{ c.date_expiration | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+              }
+            </div>
+          </div>
+ 
+          <div class="prem-card-right">
+            <span class="prem-badge" [class]="getStatutClass(c.statut)">
+              {{ c.statut_label }}
+            </span>
+ 
+            <!-- Actions Admin/Manager -->
+            @if (isAdminOrManager && c.statut === 'EN_ATTENTE') {
+              <div class="prem-admin-actions">
+                <button class="prem-btn-success"
+                        [disabled]="traitant() === c.id"
+                        (click)="traiter(c.id, 'TRANSMISE')">
+                  <i class="bi bi-check-lg me-1"></i> Transmettre
+                </button>
+                <button class="prem-btn-danger"
+                        [disabled]="traitant() === c.id"
+                        (click)="traiter(c.id, 'REFUSEE')">
+                  <i class="bi bi-x-lg me-1"></i> Refuser
+                </button>
+              </div>
+            }
+          </div>
+ 
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,63 @@
+
+<div class="mf-header">
+  <div class="mf-header-left">
+    <div class="mf-header-icon mf-header-icon--chat">
+      <i class="bi bi-chat-dots-fill"></i>
+    </div>
+    <div>
+      <p class="mf-header-title">Écrire au vendeur</p>
+      <span class="mf-header-sub">Envoyez votre premier message</span>
+    </div>
+  </div>
+  <button class="mf-close-btn" (click)="onCancel()"><i class="bi bi-x-lg"></i></button>
+</div>
+
+<div class="mf-body">
+  @if (isLoading()) {
+    <div class="mf-loading"><div class="mf-spinner"></div><span>Chargement…</span></div>
+  } @else {
+    <form [formGroup]="conversationForm" (ngSubmit)="onSubmit()">
+
+      @if (successMessage) {
+        <app-alert type="success" title="Succès !" [autoClose]="true" 
+        [autoCloseDelay]="4000" (onClose)="clearSuccessMessage()">
+          <p class="mb-0 small">{{ successMessage }}</p>
+        </app-alert>
+      }
+      @if (errorMessage) {
+        <app-alert type="danger" title="Erreur" (onClose)="clearErrorMessage()">
+          <p class="mb-0 small">{{ errorMessage }}</p>
+        </app-alert>
+      }
+
+      <div class="mf-field">
+        <textarea formControlName="message_initial" id="message_initial"
+                  class="form-control mf-textarea" style="height:130px"
+                  placeholder="Bonjour, je suis intéressé par votre annonce…"
+                  [class.is-invalid]="conversationForm.get('message_initial')?.touched 
+                  && conversationForm.get('message_initial')?.invalid">
+        </textarea>
+        @if (conversationForm.get('message_initial')?.touched 
+        && conversationForm.get('message_initial')?.invalid) {
+          <div class="invalid-feedback d-block">
+            <i class="bi bi-info-circle me-1"></i>Le message est obligatoire.
+          </div>
+        }
+      </div>
+
+    </form>
+  }
+</div>
+
+<div class="mf-actions">
+  <button type="button" class="mf-btn mf-btn--cancel" (click)="onCancel()">
+    <i class="bi bi-x-lg"></i> Annuler
+  </button>
+  <button class="mf-btn mf-btn--send"
+          [disabled]="isLoading() || conversationForm.invalid"
+          (click)="onSubmit()">
+    @if (isLoading()) { <span class="spinner-border spinner-border-sm"></span> }
+    @else { <i class="bi bi-send-fill"></i> }
+    {{ isLoading() ? 'Envoi…' : 'Envoyer le message' }}
+  </button>
+</div>

@@ -1,0 +1,403 @@
+<!-- bien-immobilier-form.html ════════════════════════════════════════════════ -->
+
+<div class="mf-modal">
+
+  <!-- Header -->
+  <div class="mf-modal__header">
+    <h5 class="mf-modal__title">
+      <i class="bi bi-building"></i>
+      {{ isEdit ? 'Modifier le bien' : 'Nouveau bien immobilier' }}
+    </h5>
+    <button class="mf-modal__close" (click)="activeModal.dismiss()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="mf-modal__body" [formGroup]="form">
+
+    @if (error()) {
+      <div class="mf-alert mf-alert--danger">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         SECTION 1 — Type de bien (cascade catégorie → type)
+         ══════════════════════════════════════════════════════════════════ -->
+    <div class="mf-section-title">
+      <i class="bi bi-grid me-2"></i>Type de bien
+    </div>
+
+    <div class="mf-row">
+
+      <!-- Étape 1 : Catégorie -->
+      <div class="mf-field">
+        <label class="mf-label">Catégorie</label>
+        <select class="mf-select" formControlName="categorie_bien">
+          <option value="">— Toutes les catégories —</option>
+          @for (cat of categoriesAvecTypes(); track cat.id) {
+            <option [value]="cat.id">
+              {{ cat.nom }}
+            </option>
+          }
+        </select>
+        <span class="mf-hint">
+          <i class="bi bi-info-circle me-1"></i>
+          Sélectionner une catégorie filtre les types disponibles.
+        </span>
+      </div>
+
+      <!-- Étape 2 : Type (filtré par catégorie) -->
+      <div class="mf-field">
+        <label class="mf-label mf-label--required">Type de bien</label>
+        @if (loadingTypes()) {
+          <div class="mf-select-loading">
+            <span class="mf-spinner mf-spinner--sm"></span> Chargement…
+          </div>
+        } @else {
+          <select class="mf-select" formControlName="type_bien"
+                  [class.mf-input--error]="getFieldError('type_bien')">
+            <option value="">— Sélectionner un type —</option>
+            @if (form.get('categorie_bien')?.value) {
+              <!-- Types filtrés par catégorie -->
+              @for (t of typesFiltres(); track t.id) {
+                <option [value]="t.id">
+                  {{ t.nom }}
+                  @if (t.meuble) { <span> (meublé)</span> }
+                </option>
+              }
+            } @else {
+              <!-- Tous les types groupés par catégorie -->
+              @for (cat of categoriesAvecTypes(); track cat.id) {
+                <optgroup [label]="cat.nom">
+                  @for (t of cat.types; track t.id) {
+                    @if (t.est_actif) {
+                      <option [value]="t.id">
+                        {{ t.nom }}
+                        @if (t.meuble) { (meublé) }
+                      </option>
+                    }
+                  }
+                </optgroup>
+              }
+            }
+          </select>
+          @if (getFieldError('type_bien')) {
+            <span class="mf-error">{{ getFieldError('type_bien') }}</span>
+          }
+          @if (typeBienSelectionne()?.necessite_parcelle) {
+            <span class="mf-hint mf-hint--warning">
+              <i class="bi bi-geo-alt-fill me-1"></i>
+              Ce type nécessite une parcelle cadastrale.
+            </span>
+          }
+        }
+      </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         SECTION 2 — Transaction
+         ══════════════════════════════════════════════════════════════════ -->
+    <div class="mf-section-title">
+      <i class="bi bi-arrow-left-right me-2"></i>Type de transaction
+    </div>
+
+    <div class="srm-tx-grid">
+      @for (k of txKeys; track k) {
+        <label class="srm-tx-card" 
+              [class.srm-tx-card--active]="txValue === k">
+          <input type="radio" formControlName="type_transaction" [value]="k" hidden>
+          <i class="me-2" 
+          [class]="'bi ' + TRANSACTION_ICONES[k] + ' srm-tx-card__icon'"
+          ></i>
+          <span class="srm-tx-card__label me-2">{{ TRANSACTION_LABELS[k] }}:</span>
+          <span class="srm-tx-card__desc">{{ TRANSACTION_DESCRIPTIONS[k] }}</span>
+        </label>
+      }
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         SECTION 3 — Localisation (arrondissement + texte)
+         ══════════════════════════════════════════════════════════════════ -->
+    <div class="mf-section-title">
+      <i class="bi bi-geo-alt me-2"></i>Localisation
+    </div>
+
+    <div class="mf-row">
+
+      <!-- Arrondissement officiel -->
+      <div class="mf-field">
+        <label class="mf-label mf-label--required">
+          Arrondissement / Ville
+        </label>
+        @if (loadingArrs()) {
+          <div class="mf-select-loading">
+            <span class="mf-spinner mf-spinner--sm"></span> Chargement…
+          </div>
+        } @else {
+          <select class="mf-select" formControlName="arrondissement">
+            <option [value]="null">— Sélectionner —</option>
+            @for (r of regions(); track r.id) {
+              <optgroup [label]="r.nom">
+                @for (d of r.departements; track d.id) {
+                  @for (a of d.arrondissements; track a.id) {
+                    <option [value]="a.id">
+                      {{ a.nom }}
+                      <span class="text-muted"> — {{ d.nom }}</span>
+                    </option>
+                  }
+                }
+              </optgroup>
+            }
+          </select>
+          <span class="mf-hint">
+            <i class="bi bi-info-circle me-1"></i>
+            Permet aux acheteurs de trouver les biens de votre ville
+            (ex : tous les biens de Yaoundé, qu'ils soient à Essos, Biteng, Bastos…).
+          </span>
+          @if (getFieldError('arrondissement')) {
+            <span class="mf-error">{{ getFieldError('arrondissement') }}</span>
+          }
+        }
+      </div>
+
+      <!-- Localisation libre (quartier, rue…) -->
+      <div class="mf-field">
+        <label class="mf-label mf-label--required">Localisation précise</label>
+        <input class="mf-input" formControlName="localisation_approx"
+               [class.mf-input--error]="getFieldError('localisation_approx')"
+               placeholder="Ex: Quartier Bastos, face à l'ambassade de France" />
+        <span class="mf-hint">
+          Quartier, repère, rue — complète l'arrondissement sélectionné.
+        </span>
+        @if (getFieldError('localisation_approx')) {
+          <span class="mf-error">{{ getFieldError('localisation_approx') }}</span>
+        }
+      </div>
+
+    </div>
+
+    <!-- Superficie -->
+    <div class="mf-field">
+      <label class="mf-label">Superficie (m²)</label>
+      <input class="mf-input" type="number" formControlName="superficie"
+             placeholder="Ex: 500" min="1" />
+    </div>
+
+    <!-- Description -->
+    <div class="mf-field">
+      <label class="mf-label mf-label--required">Description</label>
+      <textarea class="mf-textarea" rows="4" formControlName="description"
+                [class.mf-input--error]="getFieldError('description')"
+                placeholder="Décrivez le bien : état, accès, nombre de pièces…"></textarea>
+      @if (getFieldError('description')) {
+        <span class="mf-error">{{ getFieldError('description') }}</span>
+      }
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         SECTION 4 — Parcelle (conditionnel)
+         ══════════════════════════════════════════════════════════════════ -->
+    <div class="mf-section-title">
+      Parcelle associée
+      @if (!needsParcelle) {
+        <span class="mf-optional">(optionnel)</span>
+      } @else {
+        <span class="mf-required-badge">obligatoire pour ce type</span>
+      }
+    </div>
+
+    <div class="mf-field">
+      <label class="mf-label">Titre foncier</label>
+      @if (loadingTitres()) {
+        <div class="mf-select-loading">
+          <span class="mf-spinner mf-spinner--sm"></span> Chargement…
+        </div>
+      } @else if (titresFoncier().length === 0) {
+        <div class="mf-hint mf-hint--warning">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          Aucun titre foncier actif.
+          <button class="mf-hint-action" type="button" (click)="goToTitresFonciers()">
+            <i class="bi bi-plus-circle me-1"></i>En créer un
+          </button>
+        </div>
+      } @else {
+        <select class="mf-select" formControlName="titre_foncier_id">
+          <option [value]="null">— Aucun —</option>
+          @for (tf of titresFoncier(); track tf.id) {
+            <option [value]="tf.id">
+              {{ tf.numero }}
+              @if (tf.superficie_restante > 0) {
+                ({{ tf.superficie_restante | number:'1.0-0' }} m² restants)
+              }
+            </option>
+          }
+        </select>
+      }
+    </div>
+
+    @if (form.get('titre_foncier_id')?.value) {
+      <div class="mf-field">
+        <label class="mf-label">Parcelle</label>
+        @if (loadingParc()) {
+          <div class="mf-select-loading">
+            <span class="mf-spinner mf-spinner--sm"></span> Chargement…
+          </div>
+        } @else if (parcelles().length === 0) {
+          <div class="mf-hint mf-hint--warning">
+            Aucune parcelle disponible dans ce titre foncier.
+          </div>
+        } @else {
+          <select class="mf-select" formControlName="parcelle">
+            <option [value]="null">— Aucune —</option>
+            @for (p of parcelles(); track p.id) {
+              <option [value]="p.id">
+                {{ p.numero }} — {{ p.nom }} ({{ p.superficie | number:'1.0-0' }} m²)
+              </option>
+            }
+          </select>
+        }
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         SECTION 5 — Prix (selon transaction)
+         ══════════════════════════════════════════════════════════════════ -->
+
+    @if (isVente || isLocationVente) {
+      <div class="mf-section-title">Prix de vente</div>
+      <div class="mf-field">
+        <label class="mf-label" [class.mf-label--required]="isVente">
+          Prix au m² (FCFA)
+        </label>
+        <div class="mf-input-group">
+          <input class="mf-input" type="number" formControlName="prix_m2"
+                 [class.mf-input--error]="getFieldError('prix_m2')"
+                 placeholder="Ex: 15 000" min="1" />
+          <span class="mf-input-unit">FCFA/m²</span>
+        </div>
+        @if (getFieldError('prix_m2')) {
+          <span class="mf-error">{{ getFieldError('prix_m2') }}</span>
+        }
+      </div>
+    }
+
+    @if (isLocation || isLocationVente) {
+      <div class="mf-section-title">
+        Conditions de location
+        @if (isLocationVente) {
+          <span class="mf-optional">(optionnel si prix de vente défini)</span>
+        }
+      </div>
+      <div class="mf-row">
+        <div class="mf-field">
+          <label class="mf-label" [class.mf-label--required]="isLocation">
+            Loyer mensuel (FCFA)
+          </label>
+          <div class="mf-input-group">
+            <input class="mf-input" type="number" formControlName="loyer_mensuel"
+                   [class.mf-input--error]="getFieldError('loyer_mensuel')"
+                   placeholder="Ex: 150 000" min="1" />
+            <span class="mf-input-unit">FCFA/mois</span>
+          </div>
+          @if (getFieldError('loyer_mensuel')) {
+            <span class="mf-error">{{ getFieldError('loyer_mensuel') }}</span>
+          }
+        </div>
+        <div class="mf-field">
+          <label class="mf-label" [class.mf-label--required]="isLocation">
+            Durée min. bail (mois)
+          </label>
+          <input class="mf-input" type="number" formControlName="duree_bail_min_mois"
+                 placeholder="Ex: 12" min="1" />
+        </div>
+        <div class="mf-field">
+          <label class="mf-label" [class.mf-label--required]="isLocation">
+            Caution (mois)
+          </label>
+          <input class="mf-input" type="number" formControlName="caution_mois"
+                 placeholder="Ex: 2" min="1" />
+        </div>
+      </div>
+
+      @if (isLocationVente) {
+        <div class="mf-hint mf-hint--info">
+          <i class="bi bi-info-circle me-1"></i>
+          <strong>Location-vente :</strong> le bien peut être loué en attendant
+          l'acheteur définitif, ou vendu directement selon l'accord entre les parties.
+        </div>
+      }
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         SECTION 6 — Photos
+         ══════════════════════════════════════════════════════════════════ -->
+    <div class="mf-section-title">
+      <i class="bi bi-images me-2"></i>Photos du bien
+    </div>
+
+    @if (photoError()) {
+      <div class="mf-alert mf-alert--warning">
+        <i class="bi bi-exclamation-triangle me-1"></i>{{ photoError() }}
+      </div>
+    }
+
+    <label class="tf-dropzone" for="photo-upload">
+      <i class="bi bi-cloud-arrow-up"></i>
+      <span>Cliquer pour ajouter des photos</span>
+      <small>JPG, PNG, WEBP — max 1.5 Mo — {{ photoFiles().length }}/10</small>
+    </label>
+    <input id="photo-upload" type="file"
+           accept="image/jpeg,image/png,image/webp" multiple hidden
+           (change)="onPhotoSelect($event)" />
+
+    @if (photoPreviews().length > 0) {
+      <div class="bi-photos-grid">
+        @for (preview of photoPreviews(); track $index) {
+          <div class="bi-photo-thumb">
+            <img [src]="preview" [alt]="'Photo ' + ($index + 1)" />
+            <button type="button" class="bi-photo-thumb__remove"
+                    (click)="removePhoto($index)">
+              <i class="bi bi-x"></i>
+            </button>
+            @if ($index === 0) {
+              <span class="bi-photo-thumb__main">Principale</span>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    @if (isEdit && bien?.photos?.length) {
+      <div class="mf-hint mf-hint--info">
+        <i class="bi bi-info-circle me-1"></i>
+        Ce bien a déjà {{ bien!.photos!.length }} photo(s).
+        Les nouvelles s'ajouteront aux existantes.
+      </div>
+    }
+
+  </div>
+
+  <!-- Footer -->
+  <div class="mf-modal__footer">
+    <button class="mf-btn mf-btn--secondary" type="button" (click)="activeModal.dismiss()">
+      Annuler
+    </button>
+    <button class="mf-btn mf-btn--primary" type="button"
+            (click)="submit()" [disabled]="saving()">
+      @if (saving()) {
+        <span class="mf-spinner mf-spinner--sm me-2"></span>Enregistrement…
+      } @else {
+        @if (!isEdit) {
+          <i class="bi bi-plus-lg me-2"></i>
+        }@else {
+          <i class="bi bi-floppy me-2"></i>
+        }
+        {{ isEdit ? 'Mettre à jour' : 'Créer le bien' }}
+      }
+    </button>
+  </div>
+
+</div>

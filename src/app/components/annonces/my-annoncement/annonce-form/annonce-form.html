@@ -1,0 +1,311 @@
+<div class="annonce-form-container">
+
+  <!-- Header -->
+  <div class="page-header mb-4">
+    <div class="d-flex align-items-center mb-3">
+      <a 
+        routerLink="/annonces" 
+        class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <h2 class="m-0">
+        <i class="bi bi-plus-circle me-2"></i>
+        {{ isEdit() ? 'Modifier l\'annonce' : 'Créer une annonce' }}
+      </h2>
+    </div>
+    <p class="text-muted mb-0">
+      Remplissez les informations ci-dessous pour 
+      {{ isEdit() ? 'modifier votre' : 'publier une nouvelle' }} annonce
+    </p>
+  </div>
+
+  <!-- Formulaire -->
+  <form [formGroup]="annonceForm" (ngSubmit)="onSubmit()">
+    <div class="row g-4">
+
+      <!-- Colonne gauche : Informations -->
+      <div class="col-lg-8">
+        
+        <!-- Card informations principales -->
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+              <i class="bi bi-info-circle me-2"></i>
+              Informations principales
+            </h5>
+          </div>
+          <div class="card-body">
+
+            <!-- Titre -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">
+                Titre de l'annonce <span class="text-danger">*</span>
+              </label>
+              <input 
+                type="text" 
+                class="form-control"
+                formControlName="titre"
+                placeholder="Ex: Appartement T3 en centre-ville"
+                [class.is-invalid]="hasError('titre', 'required') 
+                                    || hasError('titre', 'maxlength')">
+              @if (getErrorMessage('titre')) {
+                <div class="invalid-feedback d-block">
+                  {{ getErrorMessage('titre') }}
+                </div>
+              }
+            </div>
+
+            <!-- Type d'annonce -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">
+                Type d'annonce <span class="text-danger">*</span>
+              </label>
+              <select 
+                class="form-select"
+                formControlName="type_annonce_id"
+                [class.is-invalid]="hasError('type_annonce_id', 'required')">
+                <option value="">-- Sélectionnez un type --</option>
+                @for (type of typesAnnonces(); track type.id) {
+                  <option [value]="type.id">
+                    {{ type.nom }}
+                  </option>
+                }
+              </select>
+              @if (getErrorMessage('type_annonce_id')) {
+                <div class="invalid-feedback d-block">
+                  {{ getErrorMessage('type_annonce_id') }}
+                </div>
+              }
+            </div>
+
+            <!-- Prix -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">
+                Prix (XAF)
+                <small class="text-muted">(optionnel)</small>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-currency-dollar"></i>
+                </span>
+                <input 
+                  type="number" 
+                  class="form-control"
+                  formControlName="prix"
+                  placeholder="0"
+                  min="0"
+                  [class.is-invalid]="hasError('prix', 'min')">
+                <span class="input-group-text">XAF</span>
+              </div>
+              @if (getErrorMessage('prix')) {
+                <div class="invalid-feedback d-block">
+                  {{ getErrorMessage('prix') }}
+                </div>
+              }
+            </div>
+
+            <!-- Description -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">
+                Description <span class="text-danger">*</span>
+              </label>
+              <textarea 
+                class="form-control"
+                formControlName="contenu"
+                rows="8"
+                placeholder="Décrivez votre annonce en détail..."
+                [class.is-invalid]="hasError('contenu', 'required') 
+                                    || hasError('contenu', 'minlength')">
+              </textarea>
+              @if (getErrorMessage('contenu')) {
+                <div class="invalid-feedback d-block">
+                  {{ getErrorMessage('contenu') }}
+                </div>
+              }
+              <div class="form-text">
+                {{ annonceForm.get('contenu')?.value?.length || 0 }} caractères
+                (minimum 20)
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Card dates -->
+        <div class="card shadow-sm">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+              <i class="bi bi-calendar-event me-2"></i>
+              Période de visibilité
+            </h5>
+          </div>
+          <div class="card-body">
+
+            <!-- Date début -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">
+                Date de début <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-calendar"></i>
+                </span>
+                <input 
+                  class="form-control"
+                  placeholder="jj/mm/aaaa"
+                  formControlName="date_debut"
+                  ngbDatepicker
+                  #dateDebut="ngbDatepicker"
+                  [minDate]="minDate"
+                  [maxDate]="maxDate"
+                  [class.is-invalid]="hasError('date_debut', 'required')">
+                <button 
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  (click)="dateDebut.toggle()">
+                  <i class="bi bi-calendar3"></i>
+                </button>
+              </div>
+              @if (getErrorMessage('date_debut')) {
+                <div class="invalid-feedback d-block">
+                  {{ getErrorMessage('date_debut') }}
+                </div>
+              }
+              <div class="form-text">
+                Date à partir de laquelle l'annonce sera visible
+              </div>
+            </div>
+
+            <!-- Date fin -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">
+                Date de fin
+                <small class="text-muted">(optionnel)</small>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-calendar"></i>
+                </span>
+                <input 
+                  class="form-control"
+                  placeholder="jj/mm/aaaa"
+                  formControlName="date_fin"
+                  ngbDatepicker
+                  #dateFin="ngbDatepicker"
+                  [minDate]="minDate"
+                  [maxDate]="maxDate">
+                <button 
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  (click)="dateFin.toggle()">
+                  <i class="bi bi-calendar3"></i>
+                </button>
+              </div>
+              @if (annonceForm.hasError('dateFinInvalide')) {
+                <div class="text-danger small mt-1">
+                  La date de fin doit être postérieure à la date de début
+                </div>
+              }
+              <div class="form-text">
+                L'annonce sera automatiquement masquée après cette date
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Colonne droite : Image -->
+      <div class="col-lg-4">
+        
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+              <i class="bi bi-image me-2"></i>
+              Image de l'annonce
+            </h5>
+          </div>
+          <div class="card-body">
+
+            <!-- Preview image -->
+            @if (imagePreview()) {
+              <div class="image-preview mb-3">
+                <img [src]="imagePreview()" alt="Preview">
+                <button 
+                  type="button"
+                  class="btn btn-sm btn-danger btn-remove"
+                  (click)="retirerImage()">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+            } @else {
+              <div class="image-placeholder mb-3">
+                <i class="bi bi-image"></i>
+                <p class="mt-2 mb-0 text-muted small">
+                  Aucune image sélectionnée
+                </p>
+              </div>
+            }
+
+            <!-- Bouton sélection -->
+            <input 
+              type="file" 
+              #fileInput
+              accept="image/*"
+              class="d-none"
+              (change)="onImageSelected($event)">
+            
+            <button 
+              type="button"
+              class="btn btn-outline-primary w-100 mb-2"
+              (click)="fileInput.click()">
+              <i class="bi bi-cloud-upload me-2"></i>
+              {{ imagePreview() ? 'Changer l\'image' : 'Sélectionner une image' }}
+            </button>
+
+            <div class="alert alert-info mb-0">
+              <small>
+                <i class="bi bi-info-circle me-1"></i>
+                <strong>Formats acceptés :</strong> JPG, PNG, GIF
+                <br>
+                <strong>Taille max :</strong> 5 MB
+              </small>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Boutons d'action -->
+    <div class="form-actions mt-4">
+      <div class="d-flex justify-content-between">
+        <button 
+          type="button"
+          class="btn btn-outline-secondary"
+          routerLink="/annonces"
+          [disabled]="isSubmitting()">
+          <i class="bi bi-x-circle me-2"></i>
+          Annuler
+        </button>
+
+        <button 
+          type="submit"
+          class="btn btn-primary btn-lg"
+          [disabled]="isSubmitting()">
+          @if (isSubmitting()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+          } @else {
+            <i class="bi bi-check-circle me-2"></i>
+          }
+          {{ isEdit() ? 'Enregistrer les modifications' : 'Publier l\'annonce' }}
+        </button>
+      </div>
+    </div>
+
+  </form>
+
+</div>

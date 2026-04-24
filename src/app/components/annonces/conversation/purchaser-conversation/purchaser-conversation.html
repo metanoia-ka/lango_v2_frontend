@@ -1,0 +1,114 @@
+@if (!conversation()) {
+  <div class="no-conv">
+    <i class="bi bi-chat-square"></i>
+    <span>Vous n'avez pas encore contacté ce vendeur.</span>
+  </div>
+} <!-- Conversation -->
+  @else {
+  <div class="chat-wrap">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="chat-avatar">
+        {{ conversation()!.vendor_nom.charAt(0).toUpperCase() }}
+      </div>
+      <div>
+        <div class="chat-vendor-name">{{ conversation()!.vendor_nom }}</div>
+        <div class="chat-vendor-sub">Vendeur</div>
+      </div>
+    </div>
+    <span class="status-badge"
+          [class.active]="!conversation()!.fermee"
+          [class.closed]="conversation()!.fermee">
+      {{ conversation()!.fermee ? 'Fermée' : 'Active' }}
+    </span>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages" #messagesContainer>
+
+    @if (isLoadingMessages()) {
+      <div class="chat-loader">
+        <span></span><span></span><span></span>
+      </div>
+    }
+
+    @if (!isLoadingMessages() && messages().length === 0) {
+      <div class="chat-empty">
+        <i class="bi bi-chat-dots"></i>
+        <span>Aucun message pour l'instant</span>
+      </div>
+    }
+
+    @if (!isLoadingMessages()) {
+      <ng-container>
+        <ng-container *ngFor="let msg of messages(); let i = index">
+
+        @if (i === 0 || isNewDay(messages()[i-1].created_at, msg.created_at)) {
+          <div class="date-sep">
+            {{ msg.created_at | date:'d MMM yyyy':'':'fr' }}
+          </div>
+        }
+
+        <div class="msg-row"
+             [class.mine]="msg.est_mon_message"
+             [class.theirs]="!msg.est_mon_message">
+
+          <div class="msg-author">{{ msg.auteur_nom }}</div>
+
+          <div class="msg-bubble">
+            <p>{{ msg.contenu }}</p>
+            <div class="msg-meta">
+              <span>{{ msg.created_at | date:'HH:mm' }}</span>
+              @if (msg.est_mon_message) {
+                <i class="bi check"
+                   [class.bi-check2-all]="msg.est_lu"
+                   [class.bi-check2]="!msg.est_lu"
+                   [class.read]="msg.est_lu"></i>
+              }
+            </div>
+          </div>
+
+        </div>
+      </ng-container>
+      </ng-container>
+    }
+
+  </div>
+
+  <!-- Saisie -->
+  @if (!conversation()!.fermee) {
+    <div class="chat-input">
+    <div class="chat-input-wrap">
+      <textarea
+        [(ngModel)]="nouveauMessage"
+        placeholder="Votre message…"
+        rows="1"
+        (keydown.control.enter)="envoyerMessage()"
+        (input)="autoResize($event)"
+        [disabled]="isEnvoi()">
+      </textarea>
+      <button class="send-btn"
+              (click)="envoyerMessage()"
+              [disabled]="!nouveauMessage.trim() || isEnvoi()">
+        @if (isEnvoi()) {
+        <span class="spinner-border" style="width:14px;height:14px;border-width:2px"></span>
+        }
+        @if (!isEnvoi()) {
+          <i class="bi bi-send-fill" style="font-size:0.8rem;transform:translateX(1px)"></i>
+        }
+      </button>
+    </div>
+    <div class="chat-hint">Ctrl + Entrée pour envoyer</div>
+    </div>
+  }
+
+  @if (conversation()!.fermee) {
+    <div class="chat-closed">
+      <i class="bi bi-lock me-1"></i> Cette conversation est fermée
+    </div>
+  }
+
+  </div>
+}

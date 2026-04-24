@@ -1,0 +1,328 @@
+<div class="verification-container">
+
+  <!-- ══ Header ══ -->
+  <div class="modern-header">
+    <div class="header-content">
+      <div class="header-title-section">
+        <div class="icon-wrapper">
+          <i class="bi bi-shield-check"></i>
+        </div>
+        <div>
+          <h1 class="main-title">Vérifications des profils</h1>
+          <p class="subtitle">Gérez et validez les profils en attente</p>
+        </div>
+      </div>
+
+      <!-- Stats cards -->
+      @if (stats(); as s) {
+        <div class="stats-grid">
+
+          <div class="stat-card total">
+            <div class="stat-icon"><i class="bi bi-people"></i></div>
+            <div class="stat-content">
+              <span class="stat-label">Total</span>
+              <span class="stat-value">{{ s.total }}</span>
+            </div>
+          </div>
+
+          <div class="stat-card pending"
+               [class.stat-card--urgent]="s.en_attente_longue > 0">
+            <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+            <div class="stat-content">
+              <span class="stat-label">En attente</span>
+              <span class="stat-value">{{ s.en_attente }}</span>
+              @if (s.en_attente_longue > 0) {
+                <span class="stat-urgence">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  {{ s.en_attente_longue }} &gt; 7j
+                </span>
+              }
+            </div>
+          </div>
+
+          <div class="stat-card validated">
+            <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-content">
+              <span class="stat-label">Validés</span>
+              <span class="stat-value">{{ s.valide }}</span>
+            </div>
+          </div>
+
+          <div class="stat-card rejected">
+            <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
+            <div class="stat-content">
+              <span class="stat-label">Rejetés</span>
+              <span class="stat-value">{{ s.rejete }}</span>
+            </div>
+          </div>
+
+          <div class="stat-card correction">
+            <div class="stat-icon"><i class="bi bi-pencil"></i></div>
+            <div class="stat-content">
+              <span class="stat-label">À corriger</span>
+              <span class="stat-value">{{ s.a_corriger }}</span>
+            </div>
+          </div>
+
+          <div class="stat-card no-proof">
+            <div class="stat-icon"><i class="bi bi-file-earmark-x"></i></div>
+            <div class="stat-content">
+              <span class="stat-label">Sans preuve</span>
+              <span class="stat-value">{{ s.sans_preuve }}</span>
+            </div>
+          </div>
+
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ══ Alertes ══ -->
+  @if (successMessage) {
+    <div class="modern-alert success">
+      <i class="bi bi-check-circle alert-icon"></i>
+      <span>{{ successMessage }}</span>
+      <button class="alert-close" (click)="clearSuccessMessage()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  }
+  @if (errorMessage) {
+    <div class="modern-alert error">
+      <i class="bi bi-exclamation-triangle alert-icon"></i>
+      <span>{{ errorMessage }}</span>
+      <button class="alert-close" (click)="clearErrorMessage()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  }
+
+  <!-- ══ Filtres ══ -->
+  <div class="filters-section">
+    <div class="filters-header">
+      <h3 class="filters-title">
+        <i class="bi bi-funnel me-2"></i>Filtres
+      </h3>
+      <button class="btn-reset" (click)="resetFilters()">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Réinitialiser
+      </button>
+    </div>
+
+    <div class="filters-grid">
+
+      <!-- Recherche -->
+      <div class="filter-item search-filter">
+        <label class="filter-label"><i class="bi bi-search"></i> Rechercher</label>
+        <div class="input-wrapper">
+          <input type="text" class="modern-input"
+                 placeholder="Nom, CIN, email, téléphone…"
+                 [(ngModel)]="filters.search"
+                 (keyup.enter)="applyFilters()">
+          @if (filters.search) {
+            <button class="input-clear" (click)="filters.search = ''; applyFilters()">
+              <i class="bi bi-x"></i>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Statut -->
+      <div class="filter-item">
+        <label class="filter-label"><i class="bi bi-flag"></i> Statut</label>
+        <select class="modern-select" [(ngModel)]="filters.statut" 
+                (change)="applyFilters()">
+          <option value="">Tous statuts</option>
+          <option value="EN_ATTENTE">En attente</option>
+          <option value="EN_COURS">En cours</option>
+          <option value="VALIDE">Validé</option>
+          <option value="REJETE">Rejeté</option>
+          <option value="A_CORRIGER">À corriger</option>
+        </select>
+      </div>
+
+      <!-- Type -->
+      <div class="filter-item">
+        <label class="filter-label"><i class="bi bi-person"></i> Type</label>
+        <select class="modern-select" [(ngModel)]="filters.type_personne"
+                (change)="applyFilters()">
+          <option value="">Tous types</option>
+          <option value="PHYSIQUE">Personne physique</option>
+          <option value="MORALE">Personne morale</option>
+        </select>
+      </div>
+
+      <!-- Toggle avec preuve -->
+      <div class="filter-item toggle-filter d-flex align-items-center">
+        <label class="modern-toggle">
+          <input type="checkbox" [(ngModel)]="filters.avec_preuve"
+                 (change)="applyFilters()">
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">
+            <i class="bi bi-file-earmark-check me-2"></i>Avec preuve légale
+          </span>
+        </label>
+      </div>
+
+      <div class="filter-item d-flex align-items-center">
+        <button class="btn-primary-modern" (click)="applyFilters()">
+          <i class="bi bi-funnel-fill me-2"></i>Appliquer
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ État chargement / vide ══ -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner-modern"></div>
+      <p class="loading-text">Chargement des profils…</p>
+    </div>
+  } @else if (personnes().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+      <h3 class="empty-title">Aucun profil à vérifier</h3>
+      <p class="empty-description">
+        Tous les profils sont à jour ou aucun ne correspond aux filtres.
+      </p>
+      <button class="btn-secondary-modern" (click)="resetFilters()">
+        <i class="bi bi-arrow-counterclockwise me-2"></i>Réinitialiser les filtres
+      </button>
+    </div>
+  } @else {
+
+    <!-- ══ Grille de cards ══ -->
+    <div class="profiles-grid">
+      @for (p of personnes(); track p.id) {
+        <div class="profile-card"
+             [class.profile-card--verified]="p.est_verifie"
+             [class.profile-card--pending]="p.statut_verification === 'EN_ATTENTE'"
+             [class.profile-card--urgent]="p.jours_attente > 7">
+
+          <!-- Header card -->
+          <div class="card-header">
+            <div class="user-info">
+              <div class="user-avatar"
+                   [class.avatar-physical]="p.type_personne === 'PHYSIQUE'"
+                   [class.avatar-moral]="p.type_personne === 'MORALE'">
+                <i [class]="p.type_personne === 'PHYSIQUE'
+                              ? 'bi bi-person-fill' : 'bi bi-building'"></i>
+              </div>
+              <div class="user-details">
+                <h4 class="user-name">
+                  @if (p.nom || p.prenom) {
+                    {{ p.nom }} {{ p.prenom || '' }}
+                  } @else {
+                    <span class="incomplete">Profil incomplet</span>
+                  }
+                </h4>
+                <p class="user-meta">
+                  <i class="bi bi-at"></i>{{ p.user_details?.username ?? '—' }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Badge statut -->
+            <div class="status-badge"
+                 [class.status-pending]="p.statut_verification === 'EN_ATTENTE'"
+                 [class.status-validated]="p.statut_verification === 'VALIDE'"
+                 [class.status-rejected]="p.statut_verification === 'REJETE'"
+                 [class.status-progress]="p.statut_verification === 'EN_COURS'"
+                 [class.status-correction]="p.statut_verification === 'A_CORRIGER'">
+              <i [class]="getStatusIcon(p.statut_verification)"></i>
+              {{ getStatusLabel(p.statut_verification) }}
+            </div>
+          </div>
+
+          <!-- Body card -->
+          <div class="card-body">
+            <div class="info-grid">
+
+              <div class="info-item">
+                <span class="info-label"><i class="bi bi-tag"></i> Type</span>
+                <span class="info-value">
+                  <span class="type-badge"
+                        [class.type-physical]="p.type_personne === 'PHYSIQUE'">
+                    {{ p.type_personne === 'PHYSIQUE' ? 'Physique' : 'Morale' }}
+                  </span>
+                </span>
+              </div>
+
+              <div class="info-item">
+                <span class="info-label">
+                  <i class="bi bi-calendar-event"></i> Attente
+                </span>
+                <span class="info-value">
+                  @if (p.jours_attente) {
+                    <span class="days-badge" [class.urgent]="p.jours_attente > 7">
+                      {{ p.jours_attente }}j
+                      @if (p.jours_attente > 7) {
+                        <i class="bi bi-exclamation-triangle-fill ms-1"></i>
+                      }
+                    </span>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </span>
+              </div>
+
+              <div class="info-item">
+                <span class="info-label">
+                  <i class="bi bi-file-earmark-check"></i> Preuve
+                </span>
+                <span class="info-value">
+                  @if (p.preuve_legale_url) {
+                    <button class="btn-icon"
+                            (click)="previewPreuve(p)"
+                            ngbTooltip="Aperçu" placement="top" triggers="hover">
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  } @else {
+                    <span class="badge-no-proof">
+                      <i class="bi bi-x-circle me-1"></i>Non fournie
+                    </span>
+                  }
+                </span>
+              </div>
+
+            </div>
+
+            <!-- Commentaire de rejet/correction visible directement -->
+            @if (p.commentaire_verification &&
+                 (p.statut_verification === 'REJETE' ||
+                  p.statut_verification === 'A_CORRIGER')) {
+              <div class="card-comment">
+                <i class="bi bi-chat-square-quote me-1"></i>
+                {{ p.commentaire_verification }}
+              </div>
+            }
+          </div>
+
+          <!-- Footer card -->
+          <div class="card-footer">
+            <!-- Bouton contextuel selon statut -->
+            @if (p.statut_verification === 'VALIDE') {
+              <div class="verified-badge">
+                <i class="bi bi-check-circle-fill me-1"></i> Profil vérifié
+              </div>
+            } @else {
+              <button class="btn-verify" (click)="openDetail(p)">
+                <i class="bi bi-shield-check me-2"></i>
+                @switch (p.statut_verification) {
+                  @case ('EN_ATTENTE') { Traiter ce profil }
+                  @case ('EN_COURS')   { Continuer la vérification }
+                  @case ('A_CORRIGER') { Vérifier les corrections }
+                  @case ('REJETE')     { Revoir le dossier }
+                  @default { Ouvrir }
+                }
+              </button>
+            }
+          </div>
+
+        </div>
+      }
+    </div>
+
+  }
+
+</div>

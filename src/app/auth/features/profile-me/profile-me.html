@@ -1,0 +1,633 @@
+<div class="mx-auto d-flex card shadow-sm rounded-4 home w-75">
+  <div>
+
+    <!-- Header -->
+    <div class="profil-header">
+
+  <div class="profil-header-avatar">
+    <div class="profil-header-avatar-ring"></div>
+    <i class="bi bi-person-circle profil-header-avatar-icon"></i>
+  </div>
+
+  <div class="profil-header-text">
+    <h3 class="profil-header-title">Mon profil</h3>
+    <span class="profil-header-sub">Gérez vos informations personnelles</span>
+  </div>
+
+  <!-- Badge statut vérification (optionnel, décommenter si disponible) -->
+  @if (statutVerification) {
+    <div class="profil-header-badge"
+         [class.profil-header-badge--valide]="statutVerification === 'VALIDE'"
+         [class.profil-header-badge--encours]="statutVerification === 'EN_COURS'"
+         [class.profil-header-badge--attente]="statutVerification !== 'VALIDE' && statutVerification !== 'EN_COURS'">
+      @if (statutVerification === 'VALIDE') {
+        <i class="bi bi-patch-check-fill"></i> Vérifié
+      } @else if (statutVerification === 'EN_COURS') {
+        <i class="bi bi-hourglass-split"></i> En cours
+      } @else {
+        <i class="bi bi-clock"></i> En attente
+      }
+    </div>
+  }
+
+</div>
+
+    <!-- Body -->
+    <div class="card-body" *ngIf="user() as u;">
+      
+      <div class="uinfo-section">
+
+  <div class="uinfo-section-head">
+    <div class="uinfo-section-icon">
+      <i class="bi bi-person-circle"></i>
+    </div>
+    <div>
+      <span class="uinfo-section-title">Informations Utilisateur</span>
+      <span class="uinfo-section-sub">Données du compte</span>
+    </div>
+  </div>
+
+  <div class="uinfo-grid">
+
+    <div class="uinfo-field">
+      <span class="uinfo-label">
+        <i class="bi bi-at"></i> Nom d'utilisateur
+      </span>
+      <span class="uinfo-value">{{ u.username || '—' }}</span>
+    </div>
+
+    <div class="uinfo-field">
+      <span class="uinfo-label">
+        <i class="bi bi-telephone"></i> Téléphone
+      </span>
+      <span class="uinfo-value">{{ u.phone || '—' }}</span>
+    </div>
+
+    <div class="uinfo-field">
+      <span class="uinfo-label">
+        <i class="bi bi-shield"></i> Rôles
+      </span>
+      <div class="uinfo-roles">
+        @for (role of u.roles; track role) {
+          <span class="uinfo-role-badge">{{ role }}</span>
+        } @empty {
+          <span class="uinfo-empty">Aucun rôle attribué</span>
+        }
+      </div>
+    </div>
+
+    <div class="uinfo-field">
+      <span class="uinfo-label">
+        <i class="bi bi-toggle-on"></i> Statut
+      </span>
+      <span class="uinfo-status-badge"
+            [class.uinfo-status-badge--actif]="u.is_active"
+            [class.uinfo-status-badge--inactif]="!u.is_active">
+        <span class="uinfo-status-dot"></span>
+        {{ u.is_active ? 'Actif' : 'Inactif' }}
+      </span>
+    </div>
+
+    <div class="uinfo-field">
+      <span class="uinfo-label">
+        <i class="bi bi-calendar-plus"></i> Créé le
+      </span>
+      <span class="uinfo-value">{{ u.created_at! | relativeTime }}</span>
+    </div>
+
+    <div class="uinfo-field">
+      <span class="uinfo-label">
+        <i class="bi bi-pencil-square"></i> Dernière modification
+      </span>
+      <span class="uinfo-value">{{ u.updated_at! | relativeTime }}</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ Bloc Décision finale ══ -->
+<div class="uinfo-section uinfo-section--decision">
+
+  <div class="uinfo-section-head">
+    <div class="uinfo-section-icon" style="background:#fff7ed;color:#f97316">
+      ⚖️
+    </div>
+    <div>
+      <span class="uinfo-section-title">Informations personnelles</span>
+      <span class="uinfo-section-sub">Décision finale de vérification</span>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="uinfo-loading">
+      <div class="uinfo-spinner"></div>
+      <span>Chargement du profil…</span>
+    </div>
+  } @else {
+
+    <!-- Alertes succès / erreur -->
+    @if (successMessage) {
+      <app-alert type="success" title="Succès !" [autoClose]="true"
+                 [autoCloseDelay]="4000" (onClose)="clearSuccessMessage()">
+        <p class="mb-0 small">{{ successMessage }}</p>
+      </app-alert>
+    } @else if (errorMessage) {
+      <app-alert type="danger" title="Erreur" (onClose)="clearErrorMessage()">
+        <p class="mb-0 small">{{ errorMessage }}</p>
+      </app-alert>
+    }
+
+    <!-- Statut vérification -->
+    <div class="uinfo-decision-body">
+      @if (verificationUI) {
+        <div class="uinfo-verification-card"
+             [class.uinfo-verification-card--valide]="statutVerification === 'VALIDE'"
+             [class.uinfo-verification-card--rejete]="statutVerification === 'REJETE'"
+             [class.uinfo-verification-card--encours]="statutVerification === 'EN_COURS'">
+          <div class="uinfo-verification-icon-wrap">
+            <i [class]="verificationUI.icon"></i>
+          </div>
+          <div class="uinfo-verification-content">
+            <strong class="uinfo-verification-label">{{ verificationUI.label }}</strong>
+            <p class="uinfo-verification-msg">{{ verificationUI.message }}</p>
+            @if (commentVerification) {
+              <div class="uinfo-comment">
+                <i class="bi bi-chat-left-text-fill"></i>
+                <span><strong>Commentaire :</strong> {{ commentVerification }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      } @else {
+        <div class="uinfo-pending">
+          <div class="uinfo-pending-icon">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <p class="uinfo-pending-msg">
+            Votre demande est en cours de traitement. Nous vous enverrons un message
+            une fois que la décision définitive aura été prise.
+          </p>
+        </div>
+      }
+    </div>
+
+  }
+
+  <!-- Preuve légale PDF -->
+  @if (preuveLegaleUrl && statutVerification !== 'VALIDE' && statutVerification !== 'EN_COURS') {
+    <div class="uinfo-pdf-wrap">
+      <div class="uinfo-pdf-header">
+        <i class="bi bi-file-earmark-pdf-fill"></i>
+        <span>Preuve légale</span>
+        <a [href]="preuveLegaleUrl" target="_blank" class="uinfo-pdf-link">
+          <i class="bi bi-box-arrow-up-right"></i> Ouvrir
+        </a>
+      </div>
+      <object [data]="preuveLegaleUrl" type="application/pdf"
+              width="100%" height="480" class="uinfo-pdf-embed">
+        <p class="uinfo-pdf-fallback">
+          Impossible d'afficher le document.
+          <a [href]="preuveLegaleUrl" target="_blank">Ouvrir le PDF</a>
+        </p>
+      </object>
+    </div>
+  } @else if (!preuveLegaleUrl) {
+    <div class="uinfo-no-doc">
+      <i class="bi bi-file-earmark-x"></i>
+      <span>Aucune preuve légale disponible.</span>
+    </div>
+  }
+
+</div>
+
+      <form [formGroup]="profilForm" (ngSubmit)="onSubmit()" class="profil-wrap"
+		class="animate__animated animate__fadeIn">
+
+  <!-- ── Bannière statut ── -->
+  @if (statutVerification === 'VALIDE') {
+    <div class="profil-banner profil-banner--valide">
+      <i class="bi bi-patch-check-fill"></i>
+      <div>
+        <strong>Profil vérifié</strong>
+        <span>Informations verrouillées depuis le {{ profile?.date_verification | date:'dd/MM/yyyy' }}</span>
+      </div>
+    </div>
+  } @else if (statutVerification === 'EN_COURS') {
+    <div class="profil-banner profil-banner--encours">
+      <i class="bi bi-hourglass-split"></i>
+      <div>
+        <strong>Vérification en cours</strong>
+        <span>Votre dossier est en cours d'examen. Les modifications sont suspendues.</span>
+      </div>
+    </div>
+  }
+
+  <!-- ══ SECTION 1 — Identité ══ -->
+  <div class="profil-section">
+    <div class="profil-section-head">
+      <div class="profil-section-icon">
+        <i class="bi bi-person-vcard-fill"></i>
+      </div>
+      <div>
+        <span class="profil-section-title">Identité</span>
+        <span class="profil-section-sub">Informations personnelles ou légales</span>
+      </div>
+    </div>
+
+    <div class="profil-grid">
+
+      <!-- Civilité (readonly) -->
+      <div class="profil-field profil-field--full">
+        <label class="profil-label">Civilité</label>
+        <div class="profil-input-wrap profil-input-wrap--locked">
+          <i class="bi bi-person profil-ico"></i>
+          <input type="text" class="profil-input"
+                 [value]="profilForm.get('type_personne')?.value === 'PHYSIQUE'
+                          ? 'Mme / Mlle / M.'
+                          : 'Organisation / Entreprise'"
+                 readonly>
+          <span class="profil-lock-badge"><i class="bi bi-lock-fill"></i></span>
+        </div>
+        <span class="profil-hint">Non modifiable après inscription.</span>
+      </div>
+
+      <!-- IUC (readonly) -->
+      <div class="profil-field">
+        <label class="profil-label">Identifiant Unique Client</label>
+        <div class="profil-input-wrap profil-input-wrap--locked">
+          <i class="bi bi-fingerprint profil-ico"></i>
+          <input type="text" formControlName="iuc" class="profil-input" readonly>
+          <span class="profil-lock-badge"><i class="bi bi-lock-fill"></i></span>
+        </div>
+      </div>
+
+      <!-- Sigle (MORALE) -->
+      @if (profilForm.get('type_personne')?.value === 'MORALE') {
+        <div class="profil-field">
+          <label class="profil-label">Sigle <span class="profil-optional">— optionnel</span></label>
+          <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+            <i class="bi bi-building profil-ico"></i>
+            <input type="text" formControlName="sigle" class="profil-input"
+                   [readonly]="statutVerification === 'VALIDE'">
+            @if (statutVerification === 'VALIDE') {
+              <span class="profil-lock-badge"><i class="bi bi-lock-fill"></i></span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Nom -->
+      <div class="profil-field"
+           [class.profil-field--error]="profilForm.get('nom')?.invalid && profilForm.get('nom')?.touched">
+        <label class="profil-label">Nom <span class="text-danger">*</span></label>
+        <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+          <i class="bi bi-person profil-ico"></i>
+          <input type="text" formControlName="nom" class="profil-input"
+                 [readonly]="statutVerification === 'VALIDE'">
+          @if (statutVerification === 'VALIDE') {
+            <span class="profil-lock-badge"><i class="bi bi-lock-fill"></i></span>
+          }
+        </div>
+        @if (profilForm.get('nom')?.invalid && profilForm.get('nom')?.touched) {
+          <span class="profil-error-msg">
+            <i class="bi bi-exclamation-circle-fill"></i> Le nom est requis.
+          </span>
+        }
+      </div>
+
+      <!-- Prénom (PHYSIQUE) -->
+      @if (profilForm.get('type_personne')?.value === 'PHYSIQUE') {
+        <div class="profil-field">
+          <label class="profil-label">Prénom <span class="profil-optional">— optionnel</span></label>
+          <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+            <i class="bi bi-person profil-ico"></i>
+            <input type="text" formControlName="prenom" class="profil-input"
+                   [readonly]="statutVerification === 'VALIDE'">
+            @if (statutVerification === 'VALIDE') {
+              <span class="profil-lock-badge"><i class="bi bi-lock-fill"></i></span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- CIN (PHYSIQUE) -->
+      @if (profilForm.get('type_personne')?.value === 'PHYSIQUE') {
+        <div class="profil-field"
+             [class.profil-field--error]="profilForm.get('cin')?.invalid && profilForm.get('cin')?.touched">
+          <label class="profil-label">Numéro d'identité <span class="text-danger">*</span></label>
+          <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+            <i class="bi bi-credit-card-2-front profil-ico"></i>
+            <input type="text" formControlName="cin" class="profil-input"
+                   [readonly]="statutVerification === 'VALIDE'">
+            @if (statutVerification === 'VALIDE') {
+              <span class="profil-lock-badge"><i class="bi bi-lock-fill"></i></span>
+            }
+          </div>
+          @if (profilForm.get('cin')?.invalid && profilForm.get('cin')?.touched) {
+            <span class="profil-error-msg">
+              <i class="bi bi-exclamation-circle-fill"></i> Requis pour une personne physique.
+            </span>
+          }
+        </div>
+      }
+
+      <!-- Numéro registre / NIU -->
+      <div class="profil-field"
+           [class.profil-field--error]="profilForm.get('type_personne')?.value === 'MORALE'
+                                        && profilForm.get('numero_registre')?.invalid
+                                        && profilForm.get('numero_registre')?.touched">
+        <label class="profil-label">
+          @if (profilForm.get('type_personne')?.value === 'MORALE') {
+            Numéro de registre <span class="text-danger">*</span>
+          } @else {
+            NIU <span class="profil-optional">— optionnel</span>
+          }
+        </label>
+        <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+          <i class="bi bi-hash profil-ico"></i>
+          <input type="text" formControlName="numero_registre" class="profil-input"
+                 [readonly]="statutVerification === 'VALIDE'">
+          @if (statutVerification === 'VALIDE') {
+            <span class="profil-lock-badge"><i class="bi bi-lock-fill"></i></span>
+          }
+        </div>
+        @if (profilForm.get('type_personne')?.value === 'MORALE'
+             && profilForm.get('numero_registre')?.invalid
+             && profilForm.get('numero_registre')?.touched) {
+          <span class="profil-error-msg">
+            <i class="bi bi-exclamation-circle-fill"></i> Requis pour une personne morale.
+          </span>
+        }
+      </div>
+
+      <!-- Profession (PHYSIQUE) -->
+      @if (profilForm.get('type_personne')?.value === 'PHYSIQUE') {
+        <div class="profil-field">
+          <label class="profil-label">Profession <span class="profil-optional">— optionnel</span></label>
+          <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+            <i class="bi bi-briefcase profil-ico"></i>
+            <input type="text" formControlName="profession" class="profil-input"
+                   [readonly]="statutVerification === 'VALIDE'">
+            @if (statutVerification === 'VALIDE') {
+              <span class="profil-lock-badge"><i class="bi bi-lock-fill"></i></span>
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+
+  <!-- ══ SECTION 2 — Contact ══ -->
+  <div class="profil-section">
+    <div class="profil-section-head">
+      <div class="profil-section-icon" style="background:#eff6ff;color:#3b82f6">
+        <i class="bi bi-telephone-fill"></i>
+      </div>
+      <div>
+        <span class="profil-section-title">Contact</span>
+        <span class="profil-section-sub">Coordonnées de joignabilité</span>
+      </div>
+    </div>
+
+    <div class="profil-grid">
+
+      <div class="profil-field">
+        <label class="profil-label">Téléphone</label>
+        <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+          <i class="bi bi-telephone profil-ico"></i>
+          <input type="text" formControlName="telephone" class="profil-input"
+                 [readonly]="statutVerification === 'VALIDE'">
+          @if (statutVerification === 'VALIDE') {
+            <span class="profil-lock-badge"><i class="bi bi-lock-fill"></i></span>
+          }
+        </div>
+      </div>
+
+      <div class="profil-field">
+        <label class="profil-label">Email</label>
+        <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+          <i class="bi bi-envelope profil-ico"></i>
+          <input type="email" formControlName="email" class="profil-input"
+                 [readonly]="statutVerification === 'VALIDE'">
+          @if (statutVerification === 'VALIDE') {
+            <span class="profil-lock-badge"><i class="bi bi-lock-fill"></i></span>
+          }
+        </div>
+      </div>
+
+      <div class="profil-field profil-field--full">
+        <label class="profil-label">Adresse</label>
+        <div class="profil-input-wrap profil-input-wrap--textarea"
+             [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+          <i class="bi bi-geo-alt profil-ico profil-ico--top"></i>
+          <textarea formControlName="adresse" class="profil-input profil-textarea"
+                    rows="2" [readonly]="statutVerification === 'VALIDE'"></textarea>
+          @if (statutVerification === 'VALIDE') {
+            <span class="profil-lock-badge profil-lock-badge--top">
+              <i class="bi bi-lock-fill"></i>
+            </span>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ SECTION 3 — Preuve légale ══ -->
+  <div class="profil-section">
+    <div class="profil-section-head">
+      <div class="profil-section-icon" style="background:#f5f3ff;color:#7c3aed">
+        <i class="bi bi-file-earmark-text-fill"></i>
+      </div>
+      <div>
+        <span class="profil-section-title">Preuve légale</span>
+        <span class="profil-section-sub">
+          @if (profilForm.get('type_personne')?.value === 'PHYSIQUE') { CIN recto-verso }
+          @else { RCCM, Statuts }
+          <span class="text-danger ms-1">*</span>
+        </span>
+      </div>
+    </div>
+
+    @if (profile?.est_verifie) {
+      <div class="profil-doc-locked">
+        <i class="bi bi-lock-fill"></i>
+        <span>Document verrouillé — profil vérifié le
+          <strong>{{ profile?.date_verification | date:'dd/MM/yyyy' }}</strong>
+        </span>
+      </div>
+    } @else {
+      <label class="profil-dropzone">
+        <i class="bi bi-cloud-arrow-up profil-dropzone-icon"></i>
+        <span class="profil-dropzone-title">Cliquer pour sélectionner un fichier</span>
+        <span class="profil-dropzone-note">
+          <i class="bi bi-info-circle me-1"></i>
+          Vous pouvez fusionner plusieurs preuves en un seul fichier
+        </span>
+        <span class="profil-dropzone-hint">PDF, JPG, PNG · max 5 Mo</span>
+        <input type="file" id="preuve_legale" hidden
+               (change)="onFileChange($event)" accept=".pdf,.jpg,.jpeg,.png">
+      </label>
+    }
+  </div>
+
+  <!-- ══ SECTION 4 — Représentant légal (MORALE) ══ -->
+  @if (profilForm.get('type_personne')?.value === 'MORALE') {
+    <div class="profil-section profil-section--collapsible">
+      <div class="profil-section-head profil-section-head--toggle" (click)="toggleRepresentant()">
+        <div class="profil-section-icon" style="background:#fff7ed;color:#f97316">
+          <i class="bi bi-person-badge-fill"></i>
+        </div>
+        <div style="flex:1">
+          <span class="profil-section-title">Représentant légal</span>
+          <span class="profil-section-sub">Facultatif — responsable de l'organisation</span>
+        </div>
+        <div class="profil-chevron" [class.profil-chevron--open]="showRepresentant()">
+          <i class="bi bi-chevron-down"></i>
+        </div>
+      </div>
+
+      @if (showRepresentant()) {
+        <div class="profil-grid" formGroupName="representant">
+
+          <div class="profil-field">
+            <label class="profil-label">Nom</label>
+            <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+              <i class="bi bi-person profil-ico"></i>
+              <input type="text" formControlName="nom" class="profil-input"
+                     [readonly]="statutVerification === 'VALIDE'">
+            </div>
+          </div>
+
+          <div class="profil-field">
+            <label class="profil-label">Prénom</label>
+            <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+              <i class="bi bi-person profil-ico"></i>
+              <input type="text" formControlName="prenom" class="profil-input"
+                     [readonly]="statutVerification === 'VALIDE'">
+            </div>
+          </div>
+
+          <div class="profil-field">
+            <label class="profil-label">Numéro d'identité</label>
+            <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+              <i class="bi bi-credit-card-2-front profil-ico"></i>
+              <input type="text" formControlName="cin" class="profil-input"
+                     [readonly]="statutVerification === 'VALIDE'">
+            </div>
+          </div>
+
+          <div class="profil-field">
+            <label class="profil-label">Profession</label>
+            <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+              <i class="bi bi-briefcase profil-ico"></i>
+              <input type="text" formControlName="profession" class="profil-input"
+                     [readonly]="statutVerification === 'VALIDE'">
+            </div>
+          </div>
+
+          <div class="profil-field">
+            <label class="profil-label">Téléphone</label>
+            <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+              <i class="bi bi-telephone profil-ico"></i>
+              <input type="text" formControlName="telephone" class="profil-input"
+                     [readonly]="statutVerification === 'VALIDE'">
+            </div>
+          </div>
+
+          <div class="profil-field">
+            <label class="profil-label">Email</label>
+            <div class="profil-input-wrap" [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+              <i class="bi bi-envelope profil-ico"></i>
+              <input type="email" formControlName="email" class="profil-input"
+                     [readonly]="statutVerification === 'VALIDE'">
+            </div>
+          </div>
+
+          <div class="profil-field profil-field--full">
+            <label class="profil-label">Adresse</label>
+            <div class="profil-input-wrap profil-input-wrap--textarea"
+                 [class.profil-input-wrap--locked]="statutVerification === 'VALIDE'">
+              <i class="bi bi-geo-alt profil-ico profil-ico--top"></i>
+              <textarea formControlName="adresse" class="profil-input profil-textarea"
+                        rows="2" [readonly]="statutVerification === 'VALIDE'"></textarea>
+            </div>
+          </div>
+
+          <div class="profil-field profil-field--full">
+            @if (profile?.est_verifie) {
+              <div class="profil-doc-locked">
+                <i class="bi bi-lock-fill"></i>
+                <span>Document verrouillé — profil vérifié le
+                  <strong>{{ profile?.date_verification | date:'dd/MM/yyyy' }}</strong>
+                </span>
+              </div>
+            } @else {
+              <label class="profil-dropzone profil-dropzone--sm">
+                <i class="bi bi-cloud-arrow-up profil-dropzone-icon"></i>
+                <span class="profil-dropzone-title">Pièce d'identité du représentant</span>
+                <span class="profil-dropzone-note">
+                  <i class="bi bi-info-circle me-1"></i>Fusionner si plusieurs documents
+                </span>
+                <span class="profil-dropzone-hint">PDF, JPG, PNG · max 5 Mo</span>
+                <input type="file" hidden
+                       (change)="onFileChange($event)" accept=".pdf,.jpg,.jpeg,.png">
+              </label>
+            }
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ══ Bouton submit ══ -->
+  @if (statutVerification !== 'VALIDE' && statutVerification !== 'EN_COURS') {
+    <div class="profil-submit">
+      <button type="submit" class="profil-btn" [disabled]="profilForm.invalid || isSubmitting">
+        @if (isSubmitting) {
+          <span class="spinner-border spinner-border-sm me-2"></span>
+          Enregistrement…
+        } @else {
+          <i class="bi bi-save2 me-2"></i>
+          Enregistrer les modifications
+        }
+      </button>
+    </div>
+  }
+
+</form>
+
+      <!-- Actions supplémentaires -->
+      <div class="mt-4 text-center">
+        <button class="btn btn-sm btn-primary-custom w-50"
+                (click)="toggleChangePassword()">
+          <i class="bi bi-key me-2"></i>
+          Changer mon mot de passe
+        </button>
+      </div>
+
+      <!-- Change password -->
+      @if (showChangePassword()) {
+        <div class="mt-4 border-top pt-3">
+          <h4 class="m-0 text-center fw-semibold">
+            <i class="bi bi-shield-lock me-2"></i>
+            Modification du mot de passe
+          </h4>
+          <app-change-password
+            (passwordChanged)="onPasswordChanged()">
+          </app-change-password>
+
+          <div class="text-center mt-3">
+            <button class="btn btn-sm btn-outline-secondary"
+                    (click)="toggleChangePassword()">
+              Annuler la modification
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+  </div>
+</div>

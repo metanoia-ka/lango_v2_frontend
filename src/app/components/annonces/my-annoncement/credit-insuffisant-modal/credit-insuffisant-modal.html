@@ -1,0 +1,62 @@
+<div class="ci-modal">
+
+  <!-- Header -->
+  <div class="ci-header">
+    <div class="ci-header-icon">
+      <i class="bi bi-coin"></i>
+    </div>
+    <button class="ci-close" (click)="fermer()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="ci-body">
+    <h5 class="ci-title">Crédits insuffisants</h5>
+    <p class="ci-desc">
+      Vous avez <strong>{{ solde }} crédit{{ solde > 1 ? 's' : '' }}</strong>
+      sur votre compte. L'accès au détail complet de cette annonce
+      nécessite des crédits.
+    </p>
+
+    <!-- Solde visuel -->
+    <div class="ci-solde-card">
+      <div class="ci-solde-label">Votre solde actuel</div>
+      <div class="ci-solde-value">
+        <i class="bi bi-coin me-2"></i>
+        {{ solde }} crédit{{ solde > 1 ? 's' : '' }}
+      </div>
+    </div>
+
+    <!-- Avantages premium -->
+    <div class="ci-avantages">
+      <div class="ci-avantage">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>Accès au détail complet de l'annonce</span>
+      </div>
+      <div class="ci-avantage">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>Coordonnées de contact du vendeur</span>
+      </div>
+      <div class="ci-avantage">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>Informations foncières complètes</span>
+      </div>
+      <div class="ci-avantage">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>Consultations illimitées</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="ci-footer">
+    <button class="ci-btn ci-btn--cancel" (click)="goToAnnonce()">
+      <i class="bi bi-arrow-left me-1"></i> Retour
+    </button>
+    <button class="ci-btn ci-btn--acheter" (click)="allerAcheter()">
+      <i class="bi bi-cart-plus me-1"></i> Acheter des crédits
+    </button>
+  </div>
+
+</div>

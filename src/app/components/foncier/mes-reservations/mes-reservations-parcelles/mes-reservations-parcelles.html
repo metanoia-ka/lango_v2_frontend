@@ -1,0 +1,240 @@
+<div class="mr-wrap mt-4">
+ 
+  <!-- Header -->
+  <div class="mr-header">
+    <div class="mr-header__left">
+      <i class="bi bi-calendar-check-fill mr-header__icon"></i>
+      <div>
+        <h1 class="mr-header__title">Mes réservations</h1>
+        <p class="mr-header__sub">Parcelles réservées et négociations en cours</p>
+      </div>
+    </div>
+    <button class="mr-btn mr-btn--outline" (click)="charger()">
+      <i class="bi bi-arrow-clockwise me-1"></i> Actualiser
+    </button>
+  </div>
+ 
+  <!-- Stats -->
+  <div class="mr-stats">
+    <div class="mr-stat mr-stat--active">
+      <span class="mr-stat__val">{{ stats().actives }}</span>
+      <span class="mr-stat__lbl">Actives</span>
+    </div>
+    <div class="mr-stat mr-stat--ok">
+      <span class="mr-stat__val">{{ stats().attribuees }}</span>
+      <span class="mr-stat__lbl">Attribuées</span>
+    </div>
+    <div class="mr-stat mr-stat--ko">
+      <span class="mr-stat__val">{{ stats().rejetees }}</span>
+      <span class="mr-stat__lbl">Rejetées</span>
+    </div>
+  </div>
+ 
+  <!-- Erreur -->
+  @if (error()) {
+    <div class="mr-alert mr-alert--danger">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+    </div>
+  }
+ 
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="mr-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement…</span>
+    </div>
+  }
+ 
+  <!-- Liste réservations -->
+  @if (!loading() && reservations().length === 0) {
+    <div class="mr-empty">
+      <i class="bi bi-calendar-x"></i>
+      <p>Vous n'avez aucune réservation active.</p>
+    </div>
+  }
+ 
+  <div class="mr-list">
+    @for (r of reservations(); track r.id) {
+      <div class="mr-card" [class.mr-card--attribuee]="r.statut === 'ATTRIBUEE'"
+                           [class.mr-card--rejetee]="r.statut === 'REJETEE'">
+ 
+        <!-- Card header -->
+        <div class="mr-card__header">
+          <div class="mr-card__parcelle">
+            <i class="bi bi-map-fill me-2 text-success"></i>
+            <strong>Parcelle {{ r.parcelle_numero }}</strong>
+            <span class="mr-card__lot">— {{ r.lotissement_nom }}</span>
+          </div>
+          <span [class]="'mr-badge ' + statutClass(r.statut)">
+            {{ statutLabel(r.statut) }}
+          </span>
+        </div>
+ 
+        <!-- Infos -->
+        <div class="mr-card__body">
+          <dl class="mr-card__dl">
+            <dt>Crédits débités</dt>
+            <dd>{{ r.credits_debites }} cr.</dd>
+            <dt>Remboursés</dt>
+            <dd>{{ r.credits_rembourses }} cr.</dd>
+            <dt>Réservé le</dt>
+            <dd>{{ r.created_at | relativeTime }}</dd>
+            <dt>Expire</dt>
+            <dd [class.text-danger]="r.heures_restantes < 24">
+              @if (r.heures_restantes > 0) {
+                dans {{ r.heures_restantes }}h
+              } @else {
+                —
+              }
+            </dd>
+          </dl>
+ 
+          @if (r.message_initial) {
+            <div class="mr-card__msg">
+              <i class="bi bi-chat-square-text me-1"></i>
+              {{ r.message_initial }}
+            </div>
+          }
+        </div>
+ 
+        <!-- Offre active -->
+        @if (getOffreActive(r); as offre) {
+          <div class="mr-offre">
+            <div class="mr-offre__header">
+              <i class="bi bi-tags-fill me-2"></i>
+              <strong>Offre du vendeur</strong>
+              <span class="mr-offre__statut">{{ offreStatutLabel(offre.statut) }}</span>
+            </div>
+            <div class="mr-offre__prix">
+              {{ offre.prix_vendeur | number }} XAF
+              <span class="mr-offre__type">
+                / {{ offre.type_prix === 'PAR_M2' ? 'm²' : 'total' }}
+              </span>
+            </div>
+            @if (offre.message_vendeur) {
+              <p class="mr-offre__msg">{{ offre.message_vendeur }}</p>
+            }
+            @if (offre.prix_client) {
+              <div class="mr-offre__contre">
+                Votre contre-offre : <strong>{{ offre.prix_client | number }} XAF</strong>
+              </div>
+            }
+ 
+            <!-- Actions client — seulement si EN_ATTENTE -->
+            @if (offre.statut === 'EN_ATTENTE') {
+              <div class="mr-offre__actions">
+                <button class="mr-btn mr-btn--success"
+                        (click)="ouvrirReponse(offre, 'accepter')">
+                  <i class="bi bi-check-circle me-1"></i> Accepter
+                </button>
+                <button class="mr-btn mr-btn--outline"
+                        (click)="ouvrirReponse(offre, 'contre')">
+                  <i class="bi bi-arrow-left-right me-1"></i> Contre-proposer
+                </button>
+              </div>
+            }
+          </div>
+        }
+ 
+        <!-- Historique offres -->
+        @if (r.offres.length > 1) {
+          <details class="mr-card__history">
+            <summary>Historique des offres ({{ r.offres.length }})</summary>
+            <ul class="mr-history-list">
+              @for (o of r.offres; track o.id) {
+                <li>
+                  <span class="mr-history-date">{{ o.created_at | relativeTime }}</span>
+                  <span>{{ offreStatutLabel(o.statut) }}</span>
+                  <span class="mr-history-prix">{{ o.prix_vendeur | number }} XAF</span>
+                </li>
+              }
+            </ul>
+          </details>
+        }
+ 
+        <!-- Actions réservation -->
+        <div class="mr-card__footer">
+          @if (['EN_ATTENTE','NEGOCIATION'].includes(r.statut)) {
+            <button class="mr-btn mr-btn--danger-outline" (click)="annuler(r)">
+              <i class="bi bi-x-circle me-1"></i> Annuler la réservation
+            </button>
+          }
+          @if (r.statut === 'ATTRIBUEE') {
+            <div class="mr-attribuee-msg">
+              <i class="bi bi-patch-check-fill me-2 text-success"></i>
+              Parcelle attribuée — contactez votre vendeur pour la suite.
+            </div>
+          }
+        </div>
+ 
+      </div>
+    }
+  </div>
+ 
+  <!-- ── PANEL RÉPONSE À UNE OFFRE ──────────────────────────── -->
+  @if (offreEnCours()) {
+    <div class="mr-panel-overlay" (click)="fermerReponse()"></div>
+    <div class="mr-panel">
+      <div class="mr-panel__header">
+        <h3>
+          @if (modeReponse() === 'accepter') {
+            <i class="bi bi-check-circle-fill text-success me-2"></i>Accepter l'offre
+          } @else {
+            <i class="bi bi-arrow-left-right me-2"></i>Faire une contre-offre
+          }
+        </h3>
+        <button class="mr-panel__close" (click)="fermerReponse()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+ 
+      <div class="mr-panel__body">
+        <div class="mr-panel__recap">
+          <span>Offre actuelle</span>
+          <strong>{{ offreEnCours()!.prix_vendeur | number }} XAF
+            / {{ offreEnCours()!.type_prix === 'PAR_M2' ? 'm²' : 'total' }}</strong>
+        </div>
+ 
+        @if (modeReponse() === 'contre') {
+          <div class="mr-panel__field">
+            <label class="mr-panel__label">Votre prix (XAF)</label>
+            <input type="number" class="mr-panel__input"
+                   [(ngModel)]="prixContreOffre"
+                   [placeholder]="offreEnCours()!.prix_vendeur"
+                   min="1">
+          </div>
+        }
+ 
+        <div class="mr-panel__field">
+          <label class="mr-panel__label">Message (optionnel)</label>
+          <textarea class="mr-panel__textarea" rows="3"
+                    [(ngModel)]="messageReponse"
+                    placeholder="Votre message au vendeur…"></textarea>
+        </div>
+ 
+        <div class="mr-panel__actions">
+          <button class="mr-btn mr-btn--outline" (click)="fermerReponse()">
+            Annuler
+          </button>
+          <button class="mr-btn"
+                  [class.mr-btn--success]="modeReponse() === 'accepter'"
+                  [class.mr-btn--primary]="modeReponse() === 'contre'"
+                  [disabled]="submitting()"
+                  (click)="envoyerReponse()">
+            @if (submitting()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            } @else if (modeReponse() === 'accepter') {
+              <i class="bi bi-check-circle me-1"></i>
+            } @else {
+              <i class="bi bi-send me-1"></i>
+            }
+            {{ modeReponse() === 'accepter' 
+            ? 'Confirmer l\'acceptation' 
+            : 'Envoyer la contre-offre' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+ 
+</div>

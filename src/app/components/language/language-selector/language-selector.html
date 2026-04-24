@@ -1,0 +1,20 @@
+
+<div class="ls-wrap">
+  <span class="ls-globe">
+    <i class="bi bi-globe2"></i>
+  </span>
+
+  <select class="ls-select"
+          id="lang-select"
+          [(ngModel)]="selectedLang"
+          (change)="changeLang(selectedLang)">
+    <option value="" disabled>Langue</option>
+    @for (lang of languages; track $index) {
+      <option [value]="lang.code">{{ lang.label }}</option>
+    }
+  </select>
+
+  <span class="ls-chevron">
+    <i class="bi bi-chevron-down"></i>
+  </span>
+</div>

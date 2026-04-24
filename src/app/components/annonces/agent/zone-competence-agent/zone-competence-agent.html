@@ -1,0 +1,456 @@
+<!-- app/pages/admin/zones-competence/zones-competence.component.html -->
+
+<div class="zones-wrap mt-3">
+  
+  <!-- ══ Header ═══════════════════════════════════════════════════════════ -->
+  <div class="zones-header">
+    <div class="zones-header__left">
+      <div class="zones-header__icon">
+        <i class="bi bi-diagram-3-fill"></i>
+      </div>
+      <div>
+        <h1 class="zones-header__title">Zones de compétence des agents</h1>
+        <p class="zones-header__sub">Gérez les assignations géographiques des agents</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ══ Stats Cards ══════════════════════════════════════════════════════ -->
+  @if (stats(); as s) {
+    <div class="zones-stats">
+      <div class="stat-card stat-card--agents">
+        <i class="bi bi-people-fill stat-card__icon"></i>
+        <div>
+          <p class="stat-card__val">{{ s.total_agents }}</p>
+          <p class="stat-card__lbl">Agents actifs</p>
+        </div>
+      </div>
+      <div class="stat-card stat-card--zones">
+        <i class="bi bi-geo-alt-fill stat-card__icon"></i>
+        <div>
+          <p class="stat-card__val">{{ s.total_zones_actives }}</p>
+          <p class="stat-card__lbl">Zones actives</p>
+        </div>
+      </div>
+      <div class="stat-card stat-card--principales">
+        <i class="bi bi-star-fill stat-card__icon"></i>
+        <div>
+          <p class="stat-card__val">{{ statsPrincipales() }}</p>
+          <p class="stat-card__lbl">Zones principales</p>
+        </div>
+      </div>
+      <div class="stat-card stat-card--secondaires">
+        <i class="bi bi-arrow-repeat stat-card__icon"></i>
+        <div>
+          <p class="stat-card__val">{{ statsSecondaires() }}</p>
+          <p class="stat-card__lbl">Zones secondaires</p>
+        </div>
+      </div>
+      <div class="stat-card stat-card--sans-zone">
+        <i class="bi bi-exclamation-circle stat-card__icon"></i>
+        <div>
+          <p class="stat-card__val">{{ s.agents_sans_zone }}</p>
+          <p class="stat-card__lbl">Agents sans zone</p>
+        </div>
+      </div>
+    </div>
+  }
+  
+  <!-- ══ Tabs Navigation ══════════════════════════════════════════════════ -->
+  <div class="zones-tabs">
+    <button class="zones-tab" 
+            [class.zones-tab--active]="activeTab() === 'liste'"
+            (click)="setTab('liste')">
+      <i class="bi bi-list-ul"></i>
+      Liste des zones
+    </button>
+    <button class="zones-tab" 
+            [class.zones-tab--active]="activeTab() === 'ajout-simple'"
+            (click)="setTab('ajout-simple')">
+      <i class="bi bi-plus-circle"></i>
+      Ajout simple
+    </button>
+    <button class="zones-tab" 
+            [class.zones-tab--active]="activeTab() === 'ajout-multiple'"
+            (click)="setTab('ajout-multiple')">
+      <i class="bi bi-plus-square"></i>
+      Ajout multiple
+    </button>
+  </div>
+  
+  <!-- ══ Tab: Liste ═══════════════════════════════════════════════════════ -->
+  @if (activeTab() === 'liste') {
+    <div class="zones-list-section">
+      
+      <!-- Filtres -->
+      <div class="zones-filters">
+        <div class="search-wrapper">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" 
+                 class="search-input" 
+                 placeholder="Rechercher par agent ou arrondissement..."
+                 [value]="searchTerm()"
+                 (input)="onSearchChange($event)">
+        </div>
+        
+        <div class="filter-group">
+          <span class="filter-label">Statut :</span>
+          <button class="filter-chip" 
+                  [class.filter-chip--active]="filterActif() === null"
+                  (click)="toggleFilterActif(null)">
+            Tous
+          </button>
+          <button class="filter-chip" 
+                  [class.filter-chip--active]="filterActif() === true"
+                  (click)="toggleFilterActif(true)">
+            Actifs
+          </button>
+          <button class="filter-chip" 
+                  [class.filter-chip--active]="filterActif() === false"
+                  (click)="toggleFilterActif(false)">
+            Inactifs
+          </button>
+        </div>
+        
+        <div class="filter-group">
+          <span class="filter-label">Priorité :</span>
+          <button class="filter-chip" 
+                  [class.filter-chip--active]="filterPriorite() === null"
+                  (click)="toggleFilterPriorite(null)">
+            Toutes
+          </button>
+          <button class="filter-chip filter-chip--principale"
+                  [class.filter-chip--active]="filterPriorite() === 1"
+                  (click)="toggleFilterPriorite(1)">
+            Principales
+          </button>
+          <button class="filter-chip filter-chip--secondaire"
+                  [class.filter-chip--active]="filterPriorite() === 2"
+                  (click)="toggleFilterPriorite(2)">
+            Secondaires
+          </button>
+        </div>
+        
+        @if (searchTerm() || filterActif() !== null || filterPriorite() !== null) {
+          <button class="btn-clear-filters" (click)="clearFilters()">
+            <i class="bi bi-x-lg"></i> Effacer les filtres
+          </button>
+        }
+      </div>
+      
+      <!-- Loading -->
+      @if (loading()) {
+        <div class="zones-loading">
+          <div class="spinner"></div>
+          <span>Chargement des zones...</span>
+        </div>
+      }
+      
+      <!-- Liste -->
+      @if (!loading()) {
+        @if (filteredZones().length === 0) {
+          <div class="zones-empty">
+            <i class="bi bi-geo-alt"></i>
+            <p>Aucune zone de compétence trouvée</p>
+            <span>Commencez par ajouter une zone pour un agent.</span>
+          </div>
+        } @else {
+          <div class="zones-table-wrapper">
+            <table class="zones-table">
+              <thead>
+                <tr>
+                  <th>Agent</th>
+                  <th>Arrondissement</th>
+                  <th>Priorité</th>
+                  <th>Statut</th>
+                  <th>Créé le</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (zone of filteredZones(); track zone.id) {
+                  <tr>
+                    <td>
+                      <div class="agent-cell">
+                        <i class="bi bi-person-badge"></i>
+                        <span>{{ zone.agent_username }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="arrondissement-cell">
+                        <i class="bi bi-geo-alt"></i>
+                        <span>{{ zone.arrondissement_nom }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="priorite-badge" [class]="getPrioriteClass(zone.priorite)">
+                        <i class="bi" [class.bi-star-fill]="zone.priorite === 1" 
+                           [class.bi-arrow-repeat]="zone.priorite === 2"></i>
+                        {{ zone.priorite_label }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="status-toggle" 
+                              [class.status-toggle--active]="zone.actif"
+                              (click)="toggleZoneActif(zone)">
+                        <span class="status-dot"></span>
+                        {{ zone.actif ? 'Actif' : 'Inactif' }}
+                      </button>
+                    </td>
+                    <td>{{ zone.created_at | date:'dd/MM/yyyy' }}</td>
+                    <td>
+                      <div class="actions-cell">
+                        <button class="action-btn action-btn--edit" 
+                                (click)="startEdit(zone)"
+                                ngbTooltip="Modifier">
+                          <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="action-btn action-btn--delete" 
+                                (click)="deleteZone(zone)"
+                                ngbTooltip="Supprimer">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
+    </div>
+  }
+  
+  <!-- ══ Tab: Ajout simple ═══════════════════════════════════════════════ -->
+  @if (activeTab() === 'ajout-simple') {
+    <div class="zones-form-section">
+      <div class="form-card">
+        <h3 class="form-title">
+          <i class="bi bi-plus-circle"></i>
+          {{ editingZone() ? 'Modifier la zone' : 'Nouvelle zone de compétence' }}
+        </h3>
+        
+        <form [formGroup]="zoneForm" (ngSubmit)="saveZone()">
+          <!-- Agent -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="bi bi-person"></i> Agent
+              <span class="required">*</span>
+            </label>
+            <select class="form-select" 
+                    formControlName="agent_id"
+                    (change)="onAgentChange()"
+                    [class.is-invalid]="zoneForm.get('agent_id')?.touched && zoneForm.get('agent_id')?.invalid">
+              <option value="" disabled>-- Sélectionner un agent --</option>
+              @for (agent of agents(); track agent.id) {
+                <option [value]="agent.id">
+                  {{ getAgentDisplay(agent) }}
+                </option>
+              }
+            </select>
+            @if (agentsLoading()) {
+              <span class="form-hint">Chargement des agents...</span>
+            }
+          </div>
+          
+          <!-- Arrondissement -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="bi bi-geo-alt"></i> Arrondissement
+              <span class="required">*</span>
+            </label>
+            <select class="form-select" 
+                    formControlName="arrondissement_id"
+                    [class.is-invalid]="zoneForm.get('arrondissement_id')?.touched && zoneForm.get('arrondissement_id')?.invalid">
+              <option value="" disabled>-- Sélectionner un arrondissement --</option>
+              @for (arr of arrondissements(); track arr.id) {
+                <option [value]="arr.id" 
+                        [disabled]="arr.zone_existante && arr.priorite_existante === 1">
+                  {{ arr.nom }}
+                  ({{ arr.nb_agents_principaux }} principal, {{ arr.nb_agents_secondaires }} secondaire)
+                  @if (arr.zone_existante) { - Déjà assigné (P{{ arr.priorite_existante }}) }
+                </option>
+              }
+            </select>
+            @if (arrondissementsLoading()) {
+              <span class="form-hint">Chargement des arrondissements...</span>
+            }
+          </div>
+          
+          <!-- Priorité -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="bi bi-flag"></i> Priorité
+              <span class="required">*</span>
+            </label>
+            <div class="priorite-selector">
+              <label class="priorite-option" 
+                     [class.priorite-option--selected]="zoneForm.get('priorite')?.value === 1">
+                <input type="radio" formControlName="priorite" [value]="1">
+                <span class="priorite-option__content">
+                  <i class="bi bi-star-fill"></i>
+                  <strong>Zone principale</strong>
+                  <small>L'agent est responsable principal de cet arrondissement</small>
+                </span>
+              </label>
+              <label class="priorite-option" 
+                     [class.priorite-option--selected]="zoneForm.get('priorite')?.value === 2">
+                <input type="radio" formControlName="priorite" [value]="2">
+                <span class="priorite-option__content">
+                  <i class="bi bi-arrow-repeat"></i>
+                  <strong>Zone secondaire</strong>
+                  <small>L'agent intervient en soutien (overflow)</small>
+                </span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Actif -->
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="actif">
+              <span class="checkbox-custom"></span>
+              <span>Zone active</span>
+            </label>
+          </div>
+          
+          <!-- Actions -->
+          <div class="form-actions">
+            @if (editingZone()) {
+              <button type="button" class="btn btn--outline" (click)="cancelEdit()">
+                <i class="bi bi-x-lg"></i> Annuler
+              </button>
+            } @else {
+              <button type="button" class="btn btn--outline" (click)="setTab('liste')">
+                <i class="bi bi-x-lg"></i> Annuler
+              </button>
+            }
+            <button type="submit" class="btn btn--primary" [disabled]="zoneForm.invalid">
+              <i class="bi" [class.bi-plus-lg]="!editingZone()" [class.bi-check-lg]="editingZone()"></i>
+              {{ editingZone() ? 'Mettre à jour' : 'Créer la zone' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+  
+  <!-- ══ Tab: Ajout multiple ═════════════════════════════════════════════ -->
+  @if (activeTab() === 'ajout-multiple') {
+    <div class="zones-form-section">
+      <div class="form-card">
+        <h3 class="form-title">
+          <i class="bi bi-plus-square"></i>
+          Ajout multiple de zones
+        </h3>
+        
+        <p class="form-description">
+          Sélectionnez un agent puis choisissez plusieurs arrondissements à lui assigner.
+        </p>
+        
+        <!-- Sélection de l'agent -->
+        <div class="form-group">
+          <label class="form-label">
+            <i class="bi bi-person"></i> Agent
+            <span class="required">*</span>
+          </label>
+          <select class="form-select" 
+                  [value]="bulkAgentId()"
+                  (change)="onBulkAgentChange($any($event.target).value)">
+            <option value="" disabled>-- Sélectionner un agent --</option>
+            @for (agent of agents(); track agent.id) {
+              <option [value]="agent.id">
+                {{ getAgentDisplay(agent) }}
+              </option>
+            }
+          </select>
+        </div>
+        
+        <!-- Liste des arrondissements -->
+        @if (bulkAgentId()) {
+          <div class="bulk-section">
+            <div class="bulk-header">
+              <h4>Arrondissements disponibles</h4>
+              <div class="bulk-actions">
+                <button class="btn-link" (click)="selectAllZones()">
+                  <i class="bi bi-check-all"></i> Tout sélectionner
+                </button>
+                <button class="btn-link" (click)="deselectAllZones()">
+                  <i class="bi bi-x"></i> Tout désélectionner
+                </button>
+              </div>
+            </div>
+            
+            @if (arrondissementsLoading()) {
+              <div class="bulk-loading">
+                <div class="spinner spinner--sm"></div>
+                <span>Chargement des arrondissements...</span>
+              </div>
+            } @else if (bulkZones().length === 0) {
+              <div class="bulk-empty">
+                <i class="bi bi-check-circle"></i>
+                <p>Tous les arrondissements sont déjà assignés à cet agent.</p>
+              </div>
+            } @else {
+              <div class="bulk-list">
+                @for (zone of bulkZones(); track zone.arrondissement_id; let i = $index) {
+                  <div class="bulk-item" [class.bulk-item--selected]="zone.selected">
+                    <label class="bulk-item__checkbox">
+                      <input type="checkbox" 
+                             [checked]="zone.selected"
+                             (change)="toggleZoneSelection(i)">
+                      <span class="checkbox-custom"></span>
+                    </label>
+                    
+                    <!-- <span class="bulk-item__name">
+                      {{ getArrondissementName(zone.arrondissement_id) }}
+                    </span> -->
+                    
+                    <select class="bulk-item__priorite"
+                            [value]="zone.priorite"
+                            (change)="updateBulkPriorite(i, $any($event.target).value)">
+                      <option [value]="1">Zone principale</option>
+                      <option [value]="2">Zone secondaire</option>
+                    </select>
+                  </div>
+                }
+              </div>
+            }
+            
+            <!-- Résumé et validation -->
+            @if (bulkZones().length > 0) {
+              <div class="bulk-footer">
+                <div class="bulk-summary">
+                  <i class="bi bi-info-circle"></i>
+                  <span>
+                    <strong>{{ selectedZonesCount }}</strong> zone(s) sélectionnée(s) 
+                    sur {{ bulkZones().length }}
+                  </span>
+                </div>
+                
+                <div class="form-actions">
+                  <button type="button" class="btn btn--outline" (click)="setTab('liste')">
+                    Annuler
+                  </button>
+                  <button type="button" 
+                          class="btn btn--primary" 
+                          [disabled]="selectedZonesCount === 0 || bulkLoading()"
+                          (click)="saveBulkZones()">
+                    @if (bulkLoading()) {
+                      <span class="spinner spinner--sm spinner--light"></span>
+                    } @else {
+                      <i class="bi bi-check-lg"></i>
+                    }
+                    Créer {{ selectedZonesCount }} zone(s)
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+  
+</div>

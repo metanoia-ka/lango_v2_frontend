@@ -1,0 +1,84 @@
+<div class="border-bottom p-2 sticky-top bg-light rounded-top-2" tabindex="-1">
+  <div class="w-100">
+    <div class="d-flex justify-content-between align-items-center">
+      <h5 class="modal-title fw-bold">
+        <i class="bi bi-x-octagon me-2"></i> Rejeter l'annonce
+      </h5>
+      <button type="button" class="btn-close" (click)="activeModal.dismiss()"></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-body p-2">
+
+  <div class="modal-content-scrollable h-100">
+
+    @if (isLoading) {
+      <div class="text-center">
+        <div class="mb-3">
+          ⏳ Veuillez patienter...
+        </div>
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Chargement...</span>
+        </div>
+      </div>
+    }
+
+    @if (!isLoading) {
+
+    @if (successMessage) {
+      <app-alert type="success" title="Succès !" 
+                 [autoClose]="true" [autoCloseDelay]="4000"
+                 (onClose)="clearSuccessMessage()">
+        <p class="mb-0">{{ successMessage }}</p>
+      </app-alert>
+    }
+    @if (errorMessage) {
+      <app-alert type="danger" title="Erreur" 
+                 (onClose)="clearErrorMessage()">
+        <p class="mb-0">{{ errorMessage }}</p>
+      </app-alert>
+    }
+
+    <form 
+        [formGroup]="rejectForm" 
+        (ngSubmit)="onReject()"
+        class="animate__animated animate__fadeIn">
+
+        <div class="form-floating mb-2">
+          <textarea formControlName="motif_rejet" id="motif_rejet"
+                    class="form-control" style="height: 110px;"></textarea>
+          <label style="font-weight: bold;" id="motif_rejet">Commentaire (obligatoire)
+            <span class="text-danger">*</span>
+          </label>
+          @if (rejectForm.get('motif_rejet')?.touched 
+              && rejectForm.get('motif_rejet')?.invalid) {
+            <div class="alert alert-danger px-2 py-1 mt-2" role="alert">
+              <i class="bi bi-info-circle me-1"></i>
+              <span class="small fst-italic">
+                Le commentaire est obligatoire pour le rejet. Minimum 12 caractères.
+              </span>
+            </div>
+          }
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" 
+                    class="btn btn-sm btn-secondary-custom me-2" 
+                    (click)="activeModal.dismiss()">
+              <i class="bi bi-x-lg me-1"></i> Annuler
+          </button>
+          <button class="btn btn-primary-custom btn-sm" 
+                [disabled]="isLoading || rejectForm.invalid">
+
+                <i class="bi bi-save me-2"></i>
+                {{ isLoading ? 'Envoi en cours...' : 'Rejeter' }}
+          </button>
+        </div>
+    </form>
+
+    }
+
+  </div>
+
+</div>

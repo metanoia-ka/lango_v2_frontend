@@ -1,0 +1,182 @@
+<div class="al-page mt-5">
+
+  <!-- ══════════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════════ -->
+  <div class="al-header">
+    <div class="al-header__left">
+      <div class="al-header__icon">
+        <i class="bi bi-people-fill"></i>
+      </div>
+      <div>
+        <h1 class="al-header__title">Utilisateurs</h1>
+        <p class="al-header__sub">Gestion des comptes et des accès</p>
+      </div>
+    </div>
+    <button class="al-btn al-btn--primary" (click)="onCreateNewUser($event)">
+      <i class="bi bi-person-plus-fill"></i>
+      Nouvel utilisateur
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       ALERTES
+  ══════════════════════════════════════════════ -->
+  @if (successMessage) {
+    <app-alert type="info" title="Information !"
+               [autoClose]="true" [autoCloseDelay]="4000"
+               (onClose)="clearSuccessMessage()">
+      <p class="mb-0 small">{{ successMessage }}</p>
+    </app-alert>
+  } @else if (errorMessage) {
+    <app-alert type="danger" title="Erreur" (onClose)="clearErrorMessage()">
+      <p class="mb-0 small">{{ errorMessage }}</p>
+    </app-alert>
+  }
+
+  <!-- ══════════════════════════════════════════════
+       LOADING
+  ══════════════════════════════════════════════ -->
+  @if (isLoading) {
+    <div class="al-table-wrap">
+      <table class="al-table">
+        <thead>
+          <tr>
+            <th>Utilisateur</th>
+            <th>Rôles</th>
+            <th>Téléphone</th>
+            <th>État</th>
+            <th>Créé le</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (_ of [1,2,3,4,5,6]; track $index) {
+            <tr>
+              <td>
+                <div class="al-user-cell">
+                  <div class="al-skeleton al-skeleton--avatar"></div>
+                  <div class="al-skeleton al-skeleton--text"></div>
+                </div>
+              </td>
+              @for (__ of [1,2,3,4,5]; track $index) {
+                <td><div class="al-skeleton al-skeleton--text"></div></td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════
+       EMPTY STATE
+  ══════════════════════════════════════════════ -->
+  @if (!isLoading && users.length === 0) {
+    <div class="al-empty">
+      <div class="al-empty__icon">
+        <i class="bi bi-people"></i>
+      </div>
+      <h3 class="al-empty__title">Aucun utilisateur</h3>
+      <p class="al-empty__text">
+        Aucun compte n'a encore été créé. Commencez par ajouter le premier utilisateur.
+      </p>
+      <button class="al-btn al-btn--primary" (click)="onCreateNewUser($event)">
+        <i class="bi bi-person-plus-fill"></i> Créer un utilisateur
+      </button>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════
+       TABLEAU
+  ══════════════════════════════════════════════ -->
+  @if (!isLoading && users.length > 0) {
+
+    <!-- Compteur -->
+    <div class="al-toolbar">
+      <span class="al-count">
+        <i class="bi bi-people"></i>
+        {{ users.length }} utilisateur{{ users.length > 1 ? 's' : '' }}
+      </span>
+    </div>
+
+    <div class="al-table-wrap">
+      <table class="al-table">
+        <thead>
+          <tr>
+            <th>Utilisateur</th>
+            <th>Rôles</th>
+            <th>Téléphone</th>
+            <th>État</th>
+            <th>Créé le</th>
+            <th class="al-table__actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users; track user.id) {
+            <tr class="al-table__row">
+
+              <!-- Utilisateur avec avatar initiales -->
+              <td>
+                <div class="al-user-cell">
+                  <div class="al-avatar">
+                    {{ user.username.charAt(0).toUpperCase() }}
+                  </div>
+                  <span class="al-user-cell__name">{{ user.username }}</span>
+                </div>
+              </td>
+
+              <!-- Rôles -->
+              <td>
+                @if (user.roles && user.roles.length > 0) {
+                  <div class="al-roles">
+                    @for (role of user.roles; track role) {
+                      <span class="al-role-chip">{{ role.name }}</span>
+                    }
+                  </div>
+                } @else {
+                  <span class="al-no-value">Aucun rôle</span>
+                }
+              </td>
+
+              <!-- Téléphone -->
+              <td class="al-date">{{ user.phone }}</td>
+
+              <!-- État actif/inactif -->
+              <td>
+                <span class="al-status-dot"
+                      [class.al-status-dot--active]="user.is_active"
+                      [class.al-status-dot--inactive]="!user.is_active">
+                  <span class="al-status-dot__pulse"></span>
+                  {{ user.is_active ? 'Actif' : 'Inactif' }}
+                </span>
+              </td>
+
+              <!-- Date -->
+              <td class="al-date">{{ user.created_at | date:'dd/MM/yyyy' }}</td>
+
+              <!-- Actions -->
+              <td>
+                <div class="al-actions">
+                  <button class="al-icon-btn al-icon-btn--edit"
+                          (click)="onEdit(user, $event)"
+                          title="Modifier">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="al-icon-btn al-icon-btn--danger"
+                          (click)="onDelete(user)"
+                          title="Supprimer">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  }
+
+</div>

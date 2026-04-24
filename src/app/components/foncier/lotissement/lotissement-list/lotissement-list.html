@@ -1,0 +1,201 @@
+<!-- lotissement-liste.component.html -->
+<div class="lt-page mt-5">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="lt-header">
+    <div class="lt-header__left">
+      <h1 class="lt-title">
+        <i class="bi bi-grid-3x3-gap-fill"></i> Lotissements
+      </h1>
+      <p class="lt-subtitle">Gestion des lotissements fonciers</p>
+    </div>
+    <button class="lt-btn lt-btn--primary" (click)="openCreate()">
+      <i class="bi bi-plus-lg"></i> Nouveau lotissement
+    </button>
+  </div>
+
+  <!-- ── Barre de recherche ───────────────────────────────────── -->
+  <div class="lt-toolbar">
+    <div class="lt-search">
+      <i class="bi bi-search lt-search__icon"></i>
+      <input
+        class="lt-search__input"
+        type="text"
+        placeholder="Rechercher par nom, référence, localisation…"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearch($event)"
+      />
+    </div>
+    <span class="lt-count">{{ total() }} résultat(s)</span>
+  </div>
+
+  <!-- ── Erreur ───────────────────────────────────────────────── -->
+  @if (error()) {
+    <div class="lt-alert lt-alert--danger">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+    </div>
+  }
+
+  <!-- ── Skeletons ────────────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="lt-table-wrap">
+      <table class="lt-table">
+        <thead><tr>
+          <th>Nom</th><th>Lié au titre foncier</th><!-- <th>Référence</th> -->
+          <th>Localisation</th>
+          <th>Superficie</th><th>Parcelles</th><th>Statut</th>
+          <th>Créé le</th><th class="lt-table__actions-col">Actions</th>
+        </tr></thead>
+        <tbody>
+          <!-- [1,2,3,4,5,6] -->
+          @for (_ of [1,2,3,4,5]; track $index) {
+            <tr class="lt-table__row">
+              <!-- [1,2,3,4,5,6,7,8,9] -->
+              @for (__ of [1,2,3,4,5,6,7,8]; track $index) {
+                <td><div class="lt-skeleton"></div></td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- ── Tableau ───────────────────────────────────────────────── -->
+  @if (!loading() && lotissements().length > 0) {
+    <div class="lt-table-wrap">
+      <table class="lt-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <!-- <th>Référence</th> -->
+            <th>Lié au titre foncier</th>
+            <th>Localisation</th>
+            <th>Superficie (m²)</th>
+            <th>Parcelles</th>
+            <th>Système</th>
+            <th>Créé le</th>
+            <th class="lt-table__actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (lot of lotissements(); track trackById($index, lot)) {
+            <tr class="lt-table__row">
+
+              <!-- Nom -->
+              <td>
+                <a [routerLink]="['/lango/lotissements', lot.id]" class="lt-link">
+                  <i class="bi bi-tag"></i> {{ lot.nom }}
+                </a>
+              </td>
+
+              <!-- Lié au titre foncier -->
+              <td>
+                <span class="lt-ref">{{ lot.tf_lotissement }}</span>
+              </td>
+
+              <!-- Référence -->
+              <!-- 
+              <td>
+                <span class="lt-ref">{{ lot.reference || '—' }}</span>
+              </td>
+               -->
+
+              <!-- Localisation -->
+              <td>{{ lot.localisation }}</td>
+
+              <!-- Superficie -->
+              <td>
+                <span class="lt-surface">
+                  {{ lot.superficie_totale | number:'1.2-2' }}
+                </span>
+              </td>
+
+              <!-- Nb parcelles -->
+              <td>
+                <span class="lt-badge lt-badge--info">
+                  {{ lot.parcelles?.length || 0 }}
+                </span>
+              </td>
+
+              <!-- Système -->
+              <td>
+                <span class="lt-badge lt-badge--neutral"
+                      [ngbTooltip]="'SRID ' + (lot.systeme_srid ?? '')">
+                  {{ lot.systeme_nom ?? lot.systeme }}
+                </span>
+              </td>
+
+              <!-- Date -->
+              <td class="lt-date">{{ lot.created_at | date:'dd/MM/yyyy' }}</td>
+
+              <!-- Actions -->
+              <td class="lt-table__actions">
+                <!-- <a [routerLink]="['/lango/lotissements', lot.id]"
+                   class="lt-action-btn" ngbTooltip="Voir le détail">
+                  <i class="bi bi-eye"></i>
+                </a> -->
+                <a [routerLink]="['/lango/lotissements', lot.id, 'parcelles']"
+                   class="lt-action-btn" ngbTooltip="Voir les parcelles">
+                  <i class="bi bi-grid-3x3-gap"></i>
+                  <!-- <i class="bi bi-map"></i>
+                  <i class="bi bi-grid-3x3-gap"></i> -->
+                </a>
+                <!-- <a [routerLink]="['/lango/lotissements', lot.id, 'parcelles']"
+                    class="lt-action-btn" ngbTooltip="Voir les parcelles">
+                  <i class="bi bi-grid-3x3-gap"></i>
+                </a> -->
+                <button class="lt-action-btn" ngbTooltip="Modifier"
+                        (click)="openEdit(lot)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="lt-action-btn lt-action-btn--danger"
+                        ngbTooltip="Supprimer"
+                        (click)="onDelete(lot)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </td>
+
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Pagination ──────────────────────────────────────────── -->
+    @if (totalPages() > 1) {
+      <div class="lt-pagination">
+        <ngb-pagination
+          [collectionSize]="total()"
+          [pageSize]="pageSize"
+          [(page)]="page"
+          [maxSize]="5"
+          [rotate]="true"
+          [ellipses]="true"
+          (pageChange)="onPageChange($event)"
+        />
+      </div>
+    }
+  }
+
+  <!-- ── Empty state ───────────────────────────────────────────── -->
+  @if (!loading() && lotissements().length === 0) {
+    <div class="lt-empty">
+      <i class="bi bi-grid-3x3-gap lt-empty__icon"></i>
+      <p class="lt-empty__title">Aucun lotissement trouvé</p>
+      <p class="lt-empty__text">
+        @if (searchQuery()) {
+          Aucun résultat pour « {{ searchQuery() }} ».
+        } @else {
+          Commencez par créer votre premier lotissement.
+        }
+      </p>
+      @if (!searchQuery()) {
+        <button class="lt-btn lt-btn--primary" (click)="openCreate()">
+          <i class="bi bi-plus-lg"></i> Créer un lotissement
+        </button>
+      }
+    </div>
+  }
+
+</div>

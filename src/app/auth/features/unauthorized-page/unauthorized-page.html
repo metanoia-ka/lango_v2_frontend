@@ -1,0 +1,62 @@
+<!-- unauthorized.html -->
+<div class="unauth-wrap mt-5">
+
+  <div class="unauth-card">
+
+    <!-- Icône -->
+    <div class="unauth-icon">
+      @if (user()) {
+        <i class="bi bi-shield-lock-fill"></i>
+      } @else {
+        <i class="bi bi-person-lock"></i>
+      }
+    </div>
+
+    <!-- Titre -->
+    <h2 class="unauth-title">
+      @if (user()) {
+        Accès non autorisé
+      } @else {
+        Connexion requise
+      }
+    </h2>
+
+    <!-- Message -->
+    <p class="unauth-msg">
+      @if (user()) {
+        Votre rôle <!-- <strong>{{ user()?.roles?.[0] }}</strong> --> ne vous permet pas
+        d'accéder à cette page.
+      } @else {
+        Vous devez être connecté pour accéder à cette page.
+      }
+    </p>
+
+    <!-- Compte à rebours -->
+    <div class="unauth-countdown">
+      <div class="countdown-circle">{{ compteur() }}</div>
+      <span>Redirection automatique dans {{ compteur() }}s…</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="unauth-actions">
+      <button class="unauth-btn unauth-btn--primary" (click)="retourner()">
+        <i class="bi bi-arrow-left-circle"></i>
+        Retourner à la page précédente
+      </button>
+
+      @if (!user()) {
+        <button class="unauth-btn unauth-btn--outline" (click)="allerConnexion()">
+          <i class="bi bi-box-arrow-in-right"></i>
+          Se connecter
+        </button>
+      }
+
+      <a routerLink="/lango/annonces" class="unauth-btn unauth-btn--ghost">
+        <i class="bi bi-house"></i>
+        Accueil annonces
+      </a>
+    </div>
+
+  </div>
+
+</div>

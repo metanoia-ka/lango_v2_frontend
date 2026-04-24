@@ -1,0 +1,98 @@
+<div class="prem-dashboard-wrap mt-5">
+ 
+  <!-- Header -->
+  <div class="prem-dash-header">
+    <div class="prem-dash-header-left">
+      <div class="prem-dash-icon">
+        <i class="bi bi-gem"></i>
+      </div>
+      <div>
+        <h4 class="prem-dash-title">Services Premium</h4>
+        <span class="prem-dash-sub">
+          Accédez aux données foncières approfondies et aux outils avancés
+        </span>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- Grille tarifs rapide -->
+  <!-- <div class="prem-tarifs-row">
+    @for (tab of tabs; track tab.key) {
+      <div class="prem-tarif-chip"
+           [class.prem-tarif-chip--active]="onglet() === tab.key"
+           [ngbTooltip]="tab.key" placement="top" triggers="hover"
+           (click)="changerOnglet(tab.key)">
+        <i class="bi" [class]="tab.icon"></i>
+        <span>{{ tab.label }}</span>
+        <span class="prem-tarif-cout">{{ tab.cout }}</span>
+      </div>
+    }
+  </div> -->
+
+  @if (afficherBandeauTarifs()) {
+  <div class="prem-tarif-bandeau">
+    <div class="prem-tarif-bandeau-icon">
+      <i class="bi bi-info-circle-fill"></i>
+    </div>
+    <div class="prem-tarif-bandeau-body">
+      <strong>Tarification des services Premium</strong>
+      <p>
+        Chaque action consomme des crédits de votre solde.
+        Votre solde actuel : 
+        <strong class="prem-tarif-solde">{{ solde() | number }} crédits</strong>.
+      </p>
+      <div class="prem-tarif-grille">
+        @for (t of tabs; track t.key) {
+          <div class="prem-tarif-ligne">
+            <i class="bi me-1" [class]="t.icon"></i>
+            <span>{{ t.label }}</span>
+            <span class="prem-tarif-prix">{{ t.cout }}</span>
+          </div>
+        }
+        <!-- Rappel consultation annonce -->
+        <div class="prem-tarif-ligne">
+          <i class="bi bi-eye me-1"></i>
+          <span>Consultation détail annonce</span>
+          <span class="prem-tarif-prix">1 cr.</span>
+        </div>
+      </div>
+    </div>
+    <button class="prem-tarif-bandeau-close"
+            (click)="fermerBandeau()"
+            title="Fermer">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+}
+ 
+  <!-- Onglets -->
+  <div class="prem-tabs">
+    @for (tab of tabs; track tab.key) {
+      <button class="prem-tab"
+              [class.prem-tab--active]="onglet() === tab.key"
+              [ngbTooltip]="tab.key"
+              (click)="changerOnglet(tab.key)">
+        <i class="bi me-1" [class]="tab.icon"></i>
+        {{ tab.label }}
+        @if (tab.key === 'réservations' && reservations().length > 0) {
+          <span class="prem-tab-count">{{ reservations().length }}</span>
+        }
+        @if (tab.key === 'contacts' && contacts().length > 0) {
+          <span class="prem-tab-count">{{ contacts().length }}</span>
+        }
+        @if (tab.key === 'alertes' && alertes().length > 0) {
+          <span class="prem-tab-count">{{ alertes().length }}</span>
+        }
+      </button>
+    }
+  </div>
+ 
+  <!-- Contenu -->
+  <div class="prem-content">
+    @if (onglet() === 'réservations') { <app-mes-reservations /> }
+    @if (onglet() === 'dossiers')     { <app-mes-dossiers /> }
+    @if (onglet() === 'contacts')     { <app-mes-contacts /> }
+    @if (onglet() === 'alertes')      { <app-mes-alertes /> }
+  </div>
+ 
+</div>

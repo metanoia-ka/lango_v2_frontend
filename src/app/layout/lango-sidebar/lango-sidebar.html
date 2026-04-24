@@ -1,0 +1,89 @@
+<!-- Overlay pour mobile -->
+@if (!sidebar.collapsed()) {
+  <div class="sidebar-overlay" 
+       (click)="closeSidebar()"
+       @fadeInOut>
+  </div>
+}
+
+<aside class="sidebar" 
+       [class.collapsed]="sidebar.collapsed()"
+       [class.open]="!sidebar.collapsed()"
+       @slideInOut>
+
+  <!-- En-tête du sidebar -->
+  <div class="sidebar-header">
+    <div class="logo-container">
+      @if (!sidebar.collapsed()) {
+        <span class="logo-text">Lango</span>
+      }
+    </div>
+    
+    <button class="sidebar-toggle" 
+            (click)="toggleSidebar()"
+            [attr.aria-label]="sidebar.collapsed() ? 'Ouvrir le menu' : 'Fermer le menu'">
+      <i class="bi" 
+         [class.bi-chevron-left]="!sidebar.collapsed()"
+         [class.bi-chevron-right]="sidebar.collapsed()">
+      </i>
+    </button>
+  </div>
+
+  <!-- Contenu du sidebar -->
+  <nav class="sidebar-nav">
+    <ul class="nav flex-column">
+        @for (item of sidebarItems(); track item.label) {
+          @if (canShow(item)) {
+            <li class="nav-item">
+              <a class="nav-link" 
+                 [routerLink]="item.route"
+                 [class.active]="isActive(item.route)"
+                 routerLinkActive="active"
+                 (click)="closeSidebar()">
+                <i class="bi {{ item.icon }}"></i>
+                @if (!sidebar.collapsed()) {
+                  <span class="nav-label">{{ item.label }}</span>
+                  @if (isActive(item.route)) {
+                    <span class="active-indicator"></span>
+                  }
+                }
+              </a>
+            </li>
+          }
+        }
+      </ul>
+  </nav>
+
+  <!-- Pied de page du sidebar -->
+  <!-- ── Footer ──────────────────────────────────────────────────────────── -->
+  <div class="sb-footer">
+    @if (user(); as currentUser) {
+
+      <div class="sb-user" [class.sb-user--collapsed]="sidebar.collapsed()">
+        <div class="sb-user-avatar">
+          <i class="bi bi-person-fill"></i>
+        </div>
+        @if (!sidebar.collapsed()) {
+          <div class="sb-user-info">
+            <span class="sb-user-name">
+              {{ currentUser?.username || currentUser?.phone || 'Utilisateur' }}
+            </span>
+            <span class="sb-user-role">
+              {{ currentUser?.roles?.join(', ') || 'Utilisateur' }}
+            </span>
+          </div>
+        }
+      </div>
+
+      <button class="sb-logout"
+              (click)="onLogout()"
+              [ngbTooltip]="sidebar.collapsed() ? 'Déconnexion' : ''"
+              placement="right">
+        <i class="bi bi-box-arrow-right"></i>
+        @if (!sidebar.collapsed()) {
+          <span>Déconnexion</span>
+        }
+      </button>
+    }
+  </div>
+</aside>

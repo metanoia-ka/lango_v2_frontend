@@ -1,0 +1,286 @@
+.af-wrap {
+  background:    #ffffff;
+  border:        0.5px solid #e5e7eb;
+  border-radius: 12px;
+  padding:       14px 16px;
+  margin-bottom: 1.5rem;
+}
+
+// ── Barre principale ──────────────────────────────────────────────────────────
+
+.af-bar {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  flex-wrap:   wrap;
+}
+
+// Recherche
+.af-search-wrap {
+  position:  relative;
+  flex:      1 1 200px;
+  min-width: 180px;
+}
+
+.af-search-icon {
+  position:       absolute;
+  left:           10px;
+  top:            50%;
+  transform:      translateY(-50%);
+  color:          #9ca3af;
+  font-size:      14px;
+  pointer-events: none;
+}
+
+.af-search-input {
+  width:         100%;
+  padding:       8px 32px 8px 32px;
+  border:        0.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size:     13px;
+  background:    #f8f9fa;
+  color:         #111827;
+  outline:       none;
+  transition:    border-color 0.15s, background 0.15s;
+
+  &::placeholder { color: #9ca3af; }
+
+  &:focus {
+    border-color: #d1d5db;
+    background:   #ffffff;
+  }
+}
+
+.af-search-clear {
+  position:   absolute;
+  right:      8px;
+  top:        50%;
+  transform:  translateY(-50%);
+  background: none;
+  border:     none;
+  color:      #9ca3af;
+  cursor:     pointer;
+  padding:    0;
+  font-size:  14px;
+
+  &:hover { color: #111827; }
+}
+
+// Zone
+.af-zone-wrap {
+  position:  relative;
+  flex:      1 1 160px;
+  min-width: 140px;
+}
+
+.af-zone-icon {
+  position:       absolute;
+  left:           10px;
+  top:            50%;
+  transform:      translateY(-50%);
+  color:          #9ca3af;
+  font-size:      14px;
+  pointer-events: none;
+}
+
+.af-zone-input {
+  width:         100%;
+  padding:       8px 12px 8px 30px;
+  border:        0.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size:     13px;
+  background:    #f8f9fa;
+  color:         #111827;
+  outline:       none;
+
+  &::placeholder { color: #9ca3af; }
+  &:focus        { border-color: #d1d5db; }
+}
+
+// Selects
+.af-select {
+  padding:       8px 12px;
+  border:        0.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size:     13px;
+  background:    #f8f9fa;
+  color:         #111827;
+  cursor:        pointer;
+  outline:       none;
+
+  &:focus { border-color: #d1d5db; }
+  &--tri  { flex-shrink: 0; }
+}
+
+// Bouton filtres avancés
+.af-btn-filtres {
+  display:       inline-flex;
+  align-items:   center;
+  padding:       8px 14px;
+  border:        0.5px solid #e5e7eb;
+  border-radius: 8px;
+  background:    #ffffff;
+  color:         #111827;
+  font-size:     13px;
+  font-weight:   500;
+  cursor:        pointer;
+  flex-shrink:   0;
+  transition:    all 0.15s;
+
+  &:hover  { background: #f8f9fa; }
+
+  &--actif {
+    border-color: #008753;
+    color:        #008753;
+    background:   #e1f5ee;
+  }
+}
+
+.af-badge {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  width:           18px;
+  height:          18px;
+  border-radius:   50%;
+  background:      #008753;
+  color:           #ffffff;
+  font-size:       10px;
+  font-weight:     500;
+  margin-left:     6px;
+}
+
+.af-btn-reset {
+  display:       inline-flex;
+  align-items:   center;
+  padding:       8px 12px;
+  border:        0.5px solid #e5e7eb;
+  border-radius: 8px;
+  background:    none;
+  color:         #6b7280;
+  font-size:     13px;
+  cursor:        pointer;
+  flex-shrink:   0;
+  transition:    all 0.15s;
+
+  &:hover {
+    color:        #a32d2d;
+    border-color: #f7c1c1;
+    background:   #fcebeb;
+  }
+}
+
+// ── Panneau avancé ────────────────────────────────────────────────────────────
+
+.af-panel {
+  border-top:  0.5px solid #e5e7eb;
+  margin-top:  14px;
+  padding-top: 14px;
+}
+
+.af-panel-grid {
+  display:               grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap:                   14px;
+  align-items:           start;
+}
+
+.af-field {
+  display:        flex;
+  flex-direction: column;
+  gap:            6px;
+
+  &--check {
+    justify-content: flex-end;
+    padding-top:     20px;
+  }
+}
+
+.af-label {
+  font-size:   12px;
+  font-weight: 500;
+  color:       #6b7280;
+  margin:      0;
+}
+
+.af-input {
+  padding:       8px 10px;
+  border:        0.5px solid #e5e7eb;
+  border-radius: 7px;
+  font-size:     13px;
+  background:    #f8f9fa;
+  color:         #111827;
+  outline:       none;
+  width:         100%;
+
+  &:focus { border-color: #d1d5db; }
+}
+
+.af-range-wrap {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+}
+
+.af-range-sep {
+  color:       #9ca3af;
+  font-size:   12px;
+  flex-shrink: 0;
+}
+
+// ── Toggle titre foncier ──────────────────────────────────────────────────────
+
+.af-toggle-label {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  cursor:      pointer;
+  user-select: none;
+}
+
+.af-toggle-input { display: none; }
+
+.af-toggle-slider {
+  width:         36px;
+  height:        20px;
+  border-radius: 10px;
+  background:    #d1d5db;
+  position:      relative;
+  flex-shrink:   0;
+  transition:    background 0.2s;
+
+  &::after {
+    content:       '';
+    position:      absolute;
+    left:          3px;
+    top:           3px;
+    width:         14px;
+    height:        14px;
+    border-radius: 50%;
+    background:    #ffffff;
+    transition:    transform 0.2s;
+    box-shadow:    0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.af-toggle-input:checked + .af-toggle-slider {
+  background: #008753;
+
+  &::after { transform: translateX(16px); }
+}
+
+.af-toggle-text {
+  font-size: 13px;
+  color:     #111827;
+}
+
+.af-ville-chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.af-ville-chip {
+  padding: 5px 12px; border-radius: 16px; border: 1.5px solid #E5E7EB;
+  background: #fff; color: #374151; font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  &:hover   { border-color: #008753; color: #008753; }
+  &--active { border-color: #008753; background: #E8F5EE; color: #008753; }
+}

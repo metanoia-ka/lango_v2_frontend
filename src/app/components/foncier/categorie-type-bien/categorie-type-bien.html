@@ -1,0 +1,383 @@
+<div class="tb-wrap mt-5">
+
+  <!-- Header -->
+  <div class="tb-header">
+    <div class="tb-header__left">
+      <i class="bi bi-building-fill tb-header__icon"></i>
+      <div>
+        <h1 class="tb-header__title">Types de biens immobiliers</h1>
+        <p class="tb-header__sub">
+          Gérez les catégories et les types disponibles dans Lango.
+        </p>
+      </div>
+    </div>
+    <button class="tb-btn tb-btn--outline" (click)="charger()">
+      <i class="bi bi-arrow-clockwise me-1"></i> Actualiser
+    </button>
+  </div>
+
+  <!-- Erreur globale -->
+  @if (error()) {
+    <div class="tb-alert tb-alert--danger">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="tb-loading">
+      <span class="spinner-border spinner-border-sm text-success"></span>
+      Chargement…
+    </div>
+  }
+
+  <!-- Onglets -->
+  <div class="tb-tabs">
+    <button class="tb-tab" [class.tb-tab--active]="onglet() === 'categories'"
+            (click)="onglet.set('categories')">
+      <i class="bi bi-grid me-1"></i>
+      Catégories
+      <span class="tb-tab__badge">{{ categories().length }}</span>
+    </button>
+    <button class="tb-tab" [class.tb-tab--active]="onglet() === 'types'"
+            (click)="onglet.set('types')">
+      <i class="bi bi-list-ul me-1"></i>
+      Types de bien
+      <span class="tb-tab__badge">{{ types().length }}</span>
+    </button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       ONGLET CATÉGORIES
+       ════════════════════════════════════════════════════════════════════════ -->
+  @if (onglet() === 'categories') {
+    <div class="tb-section">
+
+      <!-- Formulaire création / édition -->
+      <div class="tb-form-card">
+        <h3 class="tb-form-card__title">
+          @if (editingCat()) {
+            <i class="bi bi-pencil-fill me-2 text-success"></i>
+            Modifier « {{ editingCat()!.nom }} »
+          } @else {
+            <i class="bi bi-plus-circle-fill me-2 text-success"></i>
+            Nouvelle catégorie
+          }
+        </h3>
+
+        @if (!editingCat()) {
+          <button class="tb-btn tb-btn--primary tb-btn--sm"
+                  (click)="ouvrirFormCat()">
+            <i class="bi bi-plus me-1"></i> Ajouter une catégorie
+          </button>
+        }
+
+        @if (editingCat() !== undefined && catForm.dirty 
+            || editingCat() === null && catForm.touched
+            ) 
+        {
+          <!-- Formulaire visible quand ouvert -->
+        }
+
+        <!-- Formulaire toujours visible pour la création / pré-rempli pour l'édition -->
+        @if (editingCat() !== undefined) {
+          <form [formGroup]="catForm" (ngSubmit)="sauvegarderCat()" class="tb-form mt-3">
+            <div class="tb-form-grid">
+              <div class="tb-field tb-field--full">
+                <label class="tb-label">Nom <span class="req">*</span></label>
+                <input type="text" class="tb-input" formControlName="nom"
+                       placeholder="Ex : Habitation"
+                       [class.tb-input--error]="isFieldInvalid(catForm, 'nom')">
+                @if (isFieldInvalid(catForm, 'nom')) {
+                  <span class="tb-error">Nom obligatoire (2 caractères min.).</span>
+                }
+              </div>
+
+              <div class="tb-field">
+                <label class="tb-label">Icône Bootstrap</label>
+                <div class="tb-icon-picker">
+                  @for (ic of ICONES_CATEGORIES; track ic) {
+                    <button type="button"
+                            class="tb-icon-opt"
+                            [class.tb-icon-opt--sel]="catForm.value.icone === ic"
+                            (click)="catForm.patchValue({icone: ic})">
+                      <i [class]="'bi ' + ic"></i>
+                    </button>
+                  }
+                  <input type="text" class="tb-input tb-input--sm ms-2"
+                         formControlName="icone"
+                         placeholder="bi-house-fill">
+                </div>
+              </div>
+
+              <div class="tb-field">
+                <label class="tb-label">Couleur</label>
+                <div class="tb-color-picker">
+                  @for (c of COULEURS; track c) {
+                    <button type="button"
+                            class="tb-color-dot"
+                            [style.background]="c"
+                            [class.tb-color-dot--sel]="catForm.value.couleur === c"
+                            (click)="catForm.patchValue({couleur: c})">
+                    </button>
+                  }
+                  <input type="color" class="tb-color-input"
+                         formControlName="couleur">
+                </div>
+              </div>
+
+              <div class="tb-field">
+                <label class="tb-label">Ordre d'affichage</label>
+                <input type="number" class="tb-input" formControlName="ordre"
+                       min="0" max="99">
+              </div>
+
+              <div class="tb-field tb-field--full">
+                <label class="tb-label">Description</label>
+                <textarea class="tb-input tb-input--textarea" rows="2"
+                          formControlName="description"
+                          placeholder="Description optionnelle…"></textarea>
+              </div>
+            </div>
+
+            <div class="tb-form-actions">
+              <button type="button" class="tb-btn tb-btn--ghost"
+                      (click)="annulerCat()">Annuler</button>
+              <button type="submit" class="tb-btn tb-btn--primary"
+                      [disabled]="saving()">
+                @if (saving()) { 
+                  <span class="spinner-border spinner-border-sm me-1"></span> 
+                }
+                @else if (editingCat()) { <i class="bi bi-floppy me-1"></i> }
+                @else { <i class="bi bi-plus-lg me-1"></i> }
+                {{ editingCat() ? 'Enregistrer' : 'Créer la catégorie' }}
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+
+      <!-- Liste des catégories -->
+      <div class="tb-list">
+        @for (cat of categories(); track cat.id) {
+          <div class="tb-card" [class.tb-card--inactive]="!cat.est_actif">
+            <div class="tb-card__left">
+              <div class="tb-cat-icon"
+                   [style.background]="cat.couleur + '22'"
+                   [style.color]="cat.couleur">
+                <i [class]="'bi ' + (cat.icone || 'bi-grid')"></i>
+              </div>
+              <div>
+                <p class="tb-card__nom">{{ cat.nom }}</p>
+                <p class="tb-card__sub">
+                  {{ cat.nb_types }} type{{ cat.nb_types > 1 ? 's' : '' }}
+                  @if (cat.description) { — {{ cat.description }} }
+                </p>
+              </div>
+            </div>
+            <div class="tb-card__actions">
+              <span class="tb-badge" [class.tb-badge--on]="cat.est_actif"
+                                     [class.tb-badge--off]="!cat.est_actif">
+                {{ cat.est_actif ? 'Active' : 'Inactive' }}
+              </span>
+              <button class="tb-action-btn" (click)="ouvrirFormCat(cat)"
+                      ngbTooltip="Modifier">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="tb-action-btn tb-action-btn--danger"
+                      (click)="supprimerCat(cat)"
+                      ngbTooltip="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (!loading() && categories().length === 0) {
+          <div class="tb-empty">
+            <i class="bi bi-inbox"></i>
+            <p>Aucune catégorie créée.</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       ONGLET TYPES DE BIEN
+       ════════════════════════════════════════════════════════════════════════ -->
+  @if (onglet() === 'types') {
+    <div class="tb-section">
+
+      <!-- Formulaire -->
+      <div class="tb-form-card">
+        <h3 class="tb-form-card__title">
+          @if (editingType()) {
+            <i class="bi bi-pencil-fill me-2 text-success"></i>
+            Modifier « {{ editingType()!.nom }} »
+          } @else {
+            <i class="bi bi-plus-circle-fill me-2 text-success"></i>
+            Nouveau type de bien
+          }
+        </h3>
+
+        @if (!editingType()) {
+          <button class="tb-btn tb-btn--primary tb-btn--sm"
+                  (click)="ouvrirFormType()">
+            <i class="bi bi-plus me-1"></i> Ajouter un type
+          </button>
+        }
+
+        @if (editingType() !== undefined) {
+          <form [formGroup]="typeForm" (ngSubmit)="sauvegarderType()" class="tb-form mt-3">
+            <div class="tb-form-grid">
+
+              <div class="tb-field">
+                <label class="tb-label">Catégorie <span class="req">*</span></label>
+                <select class="tb-input" formControlName="categorie"
+                        [class.tb-input--error]="isFieldInvalid(typeForm, 'categorie')">
+                  <option value="">— Choisir —</option>
+                  @for (cat of categories(); track cat.id) {
+                    <option [value]="cat.id">{{ cat.nom }}</option>
+                  }
+                </select>
+                @if (isFieldInvalid(typeForm, 'categorie')) {
+                  <span class="tb-error">Catégorie obligatoire.</span>
+                }
+              </div>
+
+              <div class="tb-field">
+                <label class="tb-label">Nom <span class="req">*</span></label>
+                <input type="text" class="tb-input" formControlName="nom"
+                       placeholder="Ex : Appartement meublé"
+                       [class.tb-input--error]="isFieldInvalid(typeForm, 'nom')">
+                @if (isFieldInvalid(typeForm, 'nom')) {
+                  <span class="tb-error">Nom obligatoire.</span>
+                }
+              </div>
+
+              <div class="tb-field">
+                <label class="tb-label">Ordre</label>
+                <input type="number" class="tb-input" formControlName="ordre"
+                       min="0">
+              </div>
+
+              <div class="tb-field tb-field--full">
+                <label class="tb-label">Description</label>
+                <textarea class="tb-input tb-input--textarea" rows="2"
+                          formControlName="description"></textarea>
+              </div>
+
+              <!-- Drapeaux métier -->
+              <div class="tb-field tb-field--full">
+                <div class="tb-flags">
+                  <label class="tb-flag-item">
+                    <input type="checkbox" formControlName="meuble" class="tb-checkbox">
+                    <span>
+                      <i class="bi bi-lamp-fill me-1 text-warning"></i>
+                      Peut être proposé <strong>meublé</strong>
+                    </span>
+                  </label>
+                  <label class="tb-flag-item">
+                    <input type="checkbox" formControlName="necessite_parcelle" 
+                    class="tb-checkbox">
+                    <span>
+                      <i class="bi bi-geo-alt-fill me-1 text-danger"></i>
+                      Nécessite une <strong>parcelle cadastrale</strong>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="tb-form-actions">
+              <button type="button" class="tb-btn tb-btn--ghost"
+                      (click)="annulerType()">Annuler</button>
+              <button type="submit" class="tb-btn tb-btn--primary"
+                      [disabled]="saving()">
+                @if (saving()) { 
+                  <span class="spinner-border spinner-border-sm me-1"></span> 
+                }
+                @if(editingType()) {
+                  <i class="bi bi-floppy me-1"></i>
+                } @else {
+                  <i class="bi bi-plus-lg me-1"></i>
+                }
+                {{ editingType() ? 'Enregistrer' : 'Créer le type' }}
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+
+      <!-- Filtre par catégorie -->
+      <div class="tb-filter">
+        <label class="tb-filter__label">Filtrer par catégorie :</label>
+        <div class="tb-filter__chips">
+          <button class="tb-chip" [class.tb-chip--active]="filtreCat() === ''"
+                  (click)="filtreCat.set('')">Toutes</button>
+          @for (cat of categories(); track cat.id) {
+            <button class="tb-chip" [class.tb-chip--active]="filtreCat() === cat.id"
+                    (click)="filtreCat.set(cat.id)">
+              @if (cat.icone) { <i [class]="'bi ' + cat.icone + ' me-1'"></i> }
+              {{ cat.nom }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Liste des types groupée par catégorie -->
+      <div class="tb-list">
+        @for (type of typesFiltres(); track type.id) {
+          <div class="tb-card tb-card--type" [class.tb-card--inactive]="!type.est_actif">
+
+            <div class="tb-card__left">
+              <div class="tb-type-cat-tag">{{ type.categorie_nom }}</div>
+              <div>
+                <p class="tb-card__nom">
+                  {{ type.nom }}
+                  @if (type.meuble) {
+                    <span class="tb-flag-badge tb-flag-badge--meuble">Meublé</span>
+                  }
+                  @if (type.necessite_parcelle) {
+                    <span class="tb-flag-badge tb-flag-badge--parcelle">Parcelle</span>
+                  }
+                </p>
+                <p class="tb-card__sub tb-mono">{{ type.code }}</p>
+              </div>
+            </div>
+
+            <div class="tb-card__actions">
+              <button class="tb-toggle-btn"
+                      [class.tb-toggle-btn--on]="type.est_actif"
+                      (click)="toggleActif(type)"
+                      ngbTooltip="{{ type.est_actif ? 'Désactiver' : 'Activer' }}">
+                <i [class]="'bi ' + 
+                (type.est_actif ? 'bi-toggle-on' : 'bi-toggle-off')"></i>
+              </button>
+              <button class="tb-action-btn" (click)="ouvrirFormType(type)"
+                      ngbTooltip="Modifier">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="tb-action-btn tb-action-btn--danger"
+                      (click)="supprimerType(type)"
+                      ngbTooltip="Supprimer">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (!loading() && typesFiltres().length === 0) {
+          <div class="tb-empty">
+            <i class="bi bi-inbox"></i>
+            <p>Aucun type trouvé pour ce filtre.</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>

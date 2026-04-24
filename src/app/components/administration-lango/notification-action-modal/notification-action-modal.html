@@ -1,0 +1,111 @@
+<div class="nam">
+
+  <!-- ── Header ── -->
+  <div class="nam-header">
+    <div class="nam-header-left">
+      <div class="nam-type-icon"
+           [style.background]="meta.bg"
+           [style.color]="meta.couleur">
+        <i class="bi" [class]="meta.icone"></i>
+      </div>
+      <h5 class="nam-title">{{ notification.titre }}</h5>
+    </div>
+    <button type="button" class="btn-close btn-sm" (click)="close()"></button>
+  </div>
+
+  <!-- ── Body ── -->
+  <div class="nam-body">
+
+    <!-- Message de la notification -->
+    <div class="nam-message">{{ notification.message }}</div>
+
+    <!-- CAS 1 : fournir_documents -->
+    @if (typeAction === 'fournir_documents') {
+      <div class="nam-docs-list">
+        @for (doc of documentsRequis; track doc.id) {
+          <div class="nam-doc-item">
+            <div class="nam-doc-header">
+              <span class="nam-doc-name">
+                <i class="bi bi-file-earmark" 
+                    style="font-size:12px;color:var(--green)"></i>
+                {{ doc.nom }}
+              </span>
+              <span class="nam-doc-req" [class.obligatoire]="doc.obligatoire"
+                                        [class.optionnel]="!doc.obligatoire">
+                {{ doc.obligatoire ? 'Obligatoire' : 'Optionnel' }}
+              </span>
+            </div>
+            @if (doc.description) {
+              <div class="nam-doc-desc">{{ doc.description }}</div>
+            }
+            <div class="nam-doc-hint">
+              Formats : {{ doc.formats_acceptes?.join(', ') || 'pdf, jpg, png' }} ·
+              Max {{ doc.taille_max_mo || 5 }} Mo
+            </div>
+            <input type="file"
+                   class="nam-file-input mt-2"
+                   [class.has-file]="fichiersPourDoc[doc.id]"
+                   [accept]="getAccept(doc.formats_acceptes)"
+                   (change)="onFichierChange($event, doc.id)">
+          </div>
+        }
+      </div>
+    }
+
+    <!-- CAS 2 : confirmer_action -->
+    @if (typeAction === 'confirmer_action') {
+      <div>
+        <div class="nam-field-label">Votre choix</div>
+        <div class="nam-options">
+          @for (opt of options; track opt.valeur) {
+            <label class="nam-option" [class.selected]="choixSelectionne === opt.valeur">
+              <input type="radio" name="choix"
+                     [value]="opt.valeur"
+                     [(ngModel)]="choixSelectionne">
+              <span class="nam-option-label">{{ opt.label }}</span>
+            </label>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Commentaire (tous les cas) -->
+    @if (typeAction !== 'ouvrir_conversation') {
+      <div>
+        <div class="nam-field-label">
+          Commentaire
+          @if (typeAction === 'fournir_documents') {
+            <span style="font-weight:400;text-transform:none;font-size:12px"> 
+              — optionnel
+            </span>
+          }
+        </div>
+        <textarea class="nam-textarea"
+                  [(ngModel)]="messageCommentaire"
+                  placeholder="Ajoutez un message si nécessaire…">
+        </textarea>
+      </div>
+    }
+
+  </div>
+
+  <!-- ── Footer ── -->
+  <div class="nam-footer">
+    <button type="button" class="nam-btn nam-btn-cancel" (click)="close()">
+      <i class="bi bi-x-lg"></i>
+      Annuler
+    </button>
+    <button type="button" class="nam-btn nam-btn-submit"
+            [disabled]="!peutSoumettre() || enCours"
+            (click)="soumettre()">
+      @if (enCours) {
+        <span class="spinner-border spinner-border-sm" role="status"></span>
+        Envoi…
+      } @else {
+        <i class="bi bi-send"></i>
+        {{ getLabelBouton() }}
+      }
+    </button>
+  </div>
+
+</div>

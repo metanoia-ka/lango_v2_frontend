@@ -1,0 +1,72 @@
+
+<div class="mf-header">
+  <div class="mf-header-left">
+    <div class="mf-header-icon" 
+    [class]="isEditMode ? 'mf-header-icon--edit' : 'mf-header-icon--create'">
+      <i class="bi" [class.bi-person-plus-fill]="!isEditMode" 
+      [class.bi-pencil-fill]="isEditMode"></i>
+    </div>
+    <div>
+      <p class="mf-header-title">
+        {{ isEditMode ? 'Modifier le rôle' : 'Nouveau rôle' }}
+      </p>
+      <span class="mf-header-sub">Gérez les permissions d'accès</span>
+    </div>
+  </div>
+  <button class="mf-close-btn" (click)="onCancel()"><i class="bi bi-x-lg"></i></button>
+</div>
+
+<div class="mf-body">
+  @if (isLoading) {
+    <div class="mf-loading"><div class="mf-spinner"></div><span>Chargement…</span></div>
+  } @else {
+    <form [formGroup]="roleForm" (ngSubmit)="onSubmit($event)">
+
+      @if (successMessage) {
+        <app-alert type="info" title="Information !" [autoClose]="true" 
+        [autoCloseDelay]="4000" (onClose)="clearSuccessMessage()">
+          <p class="mb-0 small">{{ successMessage }}</p>
+        </app-alert>
+      } @else if (errorMessage) {
+        <app-alert type="danger" title="Erreur" (onClose)="clearErrorMessage()">
+          <p class="mb-0 small">{{ errorMessage }}</p>
+        </app-alert>
+      }
+
+      <div class="mf-field">
+        <div class="form-floating">
+          <input type="text" id="name" formControlName="name" class="form-control"
+                 placeholder="Nom"
+                 [class.is-invalid]="roleForm.get('name')?.invalid 
+                 && roleForm.get('name')?.touched">
+          <label for="name">Nom du rôle <span class="text-danger">*</span></label>
+          <div class="invalid-feedback">Le nom du rôle est requis.</div>
+        </div>
+      </div>
+
+      <div class="mf-field">
+        <div class="form-floating">
+          <textarea id="description" formControlName="description"
+                    class="form-control mf-textarea" style="height:90px"
+                    placeholder="Description"></textarea>
+          <label for="description">Description</label>
+        </div>
+      </div>
+
+    </form>
+  }
+</div>
+
+<div class="mf-actions">
+  <button type="button" class="mf-btn mf-btn--cancel" (click)="onCancel()">
+    <i class="bi bi-x-lg"></i> Annuler
+  </button>
+  <button type="submit" class="mf-btn mf-btn--submit"
+          [disabled]="isSubmitting || roleForm.invalid"
+          (click)="onSubmit()">
+    @if (isSubmitting) { <span class="spinner-border spinner-border-sm"></span> }
+    @else { <i class="bi" [class.bi-check2-circle]="!isEditMode" 
+    [class.bi-floppy]="isEditMode"></i> }
+    {{ isEditMode ? 'Mettre à jour' : 'Créer le rôle' }}
+  </button>
+</div>

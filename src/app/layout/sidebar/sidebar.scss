@@ -1,0 +1,243 @@
+:root{
+  --sidebar-width: 56px;
+  --sidebar-collapsed: 56px;
+  --sidebar-expanded: 280px;
+  --header-h: 56px;
+  --header-top-offset: 8px; /* distance from viewport top to header */
+  --footer-h: 44px;
+
+  --bg: #fff;
+  --text: #111;
+  --border: #e7e7e7;
+  --active: #0d6efd;
+  --active-bg: rgba(13,110,253,0.06); /* soft active background */
+  --menu-hover-bg: rgba(14,165,233,0.04); /* subtle modern tint for hover */
+  --menu-active-bg: rgba(14,165,233,0.08); /* slightly stronger modern tint for active */
+  --menu-active-border: rgba(14,165,233,0.14);
+  --sidebar-hair-border: rgba(13, 14, 15, 0.06); /* very subtle sidebar border */
+}
+
+/* Reset */
+:host, html, body { background: var(--bg); color: var(--text); }
+:host { display: block; }
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: var(--bg);
+  /* hide overflowing content during width transition to prevent scroll flashes */
+  overflow: hidden;
+  /* width transition delayed when closing so inner items can hide first; increased delay for smoother hide sequence */
+  transition: width .28s ease-in-out .18s, background-color .18s ease-in-out, border-color .18s ease-in-out;
+  z-index: 1000;
+}
+.sidebar.open {
+  width: var(--sidebar-expanded);
+  /* when opening, remove the delay so width starts immediately */
+  transition-delay: 0s;
+  border-right: 0.5px solid rgba(216, 221, 230, 0.664);
+}
+
+/* visual signal on the sidebar itself when collapsed */
+.sidebar:not(.open) {
+  background-color: rgba(216,221,230,0.08); /* subtle grey based on login border */
+  border-right-color: rgba(216,221,230,0.22);
+  box-shadow: inset -6px 0 12px -10px rgba(0,0,0,0.06); /* subtle inner shadow on right */
+}
+
+/* restore neutral background when open */
+.sidebar.open {
+  /* restore neutral background when open */
+  background: var(--bg);
+}
+
+/* Burger */
+.burger {
+  position: absolute;
+  /* vertically center the burger to the header height plus top offset */
+  top: calc(var(--header-top-offset) + (var(--header-h) / 2) - 18px); /* burger height is 36px */
+  /* align horizontally with header-inner padding (16px) */
+  left: 16px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 2600; /* ensure it's above overlays */
+  pointer-events: auto;
+}
+.burger .line {
+  width: 18px; height: 2px; background: #333; display: block; position: relative;
+  pointer-events: auto;
+}
+.burger .line::before,
+.burger .line::after {
+  content: "";
+  position: absolute;
+  left: 0; width: 18px; height: 2px; background: #333;
+  transition: transform .25s ease, opacity .2s ease;
+}
+.burger .line::before{ top: -6px; }
+.burger .line::after { top: 6px; }
+.burger .line.cross { background: transparent; }
+.burger .line.cross::before { transform: translateY(6px) rotate(45deg); }
+.burger .line.cross::after { transform: translateY(-6px) rotate(-45deg); }
+
+/* show burger lines by default */
+.burger .line { opacity: 1; transform: none; transition: transform .12s ease, opacity .12s ease; }
+.burger:hover .line, .burger:focus .line { transform: scaleX(1.05); }
+.burger:focus-visible { outline: 3px solid rgba(11,99,214,0.12); outline-offset: 2px; }
+
+/* Contenu */
+.sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 56px;
+  /* control visibility of inner content separately so items can hide before width changes */
+  opacity: 1;
+  transition: opacity .12s cubic-bezier(.2,.8,.2,1), transform .12s cubic-bezier(.2,.8,.2,1);
+}
+.menu {
+  overflow-y: auto;
+  padding: 8px 12px;
+  flex: 1 1 auto;
+  /* prevent the menu from creating vertical scroll during collapse by capping its height */
+  max-height: calc(100vh - var(--header-h) - var(--footer-h) - 64px);
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* spacing between icon and text */
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--text);
+  text-decoration: none;
+  /* smoother transitions for professional collapse/expand */
+  transition: opacity .18s cubic-bezier(.2,.8,.2,1), transform .18s cubic-bezier(.2,.8,.2,1), background .18s ease, color .12s ease;
+}
+.menu-item:hover { background: var(--menu-hover-bg); border: 1px solid rgba(14,165,233,0.06); }
+.menu-item.active {
+  color: var(--active);
+  /* slightly stronger active background and a fine border for definition */
+  background-color: rgba(14,165,233,0.10);
+  border: 1px solid var(--menu-active-border);
+  box-shadow: inset 0 0 0 1px rgba(13,110,253,0.02);
+  border-left: 3px solid rgba(13,110,253,0.12); /* keep subtle left accent */
+  padding-left: 9px; /* keep visual alignment with the left accent */
+  border-radius: 8px;
+}
+
+.sidebar-footer {
+  border-top: 1px solid var(--border);
+  padding: 8px 12px;
+  color: #666;
+}
+
+.sidebar-footer.footer-meta {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-footer.footer-meta small { display: block; }
+
+/* When collapsed (no .open), hide inner content quickly (including auth buttons) */
+.sidebar:not(.open) .sidebar-inner {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-8px);
+  transition-delay: 0s; /* hide immediately when closing */
+}
+
+/* Hide items (move slightly) in collapsed state for a cleaner collapse transition */
+.sidebar:not(.open) .menu-item,
+.sidebar:not(.open) .sidebar-header,
+.sidebar:not(.open) .sidebar-footer {
+  opacity: 0;
+  transform: translateX(-12px);
+  transition: opacity .12s cubic-bezier(.2,.8,.2,1), transform .12s cubic-bezier(.2,.8,.2,1);
+}
+
+/* When opening, reveal the menu items with a small stagger for polish */
+.sidebar.open .menu-item { opacity: 1; transform: translateX(0); transition-delay: .12s; }
+
+/* When opening, reveal the inner content after the width expansion completes */
+.sidebar.open .sidebar-inner {
+  transition-delay: .18s; /* reveal items after width expands slightly */
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Auth button styles (login / logout) */
+.sidebar-footer .auth-btn {
+  display: flex; /* align icon and text with gap */
+  align-items: center;
+  gap: 10px; /* spacing between icon and label for connexion/deconnexion */
+  width: 100%;
+  padding: .8rem; /* match .btn-submit padding */
+  border-radius: 8px;
+  text-align: center;
+  justify-content: center; /* center content when sidebar open */
+  background: #ffffff; /* neutral inner */
+  color: #111;
+  font-weight: 700;
+  border: 2px solid transparent; /* handled via background gradients like .btn-submit */
+  background-image: linear-gradient(#ffffff, #ffffff), linear-gradient(90deg, #1e90ff 0%, #6a11cb 50%, #ff416c 100%);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: transform .08s ease, box-shadow .12s ease, opacity .12s ease;
+}
+.sidebar-footer .auth-btn:hover:not([disabled]){ transform: translateY(-1px); box-shadow: 0 8px 20px rgba(11,99,214,0.10); }
+.sidebar-footer .auth-btn:focus{ outline:3px solid rgba(11,99,214,0.12); outline-offset:3px; }
+.sidebar-footer .auth-btn[disabled]{ opacity:.6; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* Ensure hidden state when sidebar collapsed still applies */
+.sidebar:not(.open) .sidebar-footer .auth-btn { opacity: 0; pointer-events: none; transform: translateX(-6px); }
+
+/* Header/Footer */
+.app-header, .app-footer {
+  position: fixed;
+  left: var(--sidebar-width);
+  right: 0;
+  background: #fff;
+  border-left: 1px solid var(--border);
+  transition: left .28s ease-in-out;
+  z-index: 900;
+}
+.app-header {
+  top: var(--header-top-offset); height: var(--header-h);
+  border-bottom: 1px solid var(--border);
+}
+.app-footer {
+  bottom: 0; height: var(--footer-h);
+  border-top: 1px solid var(--border);
+}
+.header-inner, .footer-inner {
+  height: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  margin-top: 8px;
+}
+
+/* add top padding inside the header so content has breathing room from viewport top */
+.header-inner {
+  padding-top: var(--header-top-offset);
+  box-sizing: border-box;
+}
+
+/* Ensure header text uses the app font and a strong weight to match branding */
+.app-header .header-inner, .app-header .header-inner strong {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+}

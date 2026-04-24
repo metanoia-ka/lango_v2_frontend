@@ -1,0 +1,218 @@
+<div class="mf-wrap">
+
+  <!-- ══ Header ══════════════════════════════════════════════════════════════ -->
+  <div class="mf-header">
+    <div class="mf-header__left">
+      <i class="bi bi-people-fill mf-header__icon"></i>
+      <div>
+        <h1 class="mf-header__title">Ma communauté</h1>
+        <p class="mf-header__sub">Gérez vos abonnements et vos abonnés</p>
+      </div>
+    </div>
+    <button class="mf-refresh-btn" (click)="chargerTout()" [disabled]="loading()">
+      <i class="bi bi-arrow-clockwise"></i>
+    </button>
+  </div>
+
+  <!-- ══ Compteurs résumés ══════════════════════════════════════════════════ -->
+  <div class="mf-stats">
+    <div class="mf-stat-card mf-stat-card--follows"
+         [class.mf-stat-card--active]="onglet() === 'follows'"
+         (click)="changerOnglet('follows')">
+      <i class="bi bi-person-check-fill mf-stat-card__icon"></i>
+      <div>
+        <p class="mf-stat-card__value">{{ totalFollows() }}</p>
+        <p class="mf-stat-card__label">
+          Abonnement{{ totalFollows() > 1 ? 's' : '' }}
+        </p>
+        <p class="mf-stat-card__hint">Vendeurs que vous suivez</p>
+      </div>
+    </div>
+    <div class="mf-stat-card mf-stat-card--abonnes"
+         [class.mf-stat-card--active]="onglet() === 'abonnes'"
+         (click)="changerOnglet('abonnes')">
+      <i class="bi bi-people-fill mf-stat-card__icon"></i>
+      <div>
+        <p class="mf-stat-card__value">{{ totalAbonnes() }}</p>
+        <p class="mf-stat-card__label">
+          Abonné{{ totalAbonnes() > 1 ? 's' : '' }}
+        </p>
+        <p class="mf-stat-card__hint">Utilisateurs qui vous suivent</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Onglets ══════════════════════════════════════════════════════════════ -->
+  <div class="mf-tabs">
+    <button class="mf-tab"
+            [class.mf-tab--active]="onglet() === 'follows'"
+            (click)="changerOnglet('follows')">
+      <i class="bi bi-person-check me-2"></i>
+      Abonnement{{ totalFollows() > 1 ? 's' : '' }}
+      @if (totalFollows() > 0) {
+        <span class="mf-tab__badge">{{ totalFollows() }}</span>
+      }
+    </button>
+    <button class="mf-tab"
+            [class.mf-tab--active]="onglet() === 'abonnes'"
+            (click)="changerOnglet('abonnes')">
+      <i class="bi bi-people me-2"></i>
+      Abonné{{ totalAbonnes() > 1 ? 's' : '' }}
+      @if (totalAbonnes() > 0) {
+        <span class="mf-tab__badge">{{ totalAbonnes() }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- ══ Corps ════════════════════════════════════════════════════════════════ -->
+  <div class="mf-body">
+
+    <!-- Chargement -->
+    @if (loading()) {
+      <div class="mf-loading">
+        <span class="spinner-border spinner-border-sm text-success"></span>
+        Chargement…
+      </div>
+    } @else {
+
+      <!-- Barre de recherche -->
+      <div class="mf-search">
+        <i class="bi bi-search mf-search__icon"></i>
+        <input type="text" class="mf-search__input"
+               placeholder="Rechercher par nom d'utilisateur…"
+               [ngModel]="recherche()"
+               (ngModelChange)="recherche.set($event)">
+        @if (recherche()) {
+          <button class="mf-search__clear" (click)="recherche.set('')">
+            <i class="bi bi-x"></i>
+          </button>
+        }
+      </div>
+
+      <!-- ══ ONGLET : Abonnements (ceux que je suis) ══════════════════════════ -->
+      @if (onglet() === 'follows') {
+
+        @if (followsFiltres().length === 0) {
+          <div class="mf-empty">
+            <i class="bi bi-person-check"></i>
+            @if (recherche()) {
+              <p>Aucun résultat pour « {{ recherche() }} »</p>
+            } @else {
+              <p>Vous ne suivez encore personne.</p>
+              <span class="mf-empty__hint">
+                Suivez des vendeurs depuis la page d'une annonce pour recevoir
+                leurs prochaines publications.
+              </span>
+            }
+          </div>
+        } @else {
+          <div class="mf-list">
+            @for (follow of followsFiltres(); track follow.auteur_id) {
+              <div class="mf-card">
+
+                <!-- Avatar -->
+                <div class="mf-card__avatar"
+                     [style.background]="getAvatarColor(follow.username)">
+                  {{ getInitiales(follow.username) }}
+                </div>
+
+                <!-- Infos -->
+                <div class="mf-card__body">
+                  <p class="mf-card__name">@{{ follow.username }}</p>
+                  <div class="mf-card__meta">
+                    <span>
+                      <i class="bi bi-people me-1"></i>
+                      {{ follow.nb_abonnes }}
+                      abonné{{ follow.nb_abonnes > 1 ? 's' : '' }}
+                    </span>
+                    <span class="mf-card__dot">·</span>
+                    <span>
+                      <i class="bi bi-calendar-check me-1"></i>
+                      {{ follow.depuis | relativeTime }} 
+                      | depuis {{ formatDate(follow.depuis) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="mf-card__actions">
+                  <!-- <a [routerLink]="['/lango/annonces']"
+                     [queryParams]="{ auteur: follow.auteur_id }"
+                     class="mf-btn mf-btn--ghost mf-btn--sm">
+                    <i class="bi bi-megaphone me-1"></i>
+                    Annonces
+                  </a> -->
+                  <button class="mf-btn mf-btn--unfollow mf-btn--sm"
+                          [disabled]="actionLoading() === follow.auteur_id"
+                          (click)="nePlusSuivre(follow.auteur_id, follow.username)">
+                    @if (actionLoading() === follow.auteur_id) {
+                      <span class="spinner-border spinner-border-sm"></span>
+                    } @else {
+                      <i class="bi bi-person-x me-1"></i>
+                      Ne plus suivre
+                    }
+                  </button>
+                </div>
+
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- ══ ONGLET : Abonnés (ceux qui me suivent) ════════════════════════════ -->
+      @if (onglet() === 'abonnes') {
+
+        @if (abonnesFiltres().length === 0) {
+          <div class="mf-empty">
+            <i class="bi bi-people"></i>
+            @if (recherche()) {
+              <p>Aucun résultat pour « {{ recherche() }} »</p>
+            } @else {
+              <p>Personne ne vous suit encore.</p>
+              <span class="mf-empty__hint">
+                Publiez des annonces de qualité pour attirer des abonnés.
+              </span>
+            }
+          </div>
+        } @else {
+          <div class="mf-list">
+            @for (abonne of abonnesFiltres(); track abonne.user_id) {
+              <div class="mf-card">
+
+                <!-- Avatar -->
+                <div class="mf-card__avatar"
+                     [style.background]="getAvatarColor(abonne.username)">
+                  {{ getInitiales(abonne.username) }}
+                </div>
+
+                <!-- Infos -->
+                <div class="mf-card__body">
+                  <p class="mf-card__name">@{{ abonne.username }}</p>
+                  <div class="mf-card__meta">
+                    <span>
+                      <i class="bi bi-calendar-check me-1"></i>
+                      Abonné {{ abonne.date | relativeTime }} 
+                      | depuis {{ formatDate(abonne.date) }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Badge -->
+                <div class="mf-card__actions">
+                  <span class="mf-badge mf-badge--abonne">
+                    <i class="bi bi-bell-fill me-1"></i>
+                    Vous suit
+                  </span>
+                </div>
+
+              </div>
+            }
+          </div>
+        }
+      }
+
+    }
+  </div>
+
+</div>

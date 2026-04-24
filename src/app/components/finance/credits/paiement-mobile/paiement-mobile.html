@@ -1,0 +1,184 @@
+<div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+          <!-- En-tête -->
+          <div class="text-center mb-4">
+            <!-- <img src="assets/images/logo.png" alt="Logo" height="60" class="mb-3"> -->
+            <h3>Paiement Mobile Money</h3>
+          </div>
+
+          <!-- Carte principale -->
+          <div class="card shadow-lg border-0">
+            <!-- Bannière opérateur -->
+            <div class="card-header text-white text-center py-3" 
+                 [style.background-color]="getOperatorColor()">
+              <i class="bi" [ngClass]="getOperatorIcon()" style="font-size: 2rem;"></i>
+              <h4 class="mb-0 mt-2">{{ getOperatorName() }}</h4>
+            </div>
+
+            <div class="card-body p-4">
+              <!-- État de la transaction -->
+              <div *ngIf="loading" class="text-center py-4">
+                <div class="spinner-border mb-3" style="color: #008753;" role="status">
+                  <span class="visually-hidden">Chargement...</span>
+                </div>
+                <h5>Initialisation du paiement...</h5>
+              </div>
+
+              <div *ngIf="!loading && achat">
+                <!-- Détails de l'achat -->
+                <div class="alert" style="background-color: #FCD116; border: none;">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">Montant à payer:</span>
+                    <span class="h4 mb-0">{{ achat.montant_fcfa | number }} FCFA</span>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span class="fw-bold">Crédits:</span>
+                    <span class="h5 mb-0" style="color: #008753;">
+                      {{ achat.credits_octroyes | number }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Formulaire de paiement -->
+                <form [formGroup]="paiementForm" (ngSubmit)="initierPaiement()" *ngIf="!paymentInitiated">
+                  <div class="mb-4">
+                    <label class="form-label fw-bold">Numéro de téléphone</label>
+                    <div class="input-group">
+                      <span class="input-group-text" [style.background-color]="getOperatorColor()" 
+                            [style.color]="'white'">
+                        {{ getOperatorCode() }}
+                      </span>
+                      <input type="tel" class="form-control" formControlName="telephone"
+                             placeholder="XXXXXXXXX" mask="000000000">
+                    </div>
+                    <small class="text-muted">
+                      Entrez votre numéro {{ getOperatorName() }} sans indicatif
+                    </small>
+                    <div class="text-danger small" *ngIf="telephoneInvalid">
+                      Numéro de téléphone invalide (9 chiffres requis)
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn w-100 py-3 mb-3" 
+                          [style.background-color]="getOperatorColor()"
+                          [style.color]="'white'"
+                          [disabled]="paiementForm.invalid || submitting">
+                    <span *ngIf="!submitting">Payer {{ achat.montant_fcfa | number }} FCFA</span>
+                    <span *ngIf="submitting">
+                      <span class="spinner-border spinner-border-sm me-2"></span>
+                      Traitement en cours...
+                    </span>
+                  </button>
+                </form>
+
+                <!-- Écran de confirmation d'envoi -->
+                <div *ngIf="paymentInitiated" class="text-center py-3">
+                  <div class="mb-4">
+                    <div class="display-1 text-success">
+                      <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <h5 class="mt-3">Demande de paiement envoyée!</h5>
+                    <p class="text-muted">
+                      Un message vous a été envoyé sur votre téléphone.<br>
+                      Veuillez entrer votre code PIN pour confirmer le paiement.
+                    </p>
+                  </div>
+
+                  <!-- Code PIN (pour simulation) -->
+                  <div class="mb-4">
+                    <label class="form-label">Code de confirmation</label>
+                    <input type="password" class="form-control text-center" 
+                            maxlength="4" placeholder="****">
+                            <!-- [(ngModel)]="pinCode" -->
+                  </div>
+
+                  <button class="btn btn-success w-100 py-3" 
+                          (click)="verifierPaiement()"
+                          [disabled]="!pinCode || pinCode.length < 4">
+                    Confirmer le paiement
+                  </button>
+
+                  <button class="btn btn-link text-muted mt-3" (click)="renvoyerCode()">
+                    Renvoyer le code
+                  </button>
+                </div>
+
+                <!-- Statut de la transaction -->
+                <div *ngIf="checkingStatus" class="text-center py-4">
+                  <div class="spinner-border mb-3" style="color: #008753;"></div>
+                  <h5>Vérification du paiement...</h5>
+                  <p class="text-muted">Cela peut prendre quelques instants</p>
+                </div>
+
+                <!-- Message d'erreur -->
+                <div *ngIf="error" class="alert alert-danger">
+                  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                  {{ error }}
+                </div>
+              </div>
+
+              <!-- Boutons d'action -->
+              <div class="mt-4 d-flex justify-content-between">
+                <button class="btn btn-outline-secondary" (click)="annuler()">
+                  <i class="bi bi-arrow-left"></i> Annuler
+                </button>
+                <button class="btn btn-outline-primary" (click)="aide()">
+                  <i class="bi bi-question-circle"></i> Aide
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Instructions -->
+          <div class="card mt-4 border-0 bg-light">
+            <div class="card-body">
+              <h6><i class="bi bi-info-circle-fill me-2" style="color: #008753;"></i>Comment payer ?</h6>
+              <ol class="small text-muted mb-0">
+                <li>Entrez votre numéro de téléphone</li>
+                <li>Vous recevrez une demande de paiement sur votre mobile</li>
+                <li>Entrez votre code PIN pour autoriser le paiement</li>
+                <li>Les crédits seront automatiquement crédités sur votre compte</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de confirmation -->
+    <ng-template #confirmationModal let-modal>
+      <div class="modal-header" style="background-color: #008753;">
+        <h5 class="modal-title text-white">Paiement réussi!</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+        <h4 class="mt-3">Félicitations!</h4>
+        <p>Votre compte a été crédité de <strong>{{ achat?.credits_octroyes }} crédits</strong>.</p>
+        <p class="text-muted">Nouveau solde: <strong>{{ nouveauSolde }} crédits</strong></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn w-100" style="background-color: #008753; color: white;"
+                (click)="fermerEtRetour()">
+          Voir mon solde
+        </button>
+      </div>
+    </ng-template>
+
+    <!-- Modal d'erreur -->
+    <ng-template #erreurModal let-modal>
+      <div class="modal-header" style="background-color: #dc3545;">
+        <h5 class="modal-title text-white">Erreur de paiement</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="modal.dismiss()"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="bi bi-x-circle-fill text-danger" style="font-size: 4rem;"></i>
+        <h4 class="mt-3">Oups!</h4>
+        <p>{{ errorMessage }}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="modal.dismiss()">Fermer</button>
+        <button class="btn btn-primary" (click)="reessayer()">Réessayer</button>
+      </div>
+    </ng-template>

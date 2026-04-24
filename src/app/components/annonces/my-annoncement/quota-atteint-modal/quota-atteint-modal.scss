@@ -1,0 +1,91 @@
+.qm-wrap { padding: 28px 24px; text-align: center; }
+ 
+.qm-icon {
+  font-size:     42px;
+  color:         #f59e0b;
+  margin-bottom: 14px;
+}
+ 
+.qm-title {
+  font-size:     18px;
+  font-weight:   600;
+  color:         #111827;
+  margin-bottom: 8px;
+}
+ 
+.qm-message {
+  font-size:     14px;
+  color:         #6b7280;
+  line-height:   1.55;
+  margin-bottom: 16px;
+}
+ 
+.qm-reset {
+  display:       inline-flex;
+  align-items:   center;
+  background:    #fef9c3;
+  border:        1px solid #fcd116;
+  border-radius: 8px;
+  padding:       7px 14px;
+  font-size:     13px;
+  color:         #92400e;
+  margin-bottom: 16px;
+}
+ 
+.qm-avantages {
+  text-align:    left;
+  background:    #f0fdf4;
+  border:        1px solid #bbf7d0;
+  border-radius: 10px;
+  padding:       12px 16px;
+  margin-bottom: 16px;
+ 
+  p { font-size: 13px; color: #065f46; margin-bottom: 8px; font-weight: 500; }
+}
+ 
+.qm-avantage {
+  display:       flex;
+  align-items:   center;
+  gap:           8px;
+  font-size:     13px;
+  color:         #374151;
+  margin-bottom: 5px;
+  i { color: #008753; font-size: 14px; }
+}
+ 
+.qm-actions {
+  display:        flex;
+  flex-direction: column;
+  gap:            8px;
+}
+ 
+.qm-btn {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  padding:         10px 16px;
+  border-radius:   8px;
+  font-size:       13px;
+  font-weight:     500;
+  text-decoration: none;
+  border:          none;
+  cursor:          pointer;
+  transition:      all 0.15s;
+ 
+  &--primary {
+    background: #008753;
+    color:      #ffffff;
+    &:hover { background: #006b42; color: #ffffff; }
+  }
+  &--outline {
+    background: #f3f4f6;
+    color:      #374151;
+    &:hover { background: #e5e7eb; }
+  }
+}
+ 
+.qm-solde-hint {
+  font-size:  12px;
+  color:      #9ca3af;
+  margin-top: 12px;
+}

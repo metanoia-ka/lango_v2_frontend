@@ -1,0 +1,91 @@
+
+<div class="login-page">
+  <div class="login-card">
+
+    <!-- Header -->
+    <div class="login-card-header">
+      <div class="login-brand">Lango</div>
+      <p class="login-subtitle">Bienvenue, connectez-vous pour continuer</p>
+    </div>
+
+    <!-- Body -->
+    <div class="login-card-body">
+
+      <!-- Alertes -->
+      @if (success()) {
+        <div class="cam-alert cam-alert--success">
+          <i class="bi bi-check-circle-fill me-2"></i>{{ success() }}
+        </div>
+      }
+      @if (error()) {
+        <div class="cam-alert cam-alert--error">
+          <i class="bi bi-exclamation-circle-fill me-2"></i>{{ error() }}
+        </div>
+      }
+
+      <div class="login-section-title">
+        <i class="bi bi-box-arrow-in-right"></i>
+        Connexion
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onLogin()"
+            class="animate__animated animate__fadeIn">
+
+        <!-- Identifiant -->
+        <div class="field-wrap">
+          <input
+            type="text"
+            class="field-input"
+            placeholder="Nom utilisateur ou téléphone"
+            formControlName="identifier"
+            [class.is-invalid]="loginForm.get('identifier')?.invalid
+                                 && loginForm.get('identifier')?.touched">
+          @if (loginForm.get('identifier')?.invalid && loginForm.get('identifier')?.touched) {
+            <span class="field-error">Le nom utilisateur ou téléphone est requis.</span>
+          }
+        </div>
+
+        <!-- Mot de passe -->
+        <div class="field-wrap">
+          <input
+            type="password"
+            class="field-input"
+            placeholder="Mot de passe"
+            formControlName="password"
+            [class.is-invalid]="loginForm.get('password')?.invalid
+                                 && loginForm.get('password')?.touched">
+          @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+            <span class="field-error">Le mot de passe est requis (6 caractères min.).</span>
+          }
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-submit"
+                [disabled]="isSubmitting || loginForm.invalid || isLoading">
+          @if (isSubmitting) {
+            <span class="spinner-border spinner-border-sm"
+                  style="width:14px;height:14px;border-width:2px"></span>
+            Connexion…
+          } @else {
+            Se connecter
+          }
+        </button>
+
+      </form>
+
+      <!-- Liens -->
+      <div class="login-links">
+        <div class="login-links-row">
+          <span>Pas encore de compte ?</span>
+          <a routerLink="/auth/register">Inscription</a>
+        </div>
+        <div>
+          <a routerLink="/auth/recover-password" class="link-forgot">
+            Mot de passe oublié ?
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

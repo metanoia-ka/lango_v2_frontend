@@ -1,0 +1,122 @@
+<!-- parcelle-form.component.html -->
+<div class="mf-modal">
+
+  <div class="mf-modal__header">
+    <h5 class="mf-modal__title">
+      <i class="bi bi-map"></i>
+      {{ isEdit ? 'Modifier la parcelle' : 'Nouvelle parcelle' }}
+    </h5>
+    <button class="mf-modal__close" (click)="activeModal.dismiss()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="mf-modal__body" [formGroup]="form">
+
+    @if (error()) {
+      <div class="mf-alert mf-alert--danger">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+      </div>
+    }
+
+    <!-- Lotissement ID (lecture seule si fourni) -->
+    @if (!lotissementId) {
+      <div class="mf-field">
+        <label class="mf-label mf-label--required">Lotissement</label>
+        <input class="mf-input" formControlName="lotissement_id"
+               [class.mf-input--error]="getFieldError('lotissement_id')"
+               placeholder="UUID du lotissement" />
+        @if (getFieldError('lotissement_id')) {
+          <span class="mf-error">{{ getFieldError('lotissement_id') }}</span>
+        }
+      </div>
+    } @else {
+      <input type="hidden" formControlName="lotissement_id" />
+      <div class="mf-hint mf-hint--info">
+        <i class="bi bi-link-45deg"></i>
+        Parcelle rattachée au lotissement sélectionné.
+      </div>
+    }
+
+    <!-- Statut -->
+    <div class="mf-field">
+      <label class="mf-label">Statut initial</label>
+      <select class="mf-select" formControlName="statut">
+        @for (k of statutKeys; track k) {
+          <option [value]="k">{{ STATUT_LABELS[k] }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- ── Bornes ─────────────────────────────────────────────── -->
+    @if (!isEdit) {
+      <div class="mf-section">
+        <div class="mf-section__header">
+          <span class="mf-section__title">
+            <i class="bi bi-geo-alt"></i> Bornes de la parcelle
+            <span class="mf-badge mf-badge--neutral">{{ bornes.length }} / min. 4</span>
+          </span>
+          <button type="button" class="lt-btn lt-btn--sm lt-btn--secondary"
+                  (click)="addBorne()">
+            <i class="bi bi-plus"></i> Ajouter
+          </button>
+        </div>
+
+        <p class="mf-hint">
+          <i class="bi bi-info-circle"></i>
+          Les coordonnées doivent être dans le SRID du lotissement parent.
+          Minimum 4 bornes pour fermer le polygone.
+        </p>
+
+        <div formArrayName="bornes">
+          @for (borne of bornes.controls; track $index) {
+            <div class="mf-borne-row" [formGroupName]="$index">
+              <span class="mf-borne-row__num">B{{ $index + 1 }}</span>
+              <div class="mf-field mf-field--inline">
+                <label class="mf-label">X</label>
+                <input class="mf-input" formControlName="x" placeholder="Ex: 659820.5" />
+              </div>
+              <div class="mf-field mf-field--inline">
+                <label class="mf-label">Y</label>
+                <input class="mf-input" formControlName="y" placeholder="Ex: 380450.2" />
+              </div>
+              <button type="button" class="lt-action-btn lt-action-btn--danger"
+                      [disabled]="bornes.length <= 4"
+                      (click)="removeBorne($index)">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (isEdit) {
+      <div class="mf-hint mf-hint--info">
+        <i class="bi bi-info-circle"></i>
+        En mode édition, seul le statut peut être modifié ici.
+        La géométrie se gère depuis la vue détail de la parcelle.
+      </div>
+    }
+
+  </div>
+
+  <div class="mf-modal__footer">
+    <button class="mf-btn mf-btn--secondary" (click)="activeModal.dismiss()">
+      Annuler
+    </button>
+    <button class="mf-btn mf-btn--primary" (click)="submit()" [disabled]="saving()">
+      @if (saving()) {
+        <span class="mf-spinner"></span> Enregistrement…
+      } @else {
+        @if(isEdit) {
+          <i class="bi bi-floppy me-1"></i>
+        } @else {
+          <i class="bi bi-plus-lg me-1"></i>
+        }
+        {{ isEdit ? 'Mettre à jour' : 'Créer la parcelle' }}
+      }
+    </button>
+  </div>
+
+</div>

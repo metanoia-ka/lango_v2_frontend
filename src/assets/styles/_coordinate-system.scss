@@ -1,0 +1,314 @@
+// ── Grille de cartes (liste) ──────────────────────────────────────
+.cs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+// ── Carte ─────────────────────────────────────────────────────────
+.cs-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow .2s, transform .15s;
+
+  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); transform: translateY(-2px); }
+
+  &--skeleton { pointer-events: none; }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .85rem 1rem .6rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  &__srid {
+    display: flex;
+    align-items: baseline;
+    gap: .35rem;
+
+    &-label {
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #9ca3af;
+    }
+
+    &-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #1A3557;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: .3rem;
+  }
+
+  &__body {
+    padding: .75rem 1rem;
+    flex: 1;
+  }
+
+  &__nom {
+    font-size: .9rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 .35rem;
+    line-height: 1.35;
+  }
+
+  &__desc {
+    font-size: .78rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .6rem 1rem;
+    border-top: 1px solid #f3f4f6;
+    background: #fafafa;
+    border-radius: 0 0 12px 12px;
+  }
+
+  &__date {
+    font-size: .72rem;
+    color: #9ca3af;
+    i { margin-right: .25rem; }
+  }
+
+  &__detail-btn {
+    font-size: .75rem;
+    color: #2563EB;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-weight: 500;
+
+    &:hover { text-decoration: underline; }
+    i { margin-left: .25rem; }
+  }
+
+  // Skeleton
+  &--skeleton .cs-card__header,
+  &--skeleton .cs-card__body,
+  &--skeleton .cs-card__footer {
+    border: none;
+    background: none;
+  }
+
+  .lt-skeleton--img {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    animation: pulse 1.5s infinite;
+  }
+}
+
+// ── Suggestions SRID ──────────────────────────────────────────────
+.cs-suggestions {
+  margin-bottom: 1rem;
+
+  &__label {
+    font-size: .78rem;
+    color: #6b7280;
+    margin-bottom: .5rem;
+    font-weight: 500;
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+}
+
+.cs-suggestion-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: .35rem .65rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  text-align: left;
+
+  &:hover {
+    border-color: #2563EB;
+    background: #eff6ff;
+  }
+
+  &--active {
+    border-color: #2563EB;
+    background: #eff6ff;
+
+    .cs-suggestion-chip__srid { color: #1d4ed8; }
+  }
+
+  &__srid {
+    font-size: .78rem;
+    font-weight: 700;
+    color: #374151;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__label {
+    font-size: .68rem;
+    color: #9ca3af;
+  }
+}
+
+// ── Modal détail ──────────────────────────────────────────────────
+.cs-detail-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  padding: 2rem;
+  color: #6b7280;
+  font-size: .85rem;
+}
+
+.cs-detail-section {
+  margin-bottom: 1.5rem;
+
+  &__title {
+    font-size: .8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #374151;
+    margin-bottom: .75rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+
+    i { color: #2563EB; }
+  }
+
+  &__badge {
+    font-size: .65rem;
+    background: #eff6ff;
+    color: #2563EB;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: .1rem .5rem;
+    font-weight: 600;
+    letter-spacing: .05em;
+  }
+}
+
+.cs-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem .75rem;
+}
+
+.cs-detail-item {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: .5rem .75rem;
+
+  &--full { grid-column: 1 / -1; }
+
+  &__label {
+    display: block;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #9ca3af;
+    font-weight: 600;
+    margin-bottom: .2rem;
+  }
+
+  &__value {
+    font-size: .85rem;
+    color: #111827;
+    font-weight: 500;
+
+    &--srid {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #1A3557;
+      font-variant-numeric: tabular-nums;
+    }
+
+    &--mono {
+      font-family: 'Courier New', monospace;
+      font-size: .78rem;
+    }
+  }
+}
+
+.cs-detail-badges {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+  margin-top: .2rem;
+}
+
+// ── Opérations supportées ─────────────────────────────────────────
+.cs-operations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: .5rem;
+}
+
+.cs-operation-chip {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .55rem .75rem;
+  border-radius: 8px;
+  font-size: .8rem;
+  font-weight: 500;
+  border: 1.5px solid transparent;
+
+  &--active {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+
+    i:first-child { color: #16a34a; }
+  }
+
+  &--inactive {
+    background: #f9fafb;
+    border-color: #e5e7eb;
+    color: #9ca3af;
+
+    i:first-child { color: #d1d5db; }
+  }
+
+  &__check {
+    margin-left: auto;
+    color: #16a34a;
+    font-size: .85rem;
+  }
+}
+
+// ── Animation skeleton ────────────────────────────────────────────
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .4; }
+}

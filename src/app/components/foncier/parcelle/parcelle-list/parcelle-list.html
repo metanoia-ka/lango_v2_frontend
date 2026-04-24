@@ -1,0 +1,332 @@
+<!-- parcelle-list.html -->
+<div class="pf-page mt-4">
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <div class="pf-header mb-0">
+    <div class="pf-header__left">
+      @if (hasPermission()) {
+        <button class="lt-btn lt-btn--primary mb-3" (click)="goToLotissement()">
+          <i class="bi bi-arrow-left me-2"></i>Retour au lotissement
+        </button>
+      }
+      <h1 class="pf-title">
+        <i class="bi bi-map"></i>
+        Parcelles — {{ lotissementNom() || '…' }}
+      </h1>
+      @if (lotissementRef() && hasPermission()) {
+        <p class="page-header__ref">Réf : {{ lotissementRef() }}</p>
+      }
+    </div>
+    @if (hasPermission()) {
+      <button class="lt-btn lt-btn--primary" (click)="openCreate()">
+        <i class="bi bi-plus-lg"></i> Nouvelle parcelle
+      </button>
+    }
+  </div>
+
+  <!-- <p class="mb-3 page-header__ref">
+    Total : {{ totalParcelles() }} parcelle{{ totalParcelles() > 1 ? 's' : '' }}
+  </p> -->
+
+  <!-- ── Erreur ────────────────────────────────────────────────── -->
+  @if (error()) {
+    <div class="lt-alert lt-alert--danger">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+    </div>
+  }
+
+  <!-- ── Toggle vue + filtre statut ────────────────────────────── -->
+  <div class="pf-toolbar mb-3">
+    <!-- Toggle tableau / carte -->
+    <div class="btn-group" role="group">
+      <button type="button"
+              class="btn btn-sm"
+              [class.btn-primary]="activeView() === 'table'"
+              [class.btn-outline-secondary]="activeView() !== 'table'"
+              (click)="switchView('table')">
+        <i class="bi bi-table me-1"></i>Tableau
+      </button>
+      <button type="button"
+              class="btn btn-sm"
+              [class.btn-primary]="activeView() === 'map'"
+              [class.btn-outline-secondary]="activeView() !== 'map'"
+              (click)="switchView('map')">
+        <i class="bi bi-map me-1"></i>Carte
+      </button>
+    </div>
+
+    <!-- Filtre statut -->
+    <select [formControl]="statutCtrl" class="form-select form-select-sm pf-statut-filter">
+      <option value="">— Tous les statuts —</option>
+      @for (s of STATUTS.slice(1); track s) {
+        <option [value]="s">{{ getStatutLabel(s) }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════
+       VUE TABLEAU
+  ══════════════════════════════════════════════════════════ -->
+  @if (activeView() === 'table') {
+
+    @if (loading()) {
+      <div class="lt-table-wrap">
+        <table class="lt-table">
+          <thead><tr>
+            <!-- <th>Numéro</th> --><th>Nom</th><!-- <th>Lotissement</th> -->
+            <th>Superficie</th><th>Bornes</th><th>Statut</th>
+            <th>Créée le</th><th>Actions</th>
+          </tr></thead>
+          <tbody>
+            <!-- [1,2,3,4,5] -->
+            @for (_ of [1,2,3]; track $index) {
+              <!-- [1,2,3,4,5,6,7,8] -->
+              <tr>@for (__ of [1,2,3,4,5,6]; track $index) {
+                <td><div class="lt-skeleton"></div></td>
+              }</tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (!loading() && parcelles().length > 0) {
+      <div class="lt-table-wrap">
+        <table class="lt-table">
+          <thead>
+            <tr>
+              <!-- <th>Numéro</th> -->
+              <th>Nom</th>
+              <!-- <th>Lotissement</th> -->
+              <th>Superficie (m²)</th>
+              <th>Bornes</th>
+              <th>Statut</th>
+              <th>Créée le</th>
+              <th class="lt-table__actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of parcelles(); track trackById($index, p)) {
+              <tr class="lt-table__row">
+                <!-- <td>{{ p.numero }}</td> -->
+                <td>{{ p.nom }}</td>
+                <!-- <td>{{ p.lotissement_nom ?? p.lotissement }}</td> -->
+                <td><span class="lt-surface">{{ p.superficie | number:'1.2-2' }}</span></td>
+                <td>
+                  <span class="lt-badge lt-badge--neutral">
+                    {{ p.bornes_count ?? p.bornes?.length ?? '—' }}
+                  </span>
+                </td>
+                <td>
+                  <select class="pf-statut-select {{ STATUT_BADGE[p.statut] }}"
+                          [value]="p.statut"
+                          (change)="changeStatut(p, $any($event.target).value)">
+                    @for (k of statutKeys; track k) {
+                      <option [value]="k" [selected]="k === p.statut">
+                        {{ STATUT_LABELS[k] }}
+                      </option>
+                    }
+                  </select>
+                </td>
+                <td class="lt-date">{{ p.created_at | relativeTime }}</td>
+                <td class="lt-table__actions">
+                  <button class="lt-action-btn" ngbTooltip="Modifier" (click)="openEdit(p)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="lt-action-btn lt-action-btn--danger"
+                          ngbTooltip="Supprimer" (click)="onDelete(p)">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                  <button class="lt-action-btn lt-action-btn--info"
+                          ngbTooltip="Voir le détail" (click)="openDetail(p)">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="lt-pagination">
+          <ngb-pagination
+            [collectionSize]="total()" [pageSize]="pageSize"
+            [(page)]="page" [maxSize]="5" [rotate]="true" [ellipses]="true"
+            (pageChange)="onPageChange($event)" />
+        </div>
+      }
+    }
+
+    @if (!loading() && parcelles().length === 0) {
+      <div class="lt-empty">
+        <i class="bi bi-map lt-empty__icon"></i>
+        <p class="lt-empty__title">Aucune parcelle trouvée</p>
+        <button class="lt-btn lt-btn--primary" (click)="openCreate()">
+          <i class="bi bi-plus-lg"></i> Créer une parcelle
+        </button>
+      </div>
+    }
+  }
+
+  <!-- ══════════════════════════════════════════════════════════
+       VUE CARTE
+  ══════════════════════════════════════════════════════════ -->
+  @if (activeView() === 'map') {
+    <div class="pf-map-layout">
+
+      <!-- Sidebar parcelles à gauche -->
+      <aside class="pf-map-sidebar">
+        <p class="pf-map-sidebar__count">
+          {{ parcellesLight().length }} parcelle{{ parcellesLight().length > 1 ? 's' : '' }}
+        </p>
+
+        <ul class="pf-parcelle-cards">
+          @for (p of parcellesLight(); track p.id) {
+            <li class="pf-parcelle-card"
+                [class.pf-parcelle-card--selected]="selectedParcelle()?.id === p.id"
+                (click)="zoomToParcelle(p)">
+              <div class="pf-parcelle-card__top">
+                <span class="pf-parcelle-card__num">{{ p.numero }}</span>
+                <span [class]="getStatutClass(p.statut) + ' badge-statut'">
+                  {{ getStatutLabel(p.statut) }}
+                </span>
+              </div>
+              <div class="pf-parcelle-card__bot">
+                <span>{{ p.nom }}</span>
+                <span>{{ formatSuperficie(p.superficie) }}</span>
+              </div>
+              @if (!p.geom) {
+                <div class="pf-parcelle-card__no-geom">
+                  <i class="bi bi-exclamation-triangle"></i> Sans géométrie
+                </div>
+              }
+            </li>
+          }
+
+          @if (!parcellesLight().length) {
+            <li class="pf-map-empty">
+              <i class="bi bi-map"></i>
+              <p>Aucune parcelle à afficher.</p>
+            </li>
+          }
+        </ul>
+      </aside>
+
+      <!-- Conteneur carte OL -->
+      <div class="pf-map-wrap">
+
+        <!-- Légende -->
+        <div class="pf-map-legend">
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#008753"></span>Disponible
+          </span>
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#2563EB"></span>Attribuée
+          </span>
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#F59E0B"></span>Réservée
+          </span>
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#EF4444"></span>Refusée
+          </span>
+        </div>
+
+        <!-- Panneau info parcelle sélectionnée -->
+        @if (selectedParcelle(); as p) {
+          <div class="pf-map-info">
+            <button class="pf-map-info__close"
+                    (click)="selectedParcelle.set(null)">✕</button>
+            <h4 class="pf-map-info__num">{{ p.numero }}</h4>
+            <p class="pf-map-info__nom">{{ p.nom }}</p>
+            <dl class="pf-map-info__dl">
+              <dt>Statut</dt>
+              <dd>
+                <span [class]="getStatutClass(p.statut) + ' badge-statut'">
+                  {{ getStatutLabel(p.statut) }}
+                </span>
+              </dd>
+              <dt>Superficie</dt>
+              <dd>{{ formatSuperficie(p.superficie) }}</dd>
+            </dl>
+          </div>
+        }
+
+      <div class="map-controls">
+        
+        <!-- Zoom avant -->
+  <button class="map-ctrl-btn" (click)="mapZoomIn()" title="Zoom avant"
+          aria-label="Zoom avant">
+    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+      <line x1="7" y1="2" x2="7" y2="12"/>
+      <line x1="2" y1="7" x2="12" y2="7"/>
+    </svg>
+  </button>
+ 
+  <!-- Zoom arrière -->
+  <button class="map-ctrl-btn" (click)="mapZoomOut()" title="Zoom arrière"
+          aria-label="Zoom arrière">
+    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+      <line x1="2" y1="7" x2="12" y2="7"/>
+    </svg>
+  </button>
+ 
+  <!-- Centrer / fit all -->
+  <button class="map-ctrl-btn map-ctrl-btn--fit" (click)="mapFitAll()"
+          title="Centrer sur toutes les données" aria-label="Vue d'ensemble">
+    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+      <!-- Coin haut-gauche -->
+      <polyline points="1,4 1,1 4,1"/>
+      <!-- Coin haut-droit -->
+      <polyline points="10,1 13,1 13,4"/>
+      <!-- Coin bas-droit -->
+      <polyline points="13,10 13,13 10,13"/>
+      <!-- Coin bas-gauche -->
+      <polyline points="4,13 1,13 1,10"/>
+    </svg>
+  </button>
+        
+      </div>
+
+      <div class="map-attribution">
+        © <a href="https://www.openstreetmap.org/copyright"
+             target="_blank" rel="noopener">OpenStreetMap</a> contributors
+      </div>
+
+        <!-- Div OL -->
+        <div #mapContainer class="pf-ol-map"></div>
+
+        <!-- Pas de géom du tout -->
+        @if (hasParcellesWithoutGeometry()) {
+          <div class="pf-map-no-geom">
+            <i class="bi bi-geo-alt-fill"></i>
+            <p>Aucune parcelle n'a encore de géométrie définie.</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Stats ─────────────────────────────────────────────────── -->
+  @if (!loading() && parcelles().length) {
+    <div class="pf-stats-row mt-3">
+      <div class="pf-stat pf-stat--disponible">
+        <span class="pf-stat__val">{{ stats().disponible }}</span>
+        <span class="pf-stat__lbl">Disponibles</span>
+      </div>
+      <div class="pf-stat pf-stat--attribuee">
+        <span class="pf-stat__val">{{ stats().attribuee }}</span>
+        <span class="pf-stat__lbl">Attribuées</span>
+      </div>
+      <div class="pf-stat pf-stat--reservee">
+        <span class="pf-stat__val">{{ stats().reservee }}</span>
+        <span class="pf-stat__lbl">Réservées</span>
+      </div>
+      <div class="pf-stat pf-stat--refusee">
+        <span class="pf-stat__val">{{ stats().refusee }}</span>
+        <span class="pf-stat__lbl">Refusées</span>
+      </div>
+    </div>
+  }
+
+</div>

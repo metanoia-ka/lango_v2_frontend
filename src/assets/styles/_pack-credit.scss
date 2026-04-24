@@ -1,0 +1,303 @@
+// ══════════════════════════════════════════════════════════════════════════════
+// pack-credit-list.scss
+// ══════════════════════════════════════════════════════════════════════════════
+
+.cr-admin-wrap {
+  padding:   1.5rem;
+  max-width: 1100px;
+  margin:    0 auto;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────────
+
+.cr-admin-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  margin-bottom:   1.5rem;
+  gap:             12px;
+  flex-wrap:       wrap;
+}
+
+.cr-admin-title-wrap {
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+}
+
+.cr-admin-icon {
+  width:           44px;
+  height:          44px;
+  border-radius:   10px;
+  background:      #e1f5ee;
+  color:           #0f6e56;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       20px;
+  flex-shrink:     0;
+}
+
+.cr-admin-title {
+  font-size:   16px;
+  font-weight: 500;
+  color:       #111827;
+  margin:      0 0 2px;
+}
+
+.cr-admin-sub {
+  font-size: 12px;
+  color:     #6b7280;
+}
+
+.cr-btn-create {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           6px;
+  padding:       8px 16px;
+  border-radius: 8px;
+  border:        1px solid #d1d5db;
+  background:    #ffffff;
+  color:         #111827;
+  font-size:     13px;
+  font-weight:   500;
+  cursor:        pointer;
+  transition:    background 0.15s;
+
+  &:hover { background: #f8f9fa; }
+}
+
+// ── États loading / vide ──────────────────────────────────────────────────────
+
+.cr-loading {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  padding:     2rem;
+  color:       #6b7280;
+  font-size:   14px;
+}
+
+.cr-empty {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  padding:        3rem 1rem;
+  gap:            12px;
+  color:          #6b7280;
+
+  i { font-size: 40px; opacity: 0.4; }
+  p { font-size: 14px; margin: 0; }
+}
+
+// ── Tableau ───────────────────────────────────────────────────────────────────
+
+.cr-table-wrap {
+  overflow-x:    auto;
+  border-radius: 12px;
+  border:        0.5px solid #e5e7eb;
+}
+
+.cr-table {
+  width:           100%;
+  border-collapse: collapse;
+  font-size:       13px;
+
+  thead tr {
+    background:    #f8f9fa;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  th {
+    padding:     10px 14px;
+    font-weight: 500;
+    color:       #6b7280;
+    white-space: nowrap;
+    text-align:  left;
+  }
+
+  tbody tr {
+    border-bottom: 0.5px solid #e5e7eb;
+    transition:    background 0.1s;
+
+    &:last-child { border-bottom: none; }
+    &:hover      { background: #f8f9fa; }
+  }
+
+  td {
+    padding:        10px 14px;
+    color:          #111827;
+    vertical-align: middle;
+  }
+}
+
+.cr-row--inactive { opacity: 0.55; }
+.cr-td-center     { text-align: center; }
+.cr-td-right      { text-align: right; }
+
+// ── Cellules spéciales ────────────────────────────────────────────────────────
+
+.cr-ordre-badge {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  width:           26px;
+  height:          26px;
+  border-radius:   6px;
+  background:      #f8f9fa;
+  font-weight:     500;
+  font-size:       12px;
+  color:           #6b7280;
+}
+
+.cr-pack-name {
+  font-weight: 500;
+  color:       #111827;
+}
+
+.cr-pack-desc-sm {
+  font-size:     11px;
+  color:         #9ca3af;
+  margin-top:    2px;
+  max-width:     200px;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.cr-bonus-chip {
+  display:       inline-block;
+  padding:       2px 8px;
+  border-radius: 20px;
+  background:    #d1fae5;
+  color:         #065f46;
+  font-size:     11px;
+  font-weight:   500;
+}
+
+// ── Toggle actif ──────────────────────────────────────────────────────────────
+
+.cr-toggle-btn {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           5px;
+  padding:       4px 10px;
+  border-radius: 20px;
+  border:        1px solid transparent;
+  font-size:     12px;
+  font-weight:   500;
+  cursor:        pointer;
+  transition:    all 0.15s;
+
+  &--active {
+    background:   #d1fae5;
+    color:        #065f46;
+    border-color: #6ee7b7;
+    i { font-size: 16px; }
+    &:hover { background: #a7f3d0; }
+  }
+
+  &--inactive {
+    background:   #f8f9fa;
+    color:        #9ca3af;
+    border-color: #e5e7eb;
+    i { font-size: 16px; }
+    &:hover { background: #ffffff; }
+  }
+}
+
+// ── Boutons d'action ──────────────────────────────────────────────────────────
+
+.cr-actions {
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+}
+
+.cr-act-btn {
+  width:           30px;
+  height:          30px;
+  border-radius:   7px;
+  border:          0.5px solid #e5e7eb;
+  background:      #ffffff;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       13px;
+  cursor:          pointer;
+  transition:      all 0.15s;
+
+  &--edit {
+    color: #1A3557;
+    &:hover { background: #e6f1fb; border-color: #b5d4f4; }
+  }
+
+  &--delete {
+    color: #a32d2d;
+    &:hover { background: #fcebeb; border-color: #f7c1c1; }
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// pack-credit-modal.scss
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Aperçu temps réel ─────────────────────────────────────────────────────────
+
+.cr-pack-preview {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             24px;
+  padding:         16px;
+  background:      #f8f9fa;
+  border-radius:   10px;
+  margin-bottom:   1.5rem;
+  border:          0.5px solid #e5e7eb;
+
+  &__credits,
+  &__rate {
+    display:        flex;
+    flex-direction: column;
+    align-items:    center;
+    gap:            2px;
+  }
+
+  &__value {
+    font-size:   22px;
+    font-weight: 500;
+    color:       #111827;
+    line-height: 1;
+  }
+
+  &__label {
+    font-size: 11px;
+    color:     #9ca3af;
+  }
+
+  &__sep {
+    width:      1px;
+    height:     32px;
+    background: #e5e7eb;
+  }
+}
+
+// ── Toggle actif dans la modale ───────────────────────────────────────────────
+
+.cr-toggle-row {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding:         10px 14px;
+  background:      #f8f9fa;
+  border-radius:   8px;
+  border:          0.5px solid #e5e7eb;
+}
+
+.cr-toggle-label {
+  font-size: 13px;
+  color:     #111827;
+  margin:    0;
+  cursor:    pointer;
+}

@@ -1,0 +1,61 @@
+<div class="qm-wrap">
+ 
+  <div class="qm-icon">
+    <i class="bi bi-hourglass-split"></i>
+  </div>
+ 
+  <h5 class="qm-title">Quota de consultations atteint</h5>
+  <p class="qm-message">{{ message }}</p>
+ 
+  @if (heures > 0) {
+    <div class="qm-reset">
+      <i class="bi bi-clock me-1"></i>
+      Réinitialisation dans &nbsp; <strong>{{ heures }}h</strong>.
+    </div>
+  }
+ 
+  <!-- Visiteur → inciter à s'inscrire -->
+  @if (estVisiteur) {
+    <div class="qm-avantages">
+      <p><strong>Avec un compte gratuit :</strong></p>
+      <div class="qm-avantage">
+        <i class="bi bi-check-circle-fill"></i> 6 consultations/jour
+      </div>
+      <div class="qm-avantage">
+        <i class="bi bi-check-circle-fill"></i> Contact vendeur direct
+      </div>
+      <div class="qm-avantage">
+        <i class="bi bi-check-circle-fill"></i> Services fonciers Premium
+      </div>
+    </div>
+    <div class="qm-actions">
+      <a routerLink="/auth/register" class="qm-btn qm-btn--primary" (click)="fermer()">
+        <i class="bi bi-person-plus me-1"></i> Créer un compte gratuit
+      </a>
+      <a routerLink="/auth/login" class="qm-btn qm-btn--outline" (click)="fermer()">
+        Déjà un compte ? Se connecter
+      </a>
+      <button class="qm-btn qm-btn--outline" (click)="fermer()">
+        Cliquer pour fermer
+      </button>
+    </div>
+  }
+ 
+  <!-- Connecté sans crédits → acheter -->
+  @else {
+    <div class="qm-actions">
+      <a routerLink="/lango/credits" class="qm-btn qm-btn--primary" (click)="fermer()">
+        <i class="bi bi-coin me-1"></i> Acheter des crédits
+      </a>
+      <button class="qm-btn qm-btn--outline" (click)="fermer()">
+        Cliquer pour fermer
+      </button>
+    </div>
+    @if (solde !== undefined) {
+      <p class="qm-solde-hint">
+        Solde actuel : <strong>{{ solde }} crédit{{ solde > 1 ? 's' : '' }}</strong>
+      </p>
+    }
+  }
+ 
+</div>

@@ -1,0 +1,359 @@
+// lotissement-form.scss — wizard de création
+$green:  #008753;
+$green-l:#E8F5EE;
+$blue:   #2563EB;
+$amber:  #F59E0B;
+$red:    #EF4444;
+$dark:   #111827;
+$gray:   #6B7280;
+$gray-l: #F3F4F6;
+$gray-m: #E5E7EB;
+$white:  #ffffff;
+$border: #E5E7EB;
+$yellow: #FCD116;
+$danger: #EF4444;
+$warning:#F59E0B;
+
+$radius: 10px;
+
+// ── Modal wrapper ─────────────────────────────────────────────────────────────
+.lf-modal { font-size: 0.9rem; }
+
+.lf-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 20px 24px; border-bottom: 1px solid $border;
+  &__left { display: flex; align-items: flex-start; gap: 14px; }
+  &__icon { font-size: 1.6rem; color: $green; }
+  &__title { margin: 0; font-size: 1rem; font-weight: 700; }
+  &__sub   { margin: 2px 0 0; font-size: 0.8rem; color: $gray; }
+}
+.lf-close { background: none; border: none; font-size: 1rem; color: $gray; cursor: pointer; }
+
+.lf-body { padding: 20px 24px; max-height: 80vh; overflow-y: auto; }
+
+// ── Choix du mode ─────────────────────────────────────────────────────────────
+.lf-choix-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; color: #374151; }
+
+.lf-mode-grid { display: flex; flex-direction: column; gap: 10px; }
+
+.lf-mode-card {
+  display: flex; align-items: center; gap: 16px; width: 100%;
+  padding: 16px 18px; background: #fff; border: 1px solid $border;
+  border-radius: $radius; cursor: pointer; text-align: left;
+  transition: all 0.15s;
+  &:hover { border-color: $green; background: #F0FDF4; }
+
+  &--featured {
+    border-color: $amber; background: #FFFBEB;
+    &:hover { border-color: darken($amber, 10%); background: #FEF3C7; }
+  }
+
+  &__icon {
+    width: 44px; height: 44px; border-radius: $radius;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+    &--green { background: #DCFCE7; color: $green; }
+    &--blue  { background: #DBEAFE; color: $blue; }
+    &--amber { background: #FEF3C7; color: $amber; }
+  }
+  &__body { flex: 1; min-width: 0;
+    strong { display: block; font-size: 0.9rem; margin-bottom: 2px; color: #111827; }
+    p { font-size: 0.78rem; color: $gray; margin: 0; }
+  }
+  &__arrow { font-size: 0.8rem; color: $gray; flex-shrink: 0; }
+}
+
+.lf-format-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.lf-chip {
+  padding: 1px 7px; border-radius: 10px; font-size: 0.68rem;
+  background: #F3F4F6; color: $gray; font-weight: 500;
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+.lf-back-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.8rem; color: $gray; background: none; border: none;
+  cursor: pointer; margin-bottom: 16px;
+  &:hover { color: #111827; }
+}
+
+// ── Alertes ───────────────────────────────────────────────────────────────────
+.lf-alert {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 10px 14px; border-radius: $radius; font-size: 0.85rem; margin-bottom: 14px;
+  &--danger { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+}
+
+// ── Sections ──────────────────────────────────────────────────────────────────
+.lf-section-title {
+  font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: $gray; margin: 0 0 12px;
+  display: flex; align-items: center; gap: 6px;
+  &.mt-3 { margin-top: 20px; }
+}
+
+// ── Formulaire ────────────────────────────────────────────────────────────────
+.lf-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  margin-bottom: 14px;
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
+}
+.lf-field {
+  display: flex; flex-direction: column; gap: 4px;
+  &--half { max-width: 50%; }
+  &--error .lf-input, &--error .lf-select { border-color: $red; }
+}
+.lf-label { font-size: 0.8rem; font-weight: 600; color: #374151; }
+.req { color: $red; margin-left: 2px; }
+.lf-input, .lf-select {
+  padding: 9px 12px; border: 1px solid $border; border-radius: $radius;
+  font-size: 0.875rem; outline: none; background: #fff; width: 100%;
+  &:focus { border-color: $green; box-shadow: 0 0 0 2px rgba($green, 0.1); }
+  &--sm { padding: 6px 10px; font-size: 0.82rem; }
+}
+.lf-select { appearance: auto; }
+.lf-field-err  { font-size: 0.75rem; color: $red; }
+.lf-field-hint { font-size: 0.75rem; color: $gray; margin-top: 3px; display: flex; align-items: center;
+  &--warn { color: $amber; }
+}
+.lf-badge-auto {
+  display: inline-flex; align-items: center; gap: 4px; margin-left: 8px;
+  background: #DCFCE7; color: #166534; padding: 1px 7px; border-radius: 10px;
+  font-size: 0.68rem; font-weight: 600;
+}
+.lf-hint { font-size: 0.82rem; color: $gray; margin-bottom: 12px; }
+
+// ── Sélecteur de format ───────────────────────────────────────────────────────
+.lf-format-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px; margin-bottom: 16px;
+}
+.lf-format-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 10px; background: #fff; border: 1px solid $border;
+  border-radius: $radius; cursor: pointer; transition: all 0.15s; text-align: center;
+  &:hover { border-color: $green; background: #F0FDF4; }
+  &__icon  { font-size: 1.6rem; color: $green; }
+  &__label { font-size: 0.82rem; font-weight: 600; color: #111827; }
+  &__ext   { font-size: 0.68rem; color: $gray; }
+  &__srid-hint {
+    font-size: 0.65rem; background: #DCFCE7; color: #166534;
+    padding: 1px 6px; border-radius: 8px;
+  }
+}
+
+// ── Zone d'upload ─────────────────────────────────────────────────────────────
+.lf-upload-zone {
+  background: #F9FAFB; border: 1px solid $border; border-radius: $radius;
+  padding: 16px 20px; margin-bottom: 16px;
+}
+.lf-upload-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+  font-size: 0.875rem; font-weight: 600;
+}
+.lf-upload-desc  { font-size: 0.78rem; color: $gray; margin-bottom: 12px; }
+.lf-upload-area  {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 24px; border: 2px dashed $border; border-radius: $radius;
+  cursor: pointer; transition: border-color 0.15s;
+  font-size: 0.82rem; color: $gray; text-align: center;
+  &:hover { border-color: $green; background: #F0FDF4; }
+  &--loaded { border-color: $green; background: #F0FDF4; border-style: solid; }
+  &__icon { font-size: 2rem; color: $gray; }
+  &__ext  { font-size: 0.72rem; color: $gray; }
+}
+.lf-upload-input { display: none; }
+.lf-link-btn {
+  background: none; border: none; color: $green; font-size: 0.78rem;
+  cursor: pointer; margin-left: auto;
+  &:hover { text-decoration: underline; }
+}
+
+// ── Résultats parsing ─────────────────────────────────────────────────────────
+.lf-parse-loading {
+  display: flex; align-items: center;
+  padding: 10px 14px; font-size: 0.85rem; color: $gray; margin-top: 10px;
+}
+.lf-parse-result {
+  margin-top: 12px; background: #F0FDF4; border: 1px solid #BBF7D0;
+  border-radius: $radius; padding: 12px 16px;
+  &__row  { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; margin-bottom: 4px; }
+  &__warn {
+    display: flex; align-items: flex-start; gap: 6px;
+    font-size: 0.78rem; color: #92400E; background: #FEF3C7;
+    padding: 6px 10px; border-radius: 6px; margin-top: 6px;
+  }
+}
+.lf-bornes-preview {
+  margin-top: 10px; font-size: 0.8rem;
+  summary { cursor: pointer; color: $blue; font-weight: 600; }
+}
+.lf-bornes-table {
+  width: 100%; border-collapse: collapse; margin-top: 8px;
+  th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid $border; font-size: 0.78rem; }
+  th { background: #F9FAFB; font-weight: 600; }
+}
+.lf-bornes-more { font-size: 0.75rem; color: $gray; margin: 4px 0 0; }
+
+// ── Bornes manuelles ──────────────────────────────────────────────────────────
+.lf-bornes-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.lf-borne-row   { display: flex; align-items: center; gap: 10px; }
+.lf-borne-idx   { width: 24px; text-align: right; font-size: 0.75rem; color: $gray; flex-shrink: 0; }
+.lf-borne-coords { display: flex; gap: 8px; flex: 1; }
+.lf-icon-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 6px; border: none; cursor: pointer;
+  &--danger { background: #FEE2E2; color: $red; &:hover { background: #FECACA; } }
+}
+.lf-add-borne-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; background: #F3F4F6; border: 1px dashed $border;
+  border-radius: $radius; font-size: 0.82rem; cursor: pointer; color: $gray;
+  &:hover { background: #E5E7EB; color: #111827; }
+}
+
+// ── Footer ────────────────────────────────────────────────────────────────────
+.lf-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding-top: 20px; margin-top: 20px; border-top: 1px solid $border;
+}
+.lf-btn {
+  display: inline-flex; align-items: center; padding: 9px 20px;
+  border-radius: $radius; font-size: 0.875rem; font-weight: 500;
+  cursor: pointer; border: none; transition: all 0.15s;
+  &--primary {
+    background: $green; color: #fff;
+    &:hover { background: darken($green, 8%); }
+    &:disabled { opacity: 0.55; cursor: not-allowed; }
+  }
+  &--ghost {
+    background: #F3F4F6; color: $gray;
+    &:hover { background: $border; }
+  }
+}
+
+// ── Chips villes ──────────────────────────────────────────────────────────
+.lf-ville-chips {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       8px;
+}
+
+.lf-ville-chip {
+  display:       inline-flex;
+  align-items:   center;
+  padding:       6px 16px;
+  background:    $white;
+  border:        1.5px solid $gray-m;
+  border-radius: 20px;
+  font-size:     0.82rem;
+  font-weight:   600;
+  cursor:        pointer;
+  color:         $dark;
+  transition:    all 0.15s;
+
+  &:hover   { border-color: $green; color: $green; }
+  &--active { border-color: $green; background: $green-l; color: $green; }
+}
+
+// ── Type immeuble ─────────────────────────────────────────────────────────
+.lf-immeuble-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+
+.lf-immeuble-card {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            6px;
+  padding:        14px 10px;
+  background:     $gray-l;
+  border:         2px solid $gray-m;
+  border-radius:  $radius;
+  cursor:         pointer;
+  text-align:     center;
+  transition:     all 0.15s;
+
+  &:hover { border-color: $green; }
+
+  &--active {
+    border-color: $green;
+    background:   $green-l;
+  }
+
+  &__icon  { font-size: 1.5rem; color: $green; }
+  &__label { font-size: 0.78rem; font-weight: 600; color: $dark; line-height: 1.3; }
+}
+
+// ── Carte tarif calculé ───────────────────────────────────────────────────
+.lf-tarif-card {
+  border:        1.5px solid $green;
+  border-radius: $radius;
+  overflow:      hidden;
+
+  &__header {
+    background:  $green-l;
+    padding:     10px 14px;
+    font-size:   0.82rem;
+    font-weight: 700;
+    color:       #166534;
+    display:     flex;
+    align-items: center;
+  }
+
+  &__grid { display: flex; flex-direction: column; }
+}
+
+.lf-tarif-row {
+  display:     flex;
+  gap:         12px;
+  padding:     8px 14px;
+  border-bottom: 1px solid $gray-l;
+  font-size:   0.82rem;
+  align-items: center;
+
+  &:last-child { border-bottom: none; }
+
+  &--highlight {
+    background:  $green-l;
+    border-top:  1px solid rgba(0,135,83,.2);
+    padding:     10px 14px;
+  }
+}
+
+.lf-tarif-lbl {
+  min-width: 110px;
+  color:     $gray;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.lf-tarif-badge {
+  background:    #E0F2FE;
+  color:         #1E40AF;
+  padding:       2px 10px;
+  border-radius: 12px;
+  font-size:     0.72rem;
+  font-weight:   700;
+}
+
+.lf-tarif-valeur {
+  font-size:   1.05rem;
+  font-weight: 800;
+  color:       $green;
+}
+
+.lf-tarif-source {
+  font-size:   0.72rem;
+  color:       $gray;
+  font-style:  italic;
+}
+
+// ── Loading inline ────────────────────────────────────────────────────────
+.lf-loading-inline {
+  display:     flex;
+  align-items: center;
+  font-size:   0.82rem;
+  color:       $gray;
+  padding:     6px 0;
+}

@@ -1,0 +1,377 @@
+$primary:   #008753;
+$secondary: #FCD116;
+$primary-d: #006B42;
+$primary-l: #E8F5EE;
+$dark:      #111827;
+$gray:      #6B7280;
+$gray-l:    #F3F4F6;
+$gray-m:    #E5E7EB;
+$white:     #ffffff;
+$danger:    #EF4444;
+$danger-l:  #FEE2E2;
+$warning:   #F59E0B;
+$warning-l: #FFF7ED;
+$radius:    10px;
+$shadow:    0 2px 8px rgba(0,0,0,.07);
+$shadow-h:  0 6px 20px rgba(0,0,0,.13);
+
+// ── Layout ────────────────────────────────────────────────────────────────
+.list-wrap {
+  max-width: 1200px;
+  margin:    0 auto;
+  padding:   1.5rem 1rem 6rem;  // 6rem en bas pour laisser place aux FAB
+}
+
+// ── Topbar ────────────────────────────────────────────────────────────────
+.list-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1rem; flex-wrap: wrap; gap: 12px;
+  &__left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+}
+
+.list-title {
+  margin: 0; font-size: 1.15rem; font-weight: 700; color: $dark;
+  &__accent { color: $primary; font-weight: 800; letter-spacing: -0.5px; }
+}
+
+.list-count-badge {
+  background: $primary-l; color: $primary;
+  font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+}
+
+.btn-new {
+  display: inline-flex; align-items: center;
+  padding: 9px 18px; background: $primary; color: $white;
+  border: none; border-radius: $radius; font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+  &:hover { background: $primary-d; }
+}
+
+// ── Quota ─────────────────────────────────────────────────────────────────
+.quota-info-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; background: $primary-l; border: 1px solid #BBF7D0;
+  border-radius: $radius; font-size: 0.85rem; color: #166534; flex-wrap: wrap;
+  &--warn { background: $danger-l; border-color: #FECACA; color: #991B1B; }
+  &__left { flex: 1; }
+  &__bar  { width: 100%; height: 5px; background: $gray-m; border-radius: 3px; overflow: hidden; }
+  &__fill {
+    height: 100%; background: $primary; border-radius: 3px; transition: width 0.4s;
+    &--warn { background: $danger; }
+  }
+}
+.quota-link { color: $primary; font-weight: 600; text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+
+// ── Alertes ───────────────────────────────────────────────────────────────
+.lango-alert {
+  display: flex; align-items: center; padding: 10px 14px;
+  border-radius: $radius; font-size: 0.875rem; margin-bottom: 12px;
+  &--success { background: $primary-l; color: #166534; border: 1px solid #BBF7D0; }
+  &--error   { background: $danger-l;  color: #991B1B; border: 1px solid #FECACA; }
+}
+
+// ── Compteur progrès ──────────────────────────────────────────────────────
+.list-progress {
+  font-size: 0.78rem; color: $gray; margin-bottom: 12px; text-align: center;
+  &__val { font-weight: 700; color: $primary; }
+}
+
+// ══ Grille ════════════════════════════════════════════════════════════════
+.lango-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+
+  &--more { margin-top: 0; }  // batch suivant sans marge extra
+}
+
+// ── Cartes ────────────────────────────────────────────────────────────────
+.lango-card {
+  background: $white; border: 1px solid $gray-m; border-radius: 12px;
+  overflow: hidden; cursor: pointer;
+  display: flex; flex-direction: column;
+  transition: box-shadow 0.15s, transform 0.12s, border-color 0.15s;
+
+  &:hover {
+    box-shadow: $shadow-h; transform: translateY(-3px); border-color: $primary;
+  }
+
+  // ── Photo ────────────────────────────────────────────────────────────
+  &__photo {
+    position: relative; height: 190px; overflow: hidden; background: $gray-l;
+    img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+    &:hover img { transform: scale(1.04); }
+  }
+
+  &__no-photo {
+    height: 100%; display: flex; align-items: center;
+    justify-content: center; font-size: 3rem; color: $gray-m;
+  }
+
+  // ── Corps ────────────────────────────────────────────────────────────
+  &__body    { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+  &__tags    { display: flex; gap: 5px; flex-wrap: wrap; }
+  &__titre   { font-size: 0.95rem; font-weight: 700; color: $dark; margin: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__prix    { font-size: 1rem; font-weight: 700; color: $primary; }
+  &__loc     { font-size: 0.8rem; color: $gray; display: flex; align-items: center; flex-wrap: wrap; gap: 3px;
+    strong { color: $dark; } }
+  &__loc-sep { color: $gray-m; }
+  &__meta    { font-size: 0.75rem; color: $gray; display: flex; align-items: center; }
+
+  // ── Footer ───────────────────────────────────────────────────────────
+  &__footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px; border-top: 1px solid $gray-l; background: #FAFAFA;
+  }
+  &__auteur  { font-size: 0.75rem; color: $gray; }
+  &__actions { display: flex; gap: 4px; }
+
+  // ── Skeleton ─────────────────────────────────────────────────────────
+  &--skeleton {
+    cursor: default; pointer-events: none;
+    &:hover { transform: none; box-shadow: $shadow; border-color: $gray-m; }
+  }
+}
+
+// ── Tags ──────────────────────────────────────────────────────────────────
+.lango-tag {
+  font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 12px;
+  &--categorie { background: rgba(252,209,22,.18); color: #7A5B00; }
+  &--type      { background: $primary-l; color: $primary; }
+}
+
+// ── Badges sur photo ──────────────────────────────────────────────────────
+.lango-tx-badge {
+  position: absolute; bottom: 8px; left: 8px;
+  font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+  backdrop-filter: blur(6px);
+  &--vente         { background: rgba(236,253,245,.95); color: #065F46; }
+  &--location      { background: rgba(239,246,255,.95); color: #1D4ED8; }
+  &--location_vente{ background: rgba(255,247,237,.95); color: #92400E; }
+}
+
+.lango-statut-badge {
+  position: absolute; top: 8px; left: 8px;
+  font-size: 0.68rem; font-weight: 700; padding: 3px 9px; border-radius: 12px;
+  &.statut--published { background: rgba(220,252,231,.95); color: #166534; }
+  &.statut--pending   { background: rgba(254,243,199,.95); color: #92400E; }
+  &.statut--draft     { background: rgba(243,244,246,.95); color: $gray;   }
+  &.statut--archived  { background: rgba(219,234,254,.95); color: #1E40AF; }
+  &.statut--rejected  { background: rgba(254,226,226,.95); color: #991B1B; }
+}
+
+.lango-verified-badge {
+  position: absolute; top: 8px; right: 8px;
+  background: $primary; color: $white; width: 26px; height: 26px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem;
+}
+
+// ── Boutons action carte ──────────────────────────────────────────────────
+.lango-action-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 7px;
+  background: $gray-l; border: 1px solid $gray-m; color: $gray;
+  cursor: pointer; font-size: 0.85rem; transition: all 0.12s;
+  &:hover { background: $gray-m; color: $dark; }
+  &--warning { background: $warning-l; color: $warning; border-color: #FDE68A; &:hover { background: #FEF3C7; } }
+  &--danger  { background: $danger-l; color: $danger; border-color: #FECACA; &:hover { background: #FECACA; } }
+}
+
+// ══ Skeleton animation ════════════════════════════════════════════════════
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+$sk-bg: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+
+.sk-photo, .sk-line, .sk-footer {
+  background: $sk-bg;
+  background-size: 1200px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 6px;
+}
+
+.sk-photo  { height: 190px; border-radius: 0; }
+.sk-body   { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.sk-footer { height: 40px; border-radius: 0; }
+
+.sk-line {
+  height: 12px;
+  &--sm { width: 40%; }
+  &--md { width: 65%; }
+  &--lg { width: 90%; height: 16px; }
+}
+
+// ── Sentinelle invisible ──────────────────────────────────────────────────
+.scroll-sentinelle {
+  height: 1px; width: 100%;
+  margin-top: -200px;       // La sentinelle est 200px avant la fin de la liste
+                             // → déclenche le chargement un peu à l'avance
+  visibility: hidden;
+}
+
+// ── Bouton "Charger plus" (fallback) ──────────────────────────────────────
+.load-more-wrap {
+  display: flex; justify-content: center; padding: 12px 0 24px;
+}
+
+.btn-load-more {
+  display: inline-flex; align-items: center;
+  padding: 11px 28px; background: $white; color: $primary;
+  border: 2px solid $primary; border-radius: 24px;
+  font-size: 0.875rem; font-weight: 700; cursor: pointer;
+  transition: all 0.15s;
+  &:hover { background: $primary-l; }
+}
+
+// ── Fin de liste ──────────────────────────────────────────────────────────
+.list-end {
+  display: flex; align-items: center; gap: 12px;
+  margin: 24px 0; color: $gray;
+
+  &__line { flex: 1; height: 1px; background: $gray-m; }
+  &__txt  { font-size: 0.78rem; white-space: nowrap; }
+}
+
+// ── Vide ──────────────────────────────────────────────────────────────────
+.list-empty {
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; padding: 4rem 1rem; gap: 10px; color: $gray;
+  &__icon  { font-size: 3rem; color: $gray-m; }
+  &__titre { font-size: 1rem; font-weight: 700; color: $dark; margin: 0; }
+  &__sub   { font-size: 0.85rem; max-width: 400px; line-height: 1.5; margin: 0; }
+}
+
+.btn-effacer {
+  display: inline-flex; align-items: center;
+  padding: 8px 16px; background: $white; border: 1px solid $gray-m;
+  border-radius: $radius; font-size: 0.82rem; color: $gray; cursor: pointer;
+  &:hover { background: $gray-l; }
+}
+
+// ══ FAB — Boutons flottants ════════════════════════════════════════════════
+
+.fab {
+  position:  fixed;
+  right:     20px;
+  display:   inline-flex;
+  align-items: center;
+  gap:       6px;
+  padding:   10px 16px;
+  border-radius: 24px;
+  border:    none;
+  cursor:    pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(0,0,0,.18);
+  transition: all 0.2s;
+  z-index:   500;
+
+  &--haut {
+    bottom:     80px;
+    background: $primary;
+    color:      $white;
+    &:hover { background: $primary-d; transform: translateY(-2px); }
+  }
+
+  &--retour {
+    bottom:     20px;
+    background: $white;
+    color:      $primary;
+    border:     2px solid $primary;
+    &:hover { background: $primary-l; transform: translateY(-2px); }
+  }
+
+  &__txt { font-size: 0.82rem; }
+}
+
+// ── Panneau remise en attente ──────────────────────────────────────────────
+.rem-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1050;
+}
+
+.rem-panel {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: $white; border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 24px rgba(0,0,0,.15); z-index: 1051;
+  max-height: 80vh; overflow-y: auto;
+  animation: slideUp 0.22s ease;
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  @media (min-width: 640px) {
+    width: 480px; left: 50%; right: auto; top: 50%; bottom: auto;
+    transform: translate(-50%, -50%); border-radius: 12px;
+    animation: fadeIn 0.18s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -46%); }
+    to   { opacity: 1; transform: translate(-50%, -50%); }
+  }
+
+  &__header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid $gray-m;
+  }
+  &__title { font-size: 1rem; font-weight: 700; color: $dark; margin: 0; }
+  &__close {
+    background: none; border: none; color: $gray; cursor: pointer;
+    padding: 4px 8px; border-radius: 6px; &:hover { background: $gray-l; }
+  }
+  &__body     { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+  &__annonce  { font-size: 0.88rem; margin: 0; color: $dark; }
+  &__info {
+    font-size: 0.82rem; color: $gray; margin: 0;
+    padding: 10px 12px; background: $warning-l; border-radius: 8px; border: 1px solid #FDE68A;
+  }
+  &__label {
+    font-size: 0.78rem; font-weight: 700; color: $gray;
+    display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  }
+  &__textarea {
+    width: 100%; border: 1px solid $gray-m; border-radius: 8px;
+    padding: 10px 12px; font-size: 0.875rem; color: $dark;
+    resize: vertical; outline: none; font-family: inherit;
+    &:focus { border-color: $primary; }
+  }
+  &__count {
+    font-size: 0.72rem; color: $gray; text-align: right;
+    &--ok { color: $primary; font-weight: 600; }
+  }
+  &__actions { display: flex; gap: 10px; flex-wrap: wrap; }
+}
+
+.rem-btn {
+  display: inline-flex; align-items: center; padding: 9px 18px;
+  border-radius: $radius; font-size: 0.83rem; font-weight: 600; border: none; cursor: pointer;
+  &--ghost   { background: $white; color: $gray; border: 1px solid $gray-m; &:hover { background: $gray-l; } }
+  &--confirm {
+    background: $primary; color: $white; flex: 1; justify-content: center;
+    &:hover:not(:disabled) { background: $primary-d; }
+    &:disabled { opacity: 0.6; cursor: default; }
+  }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .lango-grid { grid-template-columns: 1fr; }
+  .list-topbar { flex-direction: column; align-items: flex-start; }
+  .fab { right: 12px; }
+  .fab--haut   { bottom: 72px; }
+  .fab--retour { bottom: 12px; }
+  .fab__txt    { display: none; }   // texte caché sur mobile → icône seule
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+  .lango-grid { grid-template-columns: repeat(2, 1fr); }
+}

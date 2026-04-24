@@ -1,0 +1,356 @@
+<div class="admin-map-root mt-4">
+
+  <!-- ══════════════════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════════════════ -->
+  <header class="map-header">
+    <div class="map-header__left">
+      <span class="map-header__icon">🗺️</span>
+      <div>
+        <h1 class="map-header__title">Carte Cadastrale Globale</h1>
+        @if (data(); as d) {
+          <p class="map-header__subtitle">
+            {{ d.total_lotissements }} lotissement{{ d.total_lotissements > 1 ? 's' : '' }}
+            · {{ totalParcelles() }} parcelle{{ totalParcelles() > 1 ? 's' : '' }}
+            · {{ sridGroups().length }} 
+            système{{ sridGroups().length > 1 ? 's' : '' }} de coordonnées
+          </p>
+        }
+      </div>
+    </div>
+    <div class="map-header__right">
+      <button class="btn-icon" (click)="sidebarOpen.set(!sidebarOpen())"
+              [title]="sidebarOpen() ? 'Masquer le panneau' : 'Afficher le panneau'">
+        <span>{{ sidebarOpen() ? '◀' : '▶' }}</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════
+       ERREUR
+  ══════════════════════════════════════════════════════ -->
+  @if (error()) {
+    <div class="map-error">
+      <span>⚠️ {{ error() }}</span>
+      <button class="btn-retry" (click)="load()">Réessayer</button>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════
+       LAYOUT PRINCIPAL
+  ══════════════════════════════════════════════════════ -->
+  <div class="map-body" [class.sidebar-hidden]="!sidebarOpen()">
+
+    <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+    @if (sidebarOpen()) {
+      <aside class="map-sidebar">
+
+      <!-- FILTRES -->
+      <section class="sidebar-section sidebar-section--filters">
+        <div class="sidebar-section__head">
+          <h2 class="sidebar-section__title">🔍 Filtres</h2>
+          @if (hasActiveFilters) {
+            <button class="btn-clear"  (click)="clearFilters()">
+              Réinitialiser
+            </button>
+          }
+        </div>
+
+        <form [formGroup]="filterForm" class="filter-form">
+          <div class="filter-field">
+            <label>Localisation</label>
+            <input type="text" formControlName="localisation"
+                   placeholder="ex : Yaoundé, Douala…" class="filter-input"/>
+          </div>
+          <div class="filter-field">
+            <label>Titre foncier</label>
+            <input type="text" formControlName="titre_foncier"
+                   placeholder="Numéro ou référence" class="filter-input"/>
+          </div>
+          <div class="filter-field">
+            <label>Lotissement</label>
+            <input type="text" formControlName="lotissement"
+                   placeholder="Nom ou référence" class="filter-input"/>
+          </div>
+          <div class="filter-field">
+            <label>Système de coordonnées</label>
+            <select formControlName="srid" class="filter-input">
+              <option value="">— Tous —</option>
+              @for (g of sridGroups(); track $index) {
+                <option [value]="g.srid">
+                  {{ g.nom_systeme }} (EPSG:{{ g.srid }})
+                </option>
+              }
+            </select>
+          </div>
+          <div class="filter-field">
+            <label>Statut parcelle</label>
+            <select formControlName="statut_parcelle" class="filter-input">
+              <option value="">— Tous —</option>
+              @for (s of STATUTS; track $index) {
+              <option [value]="s">
+                {{ getStatutLabel(s) }}
+              </option>
+              }
+            </select>
+          </div>
+        </form>
+      </section>
+
+      <!-- LOADING -->
+      @if (loading()) {
+        <div class="sidebar-loading">
+          <div class="spinner"></div>
+          <span>Chargement…</span>
+        </div>
+      }
+
+      <!-- VUE 1 : liste des SRID -->
+      @if (!loading() && !selectedLot()) {
+        <ng-container>
+        <section class="sidebar-section">
+          <h2 class="sidebar-section__title">📐 Systèmes de coordonnées</h2>
+          <ul class="srid-list">
+            @for (g of sridGroups(); track $index) {
+              <li
+                class="srid-item"
+                [class.srid-item--active]="selectedSrid() === g.srid.toString()"
+                (click)="selectSrid(g.srid.toString())">
+              <div class="srid-item__head">
+                <span class="srid-item__name">{{ g.nom_systeme }}</span>
+                <span class="srid-item__code">EPSG:{{ g.srid }}</span>
+              </div>
+              <div class="srid-item__stats">
+                <span class="stat-pill stat-pill--lot">
+                  🏘️ {{ g.lotissements.length }} lot.
+                </span>
+                <span class="stat-pill stat-pill--parc">
+                  📦 {{ countParcelles(g) }} parcelles
+                  <!-- 📦 {{ g.lotissements | sumParcelles }} parcelles -->
+                </span>
+                @if (g.parcelles_orphelines.length) {
+                  <span class="stat-pill stat-pill--orphan">
+                    ⚠️ {{ g.parcelles_orphelines.length }} orphelines
+                  </span>
+                }
+              </div>
+              </li>
+            }
+          </ul>
+        </section>
+
+        <!-- Détail du SRID sélectionné — liste des lotissements -->
+          @if (activeSridGroup(); as group) {
+            <section class="sidebar-section">
+          <h2 class="sidebar-section__title">
+            🏘️ Lotissements — {{ group.nom_systeme }}
+          </h2>
+          <ul class="lot-list">
+            @for (lot of group.lotissements; track $index) {
+              <li  class="lot-item"
+                (click)="selectLotissement(lot)">
+              <div class="lot-item__header">
+                <span class="lot-item__nom">{{ lot.nom }}</span>
+                <span class="lot-item__ref">{{ lot.reference }}</span>
+              </div>
+              <div class="lot-item__meta">
+                <span class="lot-item__loc">📍 {{ lot.localisation }}</span>
+                <span class="lot-item__sup">{{ formatSuperficie(lot.superficie_totale) }}</span>
+              </div>
+              <div class="lot-item__foot">
+                <span class="stat-pill stat-pill--parc">
+                  {{ lot.nb_parcelles }} parcelle{{ lot.nb_parcelles > 1 ? 's' : '' }}
+                </span>
+                <span class="badge-geom" [class.badge-geom--ok]="lot.has_geom"
+                      [class.badge-geom--no]="!lot.has_geom">
+                  {{ lot.has_geom ? '🗺 Géo' : '⚠ Sans géom' }}
+                </span>
+              </div>
+              </li>
+            }
+          </ul>
+
+              <!-- Parcelles orphelines du SRID -->
+              @if (group.parcelles_orphelines.length) {
+                <ng-container>
+            <h3 class="orphan-title">⚠️ Parcelles sans lotissement géométrique</h3>
+            <ul class="lot-list">
+              @for (p of group.parcelles_orphelines; track $index) {
+                <li
+                  class="lot-item lot-item--orphan"
+                  (click)="selectParcelle(p)">
+                <div class="lot-item__header">
+                  <span class="lot-item__nom">{{ p.nom }}</span>
+                  <span [class]="getStatutClass(p.statut) + ' badge-statut'">
+                    {{ getStatutLabel(p.statut) }}
+                  </span>
+                </div>
+                <div class="lot-item__meta">
+                  <span>{{ p.lotissement_nom }}</span>
+                  <span>{{ formatSuperficie(p.superficie) }}</span>
+                </div>
+                </li>
+              }
+            </ul>
+                </ng-container>
+              }
+            </section>
+          }
+        </ng-container>
+      }
+
+      <!-- VUE 2 : détail lotissement sélectionné -->
+      @if (!loading() && selectedLot(); as lot) {
+        <ng-container>
+        <section class="sidebar-section">
+          <button class="btn-back" (click)="backToSrid()">← Retour</button>
+          <h2 class="sidebar-section__title">{{ lot.nom }}</h2>
+          <dl class="info-grid">
+            <dt>Référence</dt>     <dd>{{ lot.reference }}</dd>
+            <dt>Localisation</dt>  <dd>{{ lot.localisation }}</dd>
+            <dt>Superficie</dt>    <dd>{{ formatSuperficie(lot.superficie_totale) }}</dd>
+            <dt>Géométrie</dt>
+            <dd>
+              <span class="badge-geom" [class.badge-geom--ok]="lot.has_geom"
+                    [class.badge-geom--no]="!lot.has_geom">
+                {{ lot.has_geom ? '✓ Définie' : '✗ Absente' }}
+              </span>
+            </dd>
+          </dl>
+
+          <h3 class="subsection-title">
+            Parcelles ({{ lot.parcelles.length }})
+          </h3>
+          <ul class="parcelle-list">
+            @for (p of lot.parcelles; track $index) {
+              <li
+                class="parcelle-item"
+                (click)="selectParcelle(p)">
+              <div class="parcelle-item__top">
+                <span class="parcelle-item__num">{{ p.numero }}</span>
+                <span [class]="getStatutClass(p.statut) + ' badge-statut'">
+                  {{ getStatutLabel(p.statut) }}
+                </span>
+              </div>
+              <div class="parcelle-item__bot">
+                <span>{{ p.nom }}</span>
+                <span>{{ formatSuperficie(p.superficie) }}</span>
+              </div>
+              </li>
+            }
+
+            @if (!lot.parcelles.length) {
+              <li class="parcelle-empty">
+                Aucune parcelle enregistrée.
+              </li>
+            }
+          </ul>
+        </section>
+        </ng-container>
+      }
+
+      </aside>
+    }
+
+    <!-- ── CARTE ────────────────────────────────────────────── -->
+    <main class="map-canvas-wrap">
+
+      <!-- Spinner overlay sur la carte -->
+      @if (loading()) {
+        <div class="map-overlay-loading">
+          <div class="spinner spinner--lg"></div>
+        </div>
+      }
+
+      <!-- Légende statuts -->
+      <div class="map-legend">
+        <span class="legend-item">
+          @for (s of STATUTS; track $index) {
+            <span class="legend-dot" [style.background]="STATUT_COLORS[s]"></span>
+            {{ getStatutLabel(s) }}
+          }
+        </span>
+        <span class="legend-item">
+          <span class="legend-dot legend-dot--lot"></span>
+          Lotissement
+        </span>
+      </div>
+
+      <!-- Panneau info parcelle sélectionnée -->
+      @if (selectedParcelle(); as p) {
+        <div class="map-info-panel">
+        <button class="map-info-panel__close" 
+                (click)="selectedParcelle.set(null)">
+                <i class="bi bi-x-lg"></i>
+        </button>
+        <h3>{{ p.numero }}</h3>
+        <p class="map-info-panel__nom">{{ p.nom }}</p>
+        <dl class="info-grid info-grid--compact">
+          <dt>Statut</dt>
+          <dd>
+            <span [class]="getStatutClass(p.statut) + ' badge-statut'">
+              {{ getStatutLabel(p.statut) }}
+            </span>
+          </dd>
+          <dt>Superficie</dt>  <dd>{{ formatSuperficie(p.superficie) }}</dd>
+          <dt>Lotissement</dt> <dd>{{ p.lotissement_nom ?? '—' }}</dd>
+        </dl>
+        </div>
+      }
+
+      <div class="map-controls">
+        
+        <!-- Zoom avant -->
+  <button class="map-ctrl-btn" (click)="mapZoomIn()" title="Zoom avant"
+          aria-label="Zoom avant">
+    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+      <line x1="7" y1="2" x2="7" y2="12"/>
+      <line x1="2" y1="7" x2="12" y2="7"/>
+    </svg>
+  </button>
+ 
+  <!-- Zoom arrière -->
+  <button class="map-ctrl-btn" (click)="mapZoomOut()" title="Zoom arrière"
+          aria-label="Zoom arrière">
+    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+      <line x1="2" y1="7" x2="12" y2="7"/>
+    </svg>
+  </button>
+ 
+  <!-- Centrer / fit all -->
+  <button class="map-ctrl-btn map-ctrl-btn--fit" (click)="mapFitAll()"
+          title="Centrer sur toutes les données" aria-label="Vue d'ensemble">
+    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+      <!-- Coin haut-gauche -->
+      <polyline points="1,4 1,1 4,1"/>
+      <!-- Coin haut-droit -->
+      <polyline points="10,1 13,1 13,4"/>
+      <!-- Coin bas-droit -->
+      <polyline points="13,10 13,13 10,13"/>
+      <!-- Coin bas-gauche -->
+      <polyline points="4,13 1,13 1,10"/>
+    </svg>
+  </button>
+
+      </div>
+
+      <div class="map-attribution">
+        © <a href="https://www.openstreetmap.org/copyright"
+             target="_blank" rel="noopener">OpenStreetMap</a> contributors
+      </div>
+
+      <!-- Conteneur OpenLayers -->
+      <div #mapContainer class="ol-map"></div>
+
+      <!-- Message si aucune donnée -->
+      @if (!loading() && data() && sridGroups().length === 0) {
+        <div class="map-empty">
+          <span>🗺️</span>
+          <p>Aucun lotissement ou parcelle trouvé avec ces filtres.</p>
+          <button class="btn-retry" (click)="clearFilters()">Effacer les filtres</button>
+        </div>
+      }
+
+    </main>
+  </div>
+</div>

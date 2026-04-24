@@ -1,0 +1,60 @@
+@if (compact) {
+  <!-- Mode compact — header -->
+  <a class="csw-compact" routerLink="/lango/credits"
+     ngbTooltip="Mes crédits" placement="bottom" triggers="hover">
+    <i class="bi bi-coin csw-compact-icon"></i>
+    @if (isLoading()) {
+      <span class="csw-compact-loading"></span>
+    } @else {
+      <span class="csw-compact-val">{{ solde() | number }}</span>
+    }
+    <span class="csw-compact-unit">cr.</span>
+  </a>
+} @else {
+  <!-- Mode normal — sidebar ou page -->
+  <div class="csw-card"
+       [class.csw-card--ok]="soldeSuffisant() === true"
+       [class.csw-card--nok]="soldeSuffisant() === false">
+
+    <div class="csw-row">
+      <div class="csw-icon-wrap">
+        <i class="bi bi-coin"></i>
+      </div>
+      <div class="csw-content">
+        <span class="csw-label">Solde disponible</span>
+        @if (isLoading()) {
+          <span class="csw-val csw-val--loading">…</span>
+        } @else {
+          <span class="csw-val">{{ solde() | number }} crédits</span>
+        }
+      </div>
+      <button class="csw-refresh" (click)="rafraichir()"
+              ngbTooltip="Rafraîchir" placement="top" triggers="hover">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+    </div>
+
+    @if (checkAction && coutAction() !== null) {
+      <div class="csw-action-check"
+           [class.csw-action-check--ok]="soldeSuffisant()"
+           [class.csw-action-check--nok]="!soldeSuffisant()">
+        <i [class]="soldeSuffisant() 
+        ? 'bi bi-check-circle-fill' 
+        : 'bi bi-x-circle-fill'"></i>
+        <span>
+          Cette action coûte {{ coutAction() }} cr.
+          @if (!soldeSuffisant()) {
+            — solde insuffisant
+          }
+        </span>
+      </div>
+    }
+
+    @if (!isLoading() && (soldeSuffisant() === false || solde() < 10)) {
+      <a routerLink="/lango/credits" class="csw-recharge-btn">
+        <i class="bi bi-plus-circle me-1"></i> Recharger mes crédits
+      </a>
+    }
+
+  </div>
+}

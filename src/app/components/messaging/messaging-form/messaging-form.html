@@ -1,0 +1,247 @@
+<div>
+  <div class="mf-card">
+
+    <!-- ── Header ────────────────────────────────────────────── -->
+    <div class="mf-header">
+      <span class="mf-header__icon">
+        <i class="bi bi-envelope-paper"></i>
+      </span>
+      <div>
+        <h1 class="mf-header__title">Contactez-nous</h1>
+        <p class="mf-header__sub">
+          Notre équipe vous répondra dans les plus brefs délais.
+        </p>
+      </div>
+      <button class="mf-modal__close" (click)="onCancel()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- ── Succès ─────────────────────────────────────────────── -->
+    @if (submitted()) {
+      <div class="mf-success">
+        <div class="mf-success__icon">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h2>Message envoyé !</h2>
+        <p>
+          Nous avons bien reçu votre message et nous vous répondrons
+          @if (estUserConnecte()) {
+            via une notification sur votre compte.
+          } @else {
+            par email à <strong>{{ form.getRawValue().sender_email }}</strong>.
+          }
+        </p>
+        <button class="mf-btn mf-btn--outline" (click)="recommencer()">
+          <i class="bi bi-plus"></i> Envoyer un autre message
+        </button>
+      </div>
+    }
+
+    <!-- ── Formulaire ─────────────────────────────────────────── -->
+    @if (!submitted()) {
+      <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate class="mf-form">
+
+        <!-- Badge user connecté -->
+        @if (estUserConnecte()) {
+          <div class="mf-user-badge">
+            <i class="bi bi-person-check-fill"></i>
+            Vous êtes connecté — vos coordonnées sont pré-remplies automatiquement.
+          </div>
+        }
+
+        <!-- ── Zone d'erreurs UX ──────────────────────────────── -->
+        <!-- Affiche une liste de messages compréhensibles, pas de jargon technique -->
+        @if (erreurs().length > 0) {
+          <div class="mf-erreurs-bloc">
+            <div class="mf-erreurs-bloc__header">
+              <i class="bi bi-exclamation-circle-fill"></i>
+              @if (erreurs().length === 1) {
+                Votre message n'a pas pu être envoyé :
+              } @else {
+                Votre message n'a pas pu être envoyé. Plusieurs points à corriger :
+              }
+            </div>
+            <ul class="mf-erreurs-bloc__liste">
+              @for (msg of erreurs(); track $index) {
+                <li>{{ msg }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        <!-- Ligne : email + nom -->
+        <div class="mf-row">
+
+          <!-- Email / Identifiant -->
+          <div class="mf-field" [class.mf-field--error]="isInvalid('sender_email')">
+            <label class="mf-label" for="sender_email">
+              @if (estUserConnecte()) {
+                Identifiant
+              } @else {
+                Adresse email <span class="mf-req">*</span>
+              }
+            </label>
+            <input
+              id="sender_email"
+              type="email"
+              class="mf-input"
+              formControlName="sender_email"
+              placeholder="votre@email.com"
+              autocomplete="email"
+              [class.mf-input--locked]="estUserConnecte()"
+            />
+            @if (estUserConnecte()) {
+              <span class="mf-field__hint">
+                <i class="bi bi-lock-fill"></i> Pré-rempli depuis votre compte
+              </span>
+            }
+            @if (isInvalid('sender_email')) {
+              <span class="mf-field__err">{{ getError('sender_email') }}</span>
+            }
+          </div>
+
+          <!-- Nom -->
+          <div class="mf-field" [class.mf-field--error]="isInvalid('sender_nom')">
+            <label class="mf-label" for="sender_nom">
+              Nom complet
+              @if (!estUserConnecte()) { <span class="mf-req">*</span> }
+            </label>
+            <input
+              id="sender_nom"
+              type="text"
+              class="mf-input"
+              formControlName="sender_nom"
+              placeholder="Prénom Nom"
+              autocomplete="name"
+              [class.mf-input--locked]="estUserConnecte()"
+            />
+            @if (estUserConnecte()) {
+              <span class="mf-field__hint">
+                <i class="bi bi-lock-fill"></i> Pré-rempli depuis votre compte
+              </span>
+            }
+            @if (isInvalid('sender_nom')) {
+              <span class="mf-field__err">{{ getError('sender_nom') }}</span>
+            }
+          </div>
+
+        </div>
+
+        <!-- Objet -->
+        <div class="mf-field" [class.mf-field--error]="isInvalid('objet')">
+          <label class="mf-label" for="objet">
+            Objet <span class="mf-req">*</span>
+          </label>
+          <input
+            id="objet"
+            type="text"
+            class="mf-input"
+            formControlName="objet"
+            placeholder="Sujet de votre message…"
+            [maxlength]="OBJET_MAX"
+          />
+          <div class="mf-field__footer">
+            @if (isInvalid('objet')) {
+              <span class="mf-field__err">{{ getError('objet') }}</span>
+            } @else {
+              <span></span>
+            }
+            <span class="mf-counter" [class.mf-counter--warn]="objetRestants() < 20">
+              {{ objetRestants() }} / {{ OBJET_MAX }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Contenu -->
+        <div class="mf-field" [class.mf-field--error]="isInvalid('contenu')">
+          <label class="mf-label" for="contenu">
+            Message <span class="mf-req">*</span>
+          </label>
+          <textarea
+            id="contenu"
+            class="mf-textarea"
+            formControlName="contenu"
+            placeholder="Décrivez votre demande en détail…"
+            rows="6"
+            [maxlength]="CONTENU_MAX"
+          ></textarea>
+          <div class="mf-field__footer">
+            @if (isInvalid('contenu')) {
+              <span class="mf-field__err">{{ getError('contenu') }}</span>
+            } @else {
+              <span></span>
+            }
+            <span class="mf-counter" [class.mf-counter--warn]="contenuRestants() < 50">
+              {{ contenuRestants() }} / {{ CONTENU_MAX }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Pièce jointe -->
+        <div class="mf-field">
+          <label class="mf-label">
+            Pièce jointe
+            <span class="mf-label__hint">(optionnel — JPG, PNG, PDF · max 200 Ko)</span>
+          </label>
+
+          <!-- Input toujours présent dans le DOM pour la ref #fileInput -->
+          <input
+            id="piece_jointe"
+            #fileInput
+            type="file"
+            accept=".jpg,.jpeg,.png,.pdf"
+            class="mf-upload__input"
+            (change)="onFichier($event)"
+          />
+
+          @if (!fichierInfo()) {
+            <label class="mf-upload" for="piece_jointe">
+              <i class="bi bi-cloud-upload"></i>
+              <span>Cliquez pour sélectionner un fichier</span>
+              <span class="mf-upload__formats">JPG · PNG · PDF · 200 Ko max</span>
+            </label>
+          }
+
+          @if (fichierInfo(); as info) {
+            <div class="mf-file-preview">
+              <i class="bi bi-paperclip"></i>
+              <span class="mf-file-preview__nom">{{ info.nom }}</span>
+              <span class="mf-file-preview__taille">{{ info.taille }}</span>
+              <button type="button" class="mf-file-preview__remove"
+                      (click)="retirerFichier(fileInput)" title="Retirer le fichier">
+                <i class="bi bi-x"></i>
+              </button>
+            </div>
+          }
+
+          @if (fichierErr()) {
+            <span class="mf-field__err">
+              <i class="bi bi-exclamation-triangle"></i>
+              {{ fichierErr() }}
+            </span>
+          }
+        </div>
+
+        <!-- Submit -->
+        <div class="mf-actions">
+          <button type="button" class="mf-btn mf-btn--outline" (click)="onCancel()">
+            Annuler
+          </button>
+          <button type="submit" class="mf-btn mf-btn--primary"
+                  [disabled]="form.invalid || submitting()">
+            @if (submitting()) {
+              <span class="mf-spinner"></span>
+              Envoi en cours…
+            } @else {
+              <i class="bi bi-send-fill"></i>
+              Envoyer le message
+            }
+          </button>
+        </div>
+
+      </form>
+    }
+
+  </div>
+</div>

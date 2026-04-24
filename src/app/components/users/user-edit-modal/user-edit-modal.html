@@ -1,0 +1,131 @@
+
+<div class="mf-header">
+  <div class="mf-header-left">
+    <div class="mf-header-icon" 
+    [class]="isEditMode ? 'mf-header-icon--edit' : 'mf-header-icon--create'">
+      <i class="bi" [class.bi-person-plus-fill]="!isEditMode" 
+      [class.bi-pencil-fill]="isEditMode"></i>
+    </div>
+    <div>
+      <p class="mf-header-title">
+        {{ isEditMode ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur' }}
+      </p>
+      <span class="mf-header-sub">
+        {{ isEditMode ? 'Mettez à jour les informations' : 'Créez un nouveau compte' }}
+      </span>
+    </div>
+  </div>
+  <button class="mf-close-btn" (click)="onCancel()"><i class="bi bi-x-lg"></i></button>
+</div>
+
+<div class="mf-body">
+  @if (isLoading) {
+    <div class="mf-loading"><div class="mf-spinner"></div><span>Chargement…</span></div>
+  } @else {
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit($event)">
+
+      @if (successMessage) {
+        <app-alert type="success" title="Succès !" [autoClose]="true" 
+        [autoCloseDelay]="4000" (onClose)="clearSuccessMessage()">
+          <p class="mb-0 small">{{ successMessage }}</p>
+        </app-alert>
+      } @else if (errorMessage) {
+        <app-alert type="danger" title="Erreur" (onClose)="clearErrorMessage()">
+          <p class="mb-0 small">{{ errorMessage }}</p>
+        </app-alert>
+      }
+
+      <div class="row g-2 mb-2">
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input type="text" id="username" formControlName="username" 
+            class="form-control"
+                   placeholder="username"
+                   [class.is-invalid]="userForm.get('username')?.invalid 
+                   && userForm.get('username')?.touched">
+            <label for="username">Nom d'utilisateur 
+              <span class="text-danger">*</span>
+            </label>
+            <div class="invalid-feedback">Le nom d'utilisateur est requis.</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input type="text" id="phone" formControlName="phone" class="form-control"
+                   placeholder="+237690000000"
+                   [class.is-invalid]="userForm.get('phone')?.invalid 
+                   && userForm.get('phone')?.touched">
+            <label for="phone">Téléphone <span class="text-danger">*</span></label>
+            <div class="invalid-feedback">Format: +237690000000</div>
+          </div>
+        </div>
+      </div>
+
+      @if (!isEditMode || userForm.get('password')?.value) {
+        <div class="mf-field">
+          <div class="form-floating">
+            <input type="password" id="password" formControlName="password" 
+            class="form-control"
+                   placeholder="Mot de passe"
+                   [class.is-invalid]="userForm.get('password')?.invalid 
+                   && userForm.get('password')?.touched">
+            <label for="password">Mot de passe 
+              <span class="text-danger">*</span></label>
+            <div class="invalid-feedback">Le mot de passe est requis.</div>
+          </div>
+        </div>
+      }
+
+      <!-- Rôles -->
+      <div class="mb-3">
+        <p class="mf-section-label">
+          <i class="bi bi-shield-check"></i> Rôles <span class="req">*</span>
+        </p>
+        <div class="mf-role-grid">
+          @for (role of rolesAvailable; track role.id) {
+            <button type="button" class="mf-role-btn"
+                    [class.active]="userForm.get('roles')?.value.includes(role.name)"
+                    (click)="toggleRoleSelection(role.name)">
+              @if (userForm.get('roles')?.value.includes(role.name)) {
+                <i class="bi bi-check-circle-fill"></i>
+              } @else {
+                <i class="bi bi-circle"></i>
+              }
+              {{ role.name }}
+            </button>
+          }
+        </div>
+        @if (userForm.get('roles')?.invalid && userForm.get('roles')?.touched) {
+          <div class="invalid-feedback d-block mt-1">Au moins un rôle est requis.</div>
+        }
+      </div>
+
+      <!-- Actif -->
+      <div class="mf-switch-row">
+        <div class="mf-switch-info">
+          <span class="mf-switch-title">Compte actif</span>
+          <span class="mf-switch-sub">L'utilisateur peut se connecter</span>
+        </div>
+        <div class="form-check form-switch mb-0">
+          <input class="form-check-input" type="checkbox"
+                 id="is_active" formControlName="is_active" role="switch">
+        </div>
+      </div>
+
+    </form>
+  }
+</div>
+
+<div class="mf-actions">
+  <button type="button" class="mf-btn mf-btn--cancel" (click)="onCancel()">
+    <i class="bi bi-x-lg"></i> Annuler
+  </button>
+  <button type="submit" class="mf-btn mf-btn--submit"
+          [disabled]="userForm.invalid || isSubmitting"
+          (click)="onSubmit()">
+    @if (isSubmitting) { <span class="spinner-border spinner-border-sm"></span> }
+    @else { <i class="bi" [class.bi-person-plus-fill]="!isEditMode" 
+    [class.bi-floppy]="isEditMode"></i> }
+    {{ isEditMode ? 'Mettre à jour' : 'Créer l\'utilisateur' }}
+  </button>
+</div>

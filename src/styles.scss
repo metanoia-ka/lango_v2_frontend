@@ -1,1 +1,47 @@
-/* You can add global styles to this file, and also import other style files */
+@use "theme";
+@use "bootstrap" as *;
+
+
+/* Import Manrope from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800&display=swap');
+
+/* Applique Manrope à l'ensemble du projet */
+html, body {
+  font-family: 'Manrope', sans-serif;
+  /* D'autres styles globaux comme la hauteur, les marges, etc. */
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Pour éviter le défilement horizontal */
+}
+
+/* Vous pouvez également définir des graisses spécifiques pour les titres */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700; /* Par exemple, des titres en gras */
+}
+
+th, tr, td, div, label, span, input {
+  font-family: 'Manrope', sans-serif;
+}
+
+th {
+  text-transform: uppercase;
+}
+
+/* Et une graisse plus légère pour le corps de texte */
+p, span, a, li {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 400; /* Graisse normale pour la lisibilité */
+}
+
+html, body { height: 100%; }
+body { margin: 0; }
+
+.btn-primary-custom {
+  background-color: #008753;
+}
+
+.btn-secondary-custom {
+  background-color: #FCD116;
+}

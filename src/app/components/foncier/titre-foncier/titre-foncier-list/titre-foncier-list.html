@@ -1,0 +1,212 @@
+<section class="tf-page mt-5">
+
+  <!-- ── En-tête ──────────────────────────────────────────────── -->
+  <div class="tf-page__header">
+    <div class="tf-page__header-left">
+      <div class="tf-page__icon">
+        <i class="bi bi-file-earmark-text-fill"></i>
+      </div>
+      <div>
+        <h1 class="tf-page__title">Titres fonciers</h1>
+        <p class="tf-page__subtitle">
+          {{ total() }} 
+          titre{{ total() > 1 ? 's' : '' }} enregistré{{ total() > 1 ? 's' : '' }}
+        </p>
+      </div>
+    </div>
+
+    <button class="tf-btn tf-btn--primary" (click)="openCreate()">
+      <i class="bi bi-plus-lg"></i>
+      Nouveau titre
+    </button>
+  </div>
+
+  <!-- ── Barre de recherche ────────────────────────────────────── -->
+  <div class="tf-toolbar">
+    <div class="tf-search">
+      <i class="bi bi-search tf-search__icon"></i>
+      <input
+        type="text"
+        class="tf-search__input"
+        placeholder="Rechercher par numéro, propriétaire…"
+        (input)="onSearch($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <!-- ── Erreur ────────────────────────────────────────────────── -->
+  @if (error()) {
+    <div class="tf-alert tf-alert--danger">
+      <i class="bi bi-exclamation-circle-fill"></i>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- ── Loading skeleton ─────────────────────────────────────── -->
+  @if (loading()) {
+    <div class="tf-table-wrap">
+      <table class="tf-table">
+        <thead>
+          <tr>
+            <th>Numéro</th><th>Propriétaire</th><th>Sup. totale</th>
+            <th>Sup. restante</th><th>Statut</th><th>Vérifié</th>
+            <th>Date création</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (_ of [1,2,3,4,5]; track $index) {
+            <tr class="tf-table__row">
+              @for (__ of [1,2,3,4,5,6,7,8]; track $index) {
+                <td><div class="tf-skeleton"></div></td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- ── Tableau ───────────────────────────────────────────────── -->
+  @if (!loading() && titres().length > 0) {
+    <div class="tf-table-wrap">
+      <table class="tf-table">
+        <thead>
+          <tr>
+            <th>Numéro</th>
+            <th>Propriétaire</th>
+            <th>Superficie totale</th>
+            <th>Superficie restante</th>
+            <th>Statut</th>
+            <th>Vérifié</th>
+            <th>Date création</th>
+            <th class="tf-table__actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (titre of titres(); track trackById($index, titre)) {
+            <tr class="tf-table__row">
+              <!-- Numéro -->
+              <td>
+                <a [routerLink]="['/lango/titres-fonciers', titre.id, 'detail']" 
+                    class="tf-link">
+                  {{ titre.numero }}
+                </a>
+              </td>
+
+              <!-- Propriétaire -->
+              <td>
+  <div class="tf-owner">
+    <span class="tf-owner__avatar">
+      {{ titre.proprietaire_nom.charAt(0).toUpperCase() || '?' }}
+    </span>
+    <span class="tf-owner__name">{{ titre.proprietaire_nom || '—' }}</span>
+  </div>
+</td>
+
+              <!-- Superficie totale -->
+              <td>
+                <span class="tf-surface">
+                  {{ titre.superficie_totale | number:'1.2-2' }} m²
+                </span>
+              </td>
+
+              <!-- Superficie restante -->
+              <td>
+                <span class="tf-surface tf-surface--restante">
+                  {{ titre.superficie_restante | number:'1.2-2' }} m²
+                </span>
+              </td>
+
+              <!-- Statut -->
+              <td>
+                <span class="tf-badge {{ STATUS_BADGE[titre.statut] }}">
+                  {{ STATUS_LABELS[titre.statut] }}
+                </span>
+              </td>
+
+              <!-- Vérifié -->
+              <td>
+                @if (titre.est_verifie) {
+                  <span class="tf-verified tf-verified--yes"
+                        [ngbTooltip]="'Vérifié le ' 
+                        + (titre.date_verification | date:'dd/MM/yyyy HH:mm')
+                                      + (titre.commentaire_verification ? ' — ' 
+                                      + titre.commentaire_verification : '')">
+                    <i class="bi bi-patch-check-fill"></i> Vérifié
+                  </span>
+                } @else {
+                  <span class="tf-verified tf-verified--no">
+                    <i class="bi bi-hourglass-split"></i>
+                    En attente
+                  </span>
+                }
+              </td>
+
+              <!-- Date -->
+              <td class="tf-date">{{ titre.created_at | date:'dd/MM/yyyy' }}</td>
+
+              <!-- Actions -->
+              <td class="tf-table__actions">
+                <!-- Voir le scan -->
+                @if (titre.document_scan_url) {
+                  <a [href]="titre.document_scan_url" target="_blank"
+                     class="tf-action-btn" ngbTooltip="Voir le document">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                  </a>
+                }
+
+                <!-- Éditer -->
+                <button class="tf-action-btn" ngbTooltip="Modifier"
+                        (click)="openEdit(titre)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+
+                <!-- Vérification admin -->
+                <button class="tf-action-btn tf-action-btn--verify"
+                        ngbTooltip="Vérifier / Rejeter"
+                        (click)="openVerification(titre)">
+                  <i class="bi bi-shield-check"></i>
+                </button>
+
+                <!-- Supprimer -->
+                <button class="tf-action-btn tf-action-btn--danger"
+                        ngbTooltip="Supprimer"
+                        (click)="onDelete(titre)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="tf-pagination">
+        <ngb-pagination
+          [collectionSize]="total()"
+          [(page)]="$any(page)"
+          [pageSize]="pageSize"
+          [maxSize]="5"
+          [rotate]="true"
+          [boundaryLinks]="true"
+          (pageChange)="onPageChange($event)"
+        />
+      </div>
+    }
+  }
+
+  <!-- ── Vide ──────────────────────────────────────────────────── -->
+  @if (!loading() && titres().length === 0 && !error()) {
+    <div class="tf-empty">
+      <i class="bi bi-file-earmark-x tf-empty__icon"></i>
+      <p class="tf-empty__title">Aucun titre foncier</p>
+      <p class="tf-empty__sub">Commencez par créer votre premier titre foncier.</p>
+      <button class="tf-btn tf-btn--primary" (click)="openCreate()">
+        <i class="bi bi-plus-lg"></i> Créer un titre
+      </button>
+    </div>
+  }
+
+</section>

@@ -1,0 +1,774 @@
+<!-- annonce-detail.component.html - Version modernisée avec carrousel photo -->
+
+<div class="detail-wrap mt-4">
+  <!-- ══ Topbar minimaliste ═══════════════════════════════════════════════ -->
+  <div class="detail-topbar">
+    <button class="btn-back" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+      <span>Retour</span>
+    </button>
+    
+    <div class="detail-actions">
+      @if (user() && annonce()?._acces?.niveau !== 'proprietaire') {
+        <button class="action-icon" 
+                [class.active]="statutAuteur()?.suivi"
+                (click)="statutAuteur()?.suivi ? nePlusSuivre() : suivreAuteur()"
+                [disabled]="followLoading()">
+          <i class="bi" [class.bi-bell-fill]="!statutAuteur()?.suivi" 
+             [class.bi-bell-slash-fill]="statutAuteur()?.suivi"></i>
+        </button>
+      }
+      <button class="action-icon" (click)="partager()">
+        <i class="bi bi-share"></i>
+      </button>
+      @if (isOwner() || isAdmin()) {
+        <button class="action-icon" (click)="onEditAnnonce(annonce()!.id)">
+          <i class="bi bi-pencil"></i>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ══ Alertes feedback ══════════════════════════════════════════════════ -->
+  @if (success()) {
+    <div class="toast-notification toast-notification--success" @fadeSlide>
+      <i class="bi bi-check-circle-fill"></i>
+      <span>{{ success() }}</span>
+      <button (click)="success.set('')"><i class="bi bi-x"></i></button>
+    </div>
+  }
+  @if (error()) {
+    <div class="toast-notification toast-notification--error" @fadeSlide>
+      <i class="bi bi-exclamation-circle-fill"></i>
+      <span>{{ error() }}</span>
+      <button (click)="error.set('')"><i class="bi bi-x"></i></button>
+    </div>
+  }
+
+  <!-- ══ Bannière quota atteint ═══════════════════════════════════════════ -->
+  @if (quotaErreur(); as q) {
+    <div class="quota-banner-modern" [class.quota-banner-modern--visiteur]="isVisiteur()">
+      <div class="quota-banner-modern__icon">
+        <i class="bi bi-hourglass-split"></i>
+      </div>
+      <div class="quota-banner-modern__content">
+        <p class="quota-banner-modern__title">{{ q.message }}</p>
+        @if (q.heures_reset) {
+          <p class="quota-banner-modern__subtitle">
+            <i class="bi bi-clock"></i>
+            Réinitialisation dans <strong>{{ q.heures_reset }}h</strong>
+          </p>
+        }
+      </div>
+      <div class="quota-banner-modern__actions">
+        @if (isVisiteur()) {
+          <a routerLink="/auth/register" class="btn-modern btn-modern--primary">
+            S'inscrire <i class="bi bi-arrow-right"></i>
+          </a>
+        } @else {
+          <a routerLink="/lango/credits" class="btn-modern btn-modern--primary">
+            Acheter des crédits <i class="bi bi-coin"></i>
+          </a>
+        }
+        <button class="btn-modern btn-modern--ghost" (click)="goBack()">
+          <i class="bi bi-arrow-left"></i> Retour
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ══ Spinner chargement ════════════════════════════════════════════════ -->
+  @if (isLoading()) {
+    <div class="loading-modern">
+      <div class="loading-modern__spinner"></div>
+      <span>Chargement de l'annonce...</span>
+    </div>
+  }
+
+  <!-- ══ Contenu principal ═════════════════════════════════════════════════ -->
+  @if (!isLoading() && !quotaErreur() && annonce(); as a) {
+    <div class="detail-grid">
+      
+      <!-- ═══════════════════ Colonne gauche - Galerie et infos ════════════════════ -->
+      <div class="detail-main">
+        
+        <!-- ── CARROUSEL PHOTO MODERNE ───────────────────────────────────── -->
+        <div class="photo-carousel" #carouselContainer>
+          <!-- Conteneur des slides -->
+          <div class="carousel-slides" 
+               [style.transform]="'translateX(-' + (currentSlideIndex() * 100) + '%)'"
+               (touchstart)="onTouchStart($event)"
+               (touchmove)="onTouchMove($event)"
+               (touchend)="onTouchEnd()">
+            
+            <!-- Image principale -->
+            @if (a.image_principale) {
+              <div class="carousel-slide">
+                <img [src]="a.image_principale" [alt]="a.titre" class="carousel-image">
+                <div class="carousel-badge carousel-badge--principale">
+                  <i class="bi bi-star-fill"></i> Principale
+                </div>
+              </div>
+            }
+            
+            <!-- Photos du bien -->
+            @if (a.bien?.photos?.length) {
+              @for (photo of a.bien!.photos!; track photo.id) {
+                <div class="carousel-slide">
+                  <img [src]="photo.url" [alt]="photo.legende ?? 'Photo du bien'" class="carousel-image">
+                  @if (photo.is_principale) {
+                    <div class="carousel-badge carousel-badge--principale">
+                      <i class="bi bi-star-fill"></i> Principale
+                    </div>
+                  }
+                  @if (photo.legende) {
+                    <div class="carousel-caption">{{ photo.legende }}</div>
+                  }
+                </div>
+              }
+            } @else if (!a.image_principale) {
+              <!-- Placeholder si aucune image -->
+              <div class="carousel-slide carousel-slide--placeholder">
+                <div class="carousel-placeholder">
+                  <i class="bi bi-image"></i>
+                  <span>Aucune photo disponible</span>
+                </div>
+              </div>
+            }
+          </div>
+          
+          <!-- Indicateurs de dots -->
+          @if (totalSlides() > 1) {
+            <div class="carousel-dots">
+              @for (i of [].constructor(totalSlides()); track $index) {
+                <button class="carousel-dot" 
+                        [class.active]="$index === currentSlideIndex()"
+                        (click)="goToSlide($index)">
+                </button>
+              }
+            </div>
+          }
+          
+          <!-- Flèches de navigation -->
+          @if (totalSlides() > 1) {
+            <button class="carousel-arrow carousel-arrow--prev" 
+                    (click)="previousSlide()"
+                    [class.hidden]="currentSlideIndex() === 0">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="carousel-arrow carousel-arrow--next" 
+                    (click)="nextSlide()"
+                    [class.hidden]="currentSlideIndex() === totalSlides() - 1">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          }
+          
+          <!-- Compteur de photos -->
+          @if (totalSlides() > 1) {
+            <div class="carousel-counter">
+              <i class="bi bi-camera"></i>
+              {{ currentSlideIndex() + 1 }} / {{ totalSlides() }}
+            </div>
+          }
+          
+          <!-- Bouton plein écran -->
+          <button class="carousel-fullscreen" (click)="openFullscreenGallery()">
+            <i class="bi bi-arrows-fullscreen"></i>
+          </button>
+        </div>
+        
+        <!-- ── Statut overlay (pour admin/manager/owner) ────────────────── -->
+        @if (isAdmin() || isManager() || isOwner()) {
+          <div class="status-badge status-badge--{{ a.statut.toLowerCase() }}">
+            <i class="bi" [class.bi-check-circle]="a.statut === 'PUBLISHED'"
+               [class.bi-hourglass-split]="a.statut === 'PENDING'"
+               [class.bi-archive]="a.statut === 'ARCHIVED'"
+               [class.bi-x-circle]="a.statut === 'REJECTED'"></i>
+            {{ getStatutLabel(a.statut) }}
+          </div>
+        }
+        
+        <!-- ── En-tête de l'annonce ──────────────────────────────────────── -->
+        <div class="annonce-header">
+          <h1 class="annonce-title">{{ a.titre }}</h1>
+          
+          <div class="annonce-price">
+            @if (a.prix) {
+              <span class="price-value">{{ a.prix | number }}</span>
+              <span class="price-unit">
+                {{ a.bien?.type_transaction === 'LOCATION' ? 'XAF/mois' : 'XAF' }}
+              </span>
+            }
+          </div>
+          
+          <!-- Barre de progression quota (si limité) -->
+          @if (detailLimite() && acces()) {
+            <div class="quota-bar">
+              <div class="quota-bar__info">
+                <i class="bi bi-eye"></i>
+                <span>
+                  {{ niveau() === 'visiteur' ? 'Consultations' : 'Vues gratuites' }} restantes : 
+                  <strong>{{ acces()!.nb_restants ?? 0 }}</strong>
+                </span>
+              </div>
+              <div class="quota-bar__progress">
+                <div class="quota-bar__fill" 
+                     [style.width.%]="((acces()!.nb_restants ?? 0) / (niveau() === 'visiteur' ? 3 : 5)) * 100"
+                     [class.quota-bar__fill--low]="(acces()!.nb_restants ?? 0) <= 1">
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+        
+        <!-- ── Méta-informations en grille moderne ───────────────────────── -->
+        <div class="meta-grid-modern">
+          <div class="meta-item">
+            <i class="bi bi-person-circle"></i>
+            <div class="meta-item__content">
+              <span class="meta-item__label">Publié par</span>
+              <span class="meta-item__value">
+                @if (user()?.username === a.auteur_nom) {
+                  <span class="badge-you-modern">Vous</span>
+                } @else {
+                  {{ a.auteur_nom }}
+                }
+              </span>
+            </div>
+          </div>
+          
+          <div class="meta-item">
+            <i class="bi bi-calendar"></i>
+            <div class="meta-item__content">
+              <span class="meta-item__label">Publié</span>
+              <span class="meta-item__value">{{ a.created_at | relativeTime }}</span>
+            </div>
+          </div>
+          
+          <div class="meta-item">
+            <i class="bi bi-eye"></i>
+            <div class="meta-item__content">
+              <span class="meta-item__label">Vues</span>
+              <span class="meta-item__value">{{ a.vues || 0 }}</span>
+            </div>
+          </div>
+          
+          @if (a.jours_restants !== null && a.jours_restants !== undefined) {
+            <div class="meta-item" 
+                 [class.meta-item--warning]="a.jours_restants < 7"
+                 [class.meta-item--danger]="a.jours_restants < 3">
+              <i class="bi bi-hourglass-split"></i>
+              <div class="meta-item__content">
+                <span class="meta-item__label">Expire dans</span>
+                <span class="meta-item__value">{{ a.jours_restants }} jours</span>
+              </div>
+            </div>
+          }
+        </div>
+        
+        <!-- ── Bandeau accès limité ──────────────────────────────────────── -->
+        @if (detailLimite()) {
+          <div class="access-banner">
+            <i class="bi bi-lock-fill"></i>
+            <span>
+              @if (isVisiteur()) {
+                Aperçu limité. 
+                <a routerLink="/auth/register">Inscrivez-vous gratuitement</a>
+                pour accéder au détail complet.
+              } @else {
+                Aperçu limité — 
+                <a routerLink="/lango/credits">achetez des crédits</a>
+                pour le détail complet.
+              }
+            </span>
+          </div>
+        }
+        
+        <!-- ── Bandeau grace period ──────────────────────────────────────── -->
+        @if (acces()?.grace_period) {
+          <div class="grace-banner-modern">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Accès complet actif — déjà consulté (valable 30 jours)</span>
+            @if (acces()?.credits_debites) {
+              <span class="grace-banner-modern__badge">
+                {{ acces()!.credits_debites }} crédit(s)
+              </span>
+            }
+          </div>
+        }
+        
+        <!-- ── Description ───────────────────────────────────────────────── -->
+        <div class="description-section">
+          <h3 class="section-title">
+            <i class="bi bi-text-paragraph"></i>
+            Description
+          </h3>
+          
+          @if (peutVoirComplet()) {
+            <div class="description-content">{{ a.contenu }}</div>
+          } @else if (a.contenu_apercu) {
+            <div class="description-content description-content--truncated">
+              {{ a.contenu_apercu }}
+              <div class="description-blur-overlay">
+                <div class="description-cta-modern">
+                  <i class="bi bi-lock-fill"></i>
+                  @if (isVisiteur()) {
+                    <a routerLink="/auth/register">Inscrivez-vous pour lire la suite</a>
+                  } @else {
+                    <a routerLink="/lango/credits">Achetez des crédits pour lire la suite</a>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+        
+        <!-- ── Bien immobilier (accès complet) ───────────────────────────── -->
+        @if (a.bien && peutVoirComplet()) {
+          <div class="bien-section">
+            <h3 class="section-title">
+              <i class="bi bi-building"></i>
+              Bien immobilier associé
+              @if (a.bien.is_verified) {
+                <span class="verified-badge-modern">
+                  <i class="bi bi-patch-check-fill"></i> Vérifié
+                </span>
+              }
+            </h3>
+            
+            <!-- Grille d'informations -->
+            <div class="bien-grid">
+              <div class="bien-grid__item">
+                <span class="bien-grid__label">Type</span>
+                <span class="bien-grid__value">{{ a.bien.type_bien?.nom ?? '—' }}</span>
+              </div>
+              <div class="bien-grid__item">
+                <span class="bien-grid__label">Transaction</span>
+                <span class="bien-grid__value">
+                  {{ a.bien.type_transaction_display ?? a.bien.type_transaction }}
+                </span>
+              </div>
+              <div class="bien-grid__item">
+                <span class="bien-grid__label">Localisation</span>
+                <span class="bien-grid__value">{{ a.bien.localisation_approx }}</span>
+              </div>
+              @if (a.bien.superficie) {
+                <div class="bien-grid__item">
+                  <span class="bien-grid__label">Superficie</span>
+                  <span class="bien-grid__value">{{ a.bien.superficie }} m²</span>
+                </div>
+              }
+              @if (a.bien.duree_bail_min_mois) {
+                <div class="bien-grid__item">
+                  <span class="bien-grid__label">Bail minimum</span>
+                  <span class="bien-grid__value">{{ a.bien.duree_bail_min_mois }} mois</span>
+                </div>
+              }
+              @if (a.bien.caution_mois) {
+                <div class="bien-grid__item">
+                  <span class="bien-grid__label">Caution</span>
+                  <span class="bien-grid__value">{{ a.bien.caution_mois }} mois</span>
+                </div>
+              }
+            </div>
+            
+            <!-- Chaîne foncière -->
+            @if (a.bien.parcelle) {
+              <div class="foncier-section">
+                <h4 class="foncier-section__title">
+                  <i class="bi bi-geo-alt-fill"></i>
+                  Rattachement foncier
+                </h4>
+                
+                <div class="foncier-timeline">
+                  <!-- Parcelle -->
+                  <div class="foncier-node">
+                    <div class="foncier-node__icon foncier-node__icon--parcelle">
+                      <i class="bi bi-grid-1x2-fill"></i>
+                    </div>
+                    <div class="foncier-node__content">
+                      <span class="foncier-node__label">Parcelle</span>
+                      <span class="foncier-node__value">{{ a.bien.parcelle.numero }}</span>
+                      <div class="foncier-node__tags">
+                        @if (a.bien.parcelle.superficie) {
+                          <span class="foncier-tag">{{ a.bien.parcelle.superficie }} m²</span>
+                        }
+                        <span class="foncier-tag" 
+                              [class.foncier-tag--success]="a.bien.parcelle.statut === 'DISPONIBLE'"
+                              [class.foncier-tag--warning]="a.bien.parcelle.statut === 'ATTRIBUEE'">
+                          {{ a.bien.parcelle.statut }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Lotissement -->
+                  @if (a.bien.parcelle.lotissement) {
+                    <div class="foncier-connector"></div>
+                    <div class="foncier-node">
+                      <div class="foncier-node__icon foncier-node__icon--lotissement">
+                        <i class="bi bi-map-fill"></i>
+                      </div>
+                      <div class="foncier-node__content">
+                        <span class="foncier-node__label">Lotissement</span>
+                        <span class="foncier-node__value">{{ a.bien.parcelle.lotissement.nom }}</span>
+                        <div class="foncier-node__tags">
+                          <span class="foncier-tag">Réf. {{ a.bien.parcelle.lotissement.reference }}</span>
+                          @if (a.bien.parcelle.lotissement.commune) {
+                            <span class="foncier-tag">
+                              <i class="bi bi-geo-alt"></i> {{ a.bien.parcelle.lotissement.commune }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                  
+                  <!-- Titre foncier -->
+                  @if (a.bien.parcelle.titre_foncier) {
+                    <div class="foncier-connector"></div>
+                    <div class="foncier-node">
+                      <div class="foncier-node__icon foncier-node__icon--tf">
+                        <i class="bi bi-file-earmark-check-fill"></i>
+                      </div>
+                      <div class="foncier-node__content">
+                        <span class="foncier-node__label">Titre foncier</span>
+                        <span class="foncier-node__value">{{ a.bien.parcelle.titre_foncier.numero }}</span>
+                        <div class="foncier-node__tags">
+                          @if (a.bien.parcelle.titre_foncier.est_verifie) {
+                            <span class="foncier-tag foncier-tag--success">
+                              <i class="bi bi-patch-check-fill"></i> Vérifié
+                            </span>
+                          } @else {
+                            <span class="foncier-tag foncier-tag--pending">
+                              <i class="bi bi-clock"></i> En attente
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+                
+                <!-- Actions parcelle -->
+                <div class="foncier-actions">
+                  <button class="foncier-btn" (click)="visualisationParcel()">
+                    <i class="bi bi-eye"></i> Voir la parcelle
+                  </button>
+                  <button class="foncier-btn foncier-btn--outline" (click)="visualisationMapParcels()">
+                    <i class="bi bi-grid-3x3-gap"></i> 
+                    Parcelles disponibles ({{ nbParcellesLotissement }})
+                  </button>
+                </div>
+              </div>
+            }
+            
+            <!-- Parcelle actions (connecté) -->
+            @if (user() && parcelleInfo()) {
+              <div class="parcelle-actions-wrapper">
+                <app-parcelle-actions
+                  [parcelle]="parcelleInfo()!"
+                  (actionEffectuee)="onActionPremium()">
+                </app-parcelle-actions>
+              </div>
+            }
+          </div>
+        }
+        
+        <!-- ── Bien immobilier (aperçu) ──────────────────────────────────── -->
+        @if (niveau() === 'gratuit' && a.bien_apercu) {
+          <div class="bien-section bien-section--preview">
+            <h3 class="section-title">
+              <i class="bi bi-building"></i>
+              Bien immobilier
+              <span class="preview-badge">Aperçu</span>
+            </h3>
+            
+            <div class="bien-grid bien-grid--preview">
+              @if (a.bien_apercu.type_bien) {
+                <div class="bien-grid__item">
+                  <span class="bien-grid__label">Type</span>
+                  <span class="bien-grid__value">{{ a.bien_apercu.type_bien }}</span>
+                </div>
+              }
+              @if (a.bien_apercu.superficie) {
+                <div class="bien-grid__item">
+                  <span class="bien-grid__label">Superficie</span>
+                  <span class="bien-grid__value">
+                    @if(a.bien_apercu.superficie === 'None') {
+                      0
+                    } @else { {{ a.bien_apercu.superficie }} m² }
+                  </span>
+                </div>
+              }
+              @if (a.bien_apercu.zone) {
+                <div class="bien-grid__item">
+                  <span class="bien-grid__label">Zone</span>
+                  <span class="bien-grid__value">{{ a.bien_apercu.zone }}</span>
+                </div>
+              }
+            </div>
+            
+            <div class="preview-locked-hint">
+              <i class="bi bi-lock-fill"></i>
+              Localisation précise et chaîne foncière masquées.
+              <a routerLink="/lango/credits">Débloquer avec des crédits</a>
+            </div>
+          </div>
+        }
+        
+        <!-- ── Bien verrouillé (visiteur) ────────────────────────────────── -->
+        @if (niveau() === 'visiteur' && a.bien) {
+          <div class="bien-section bien-section--locked">
+            <div class="locked-content">
+              <i class="bi bi-lock-fill locked-icon"></i>
+              <h4>Informations du bien masquées</h4>
+              <p>Inscrivez-vous gratuitement pour accéder à tous les détails</p>
+              <a routerLink="/auth/register" class="btn-modern btn-modern--primary">
+                <i class="bi bi-person-plus"></i> S'inscrire gratuitement
+              </a>
+            </div>
+          </div>
+        }
+        
+      </div>
+      
+      <!-- ═══════════════════ Sidebar droite ══════════════════════════ -->
+      <div class="detail-sidebar">
+        
+        <!-- ── Carte d'actions principale ────────────────────────────────── -->
+        <div class="sidebar-card-modern">
+          @if (isVisiteur()) {
+            <!-- Visiteur -->
+            <div class="visitor-cta">
+              <i class="bi bi-person-circle visitor-cta__icon"></i>
+              <h4>Accès complet</h4>
+              <p>Inscrivez-vous gratuitement pour contacter les vendeurs et voir tous les détails</p>
+              <a routerLink="/auth/register" class="btn-modern btn-modern--primary btn-modern--full">
+                Créer un compte gratuit
+              </a>
+              <a routerLink="/auth/login" class="btn-modern btn-modern--outline btn-modern--full">
+                Se connecter
+              </a>
+            </div>
+          } @else if (a._acces?.niveau === 'gratuit') {
+            <!-- Connecté sans accès complet -->
+            <div class="action-buttons">
+              @if (peutContacter()) {
+                <button class="btn-modern btn-modern--contact btn-modern--full" (click)="ouvrirConversation()">
+                  <i class="bi bi-chat-dots"></i> Contacter le vendeur
+                </button>
+              }
+              
+              @if (detailLimite()) {
+                <div class="credit-hint">
+                  <i class="bi bi-info-circle"></i>
+                  <span>Achetez des crédits pour le détail complet</span>
+                </div>
+                <a routerLink="/lango/credits" class="btn-modern btn-modern--outline btn-modern--full">
+                  <i class="bi bi-coin"></i> Voir les packs crédits
+                </a>
+              }
+              
+              @if (acces()?.solde_actuel != null) {
+                <div class="credit-balance">
+                  <i class="bi bi-coin"></i>
+                  Solde : <strong>{{ acces()!.solde_actuel }}</strong> crédit(s)
+                </div>
+              }
+            </div>
+          } @else if (peutVoirComplet() && a._acces?.niveau !== 'proprietaire') {
+            <!-- Accès complet (non propriétaire) -->
+            <button class="btn-modern btn-modern--contact btn-modern--full btn-modern--large" 
+                    (click)="ouvrirConversation()">
+              <i class="bi bi-chat-dots-fill"></i> Contacter le vendeur
+            </button>
+          } @else if (a._acces?.niveau === 'proprietaire' && !isAdmin()) {
+            <!-- Propriétaire -->
+            <div class="owner-panel">
+              <div class="owner-panel__header">
+                <i class="bi bi-person-check"></i>
+                <span>Gestion de mon annonce</span>
+              </div>
+              
+              <div class="owner-panel__status">
+                <span class="status-badge status-badge--{{ a.statut.toLowerCase() }}">
+                  {{ getStatutLabel(a.statut) }}
+                </span>
+              </div>
+              
+              @if (a.statut === 'PENDING') {
+                <button class="btn-modern btn-modern--success btn-modern--full" (click)="publierVendor()">
+                  <i class="bi bi-check-circle"></i> Publier maintenant
+                </button>
+                <button class="btn-modern btn-modern--outline btn-modern--full" (click)="onEditAnnonce(a.id)">
+                  <i class="bi bi-pencil"></i> Modifier
+                </button>
+                <button class="btn-modern btn-modern--danger btn-modern--full" (click)="supprimer()">
+                  <i class="bi bi-trash"></i> Supprimer
+                </button>
+                <p class="owner-panel__hint">
+                  <i class="bi bi-hourglass-split"></i> En attente de validation
+                </p>
+              }
+              
+              @if (a.statut === 'PUBLISHED') {
+                @if (a.date_validation && a.validee_par) {
+                  <div class="owner-panel__validation">
+                    <i class="bi bi-patch-check"></i>
+                    Validée {{ a.date_validation | relativeTime }}
+                  </div>
+                }
+                <p class="owner-panel__hint owner-panel__hint--success">
+                  <i class="bi bi-check-circle-fill"></i> Annonce publiée et visible
+                </p>
+                <button class="btn-modern btn-modern--outline btn-modern--full" (click)="archiverVendor()">
+                  <i class="bi bi-archive"></i> Archiver
+                </button>
+              }
+              
+              @if (a.statut === 'REJECTED') {
+                @if (a.motif_rejet) {
+                  <div class="owner-panel__reject-reason">
+                    <i class="bi bi-exclamation-triangle"></i> {{ a.motif_rejet }}
+                  </div>
+                }
+                <button class="btn-modern btn-modern--primary btn-modern--full" (click)="onEditAnnonce(a.id)">
+                  <i class="bi bi-pencil"></i> Corriger et resoumettre
+                </button>
+              }
+              
+              @if (a.statut === 'ARCHIVED') {
+                <p class="owner-panel__hint">
+                  <i class="bi bi-archive"></i> Annonce archivée
+                </p>
+              }
+            </div>
+          } @else if (isAdmin() || isManager()) {
+            <!-- Admin / Manager -->
+            <div class="admin-panel">
+              <div class="admin-panel__header">
+                <i class="bi bi-shield-check"></i>
+                <span>Administration</span>
+              </div>
+              
+              <div class="admin-panel__status">
+                <span class="status-badge status-badge--{{ a.statut.toLowerCase() }}">
+                  {{ getStatutLabel(a.statut) }}
+                </span>
+              </div>
+              
+              @if (a.statut === 'PENDING') {
+                <button class="btn-modern btn-modern--success btn-modern--full" (click)="publierVendor()">
+                  <i class="bi bi-check-circle"></i> Publier
+                </button>
+                <button class="btn-modern btn-modern--outline btn-modern--full" (click)="onEditAnnonce(a.id)">
+                  <i class="bi bi-pencil"></i> Modifier
+                </button>
+                <button class="btn-modern btn-modern--warning btn-modern--full" (click)="onRejectAnnonce(a)">
+                  <i class="bi bi-x-circle"></i> Rejeter
+                </button>
+              }
+              
+              @if (a.statut === 'PUBLISHED') {
+                <p class="admin-panel__hint admin-panel__hint--success">
+                  <i class="bi bi-check-circle-fill"></i> Annonce publiée
+                </p>
+                <button class="btn-modern btn-modern--outline btn-modern--full" (click)="archiverVendor()">
+                  <i class="bi bi-archive"></i> Archiver
+                </button>
+              }
+              
+              <button class="btn-modern btn-modern--danger btn-modern--full" (click)="supprimer()">
+                <i class="bi bi-trash"></i> Supprimer définitivement
+              </button>
+            </div>
+          }
+        </div>
+        
+        <!-- ── Motif de rejet (si applicable) ────────────────────────────── -->
+        @if (a.statut === 'REJECTED' && a.motif_rejet) {
+          <div class="sidebar-card-modern sidebar-card-modern--reject">
+            <div class="reject-header">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <span>Annonce rejetée</span>
+            </div>
+            <p class="reject-message">{{ a.motif_rejet }}</p>
+          </div>
+        }
+        
+        <!-- ── Conversations ─────────────────────────────────────────────── -->
+        @if (a._acces?.niveau === 'proprietaire') {
+          <div class="sidebar-card-modern sidebar-card-modern--conversations">
+            <app-conversation-list
+              [annonceId]="annonceId"
+              [isOwner]="isOwner()"
+              [currentUser]="user()?.username || ''">
+            </app-conversation-list>
+          </div>
+        }
+        
+        @if ((a._acces?.niveau === 'premium' || a._acces?.niveau !== 'admin' || a._acces?.niveau !== 'proprietaire') 
+            && a._acces?.niveau !== 'gratuit') {
+          <div class="sidebar-card-modern sidebar-card-modern--conversations">
+            <div class="conversation-header">
+              <i class="bi bi-chat-dots"></i>
+              <span>Votre conversation</span>
+            </div>
+            <app-purchaser-conversation [annonceId]="annonceId" />
+          </div>
+        }
+        
+      </div>
+      
+    </div>
+  }
+</div>
+
+<!-- ── Modale galerie plein écran ───────────────────────────────────── -->
+@if (fullscreenGalleryOpen()) {
+  <div class="fullscreen-gallery" @fadeIn>
+    <button class="fullscreen-gallery__close" (click)="closeFullscreenGallery()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+    
+    <div class="fullscreen-gallery__content">
+      <div class="fullscreen-gallery__slides"
+           [style.transform]="'translateX(-' + (fullscreenSlideIndex() * 100) + '%)'">
+        @for (slide of gallerySlides(); track slide.url) {
+          <div class="fullscreen-gallery__slide">
+            <img [src]="slide.url" [alt]="slide.alt" class="fullscreen-gallery__image">
+            @if (slide.caption) {
+              <div class="fullscreen-gallery__caption">{{ slide.caption }}</div>
+            }
+          </div>
+        }
+      </div>
+      
+      @if (gallerySlides().length > 1) {
+        <button class="fullscreen-gallery__arrow fullscreen-gallery__arrow--prev"
+                (click)="fullscreenPrevious()">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="fullscreen-gallery__arrow fullscreen-gallery__arrow--next"
+                (click)="fullscreenNext()">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        
+        <div class="fullscreen-gallery__counter">
+          {{ fullscreenSlideIndex() + 1 }} / {{ gallerySlides().length }}
+        </div>
+        
+        <div class="fullscreen-gallery__thumbnails">
+          @for (slide of gallerySlides(); track slide.url; let i = $index) {
+            <button class="fullscreen-gallery__thumbnail"
+                    [class.active]="i === fullscreenSlideIndex()"
+                    (click)="fullscreenGoTo(i)">
+              <img [src]="slide.url" [alt]="slide.alt">
+            </button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}

@@ -1,0 +1,405 @@
+<div class="neg-modal">
+
+  <!-- ══ Header ═══════════════════════════════════════════════════════════ -->
+  <div class="neg-modal__header">
+    <div class="neg-modal__header-left">
+      <i class="bi bi-currency-exchange neg-modal__icon"></i>
+      <div>
+        <h3 class="neg-modal__title">
+          Négociation — {{ reservation.parcelle_numero }}
+        </h3>
+        <p class="neg-modal__sub">{{ reservation.lotissement_nom }}</p>
+      </div>
+    </div>
+    <button class="neg-modal__close" (click)="fermer()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- ══ Corps ════════════════════════════════════════════════════════════ -->
+  <div class="neg-modal__body">
+
+    <!-- ── Info réservation ──────────────────────────────────────────────── -->
+    <div class="neg-resa-info">
+      <div class="neg-resa-info__row">
+        <span class="neg-label me-2">Statut réservation:</span>
+        <span class="neg-value">
+          <span class="neg-badge neg-badge--{{ 
+          reservation.statut === 'NEGOCIATION' ? 'warning' : 'pending' 
+          }}">
+            {{ reservation.statut === 'NEGOCIATION' ? 'En négociation' : 'En attente' }}
+          </span>
+        </span>
+      </div>
+      <div class="neg-resa-info__row">
+        <span class="neg-label me-2">Expire le:</span>
+        <span class="neg-value"
+              [class.text-danger]="reservation.jours_restants <= 1">
+          {{ reservation.expire_le | date:'dd/MM/yyyy' }}
+          ({{ reservation.jours_restants }} 
+          jour{{ reservation.jours_restants >= 1 ? 's' : '' }})
+        </span>
+      </div>
+      <div class="neg-resa-info__row">
+        <span class="neg-label me-2">Crédits débités:</span>
+        <span class="neg-value">
+          <i class="bi bi-coin me-1 text-warning"></i>
+          {{ reservation.credits_debites }} cr.
+        </span>
+      </div>
+      <div class="neg-resa-info__row">
+        <span class="neg-label me-2">Parcelle:</span>
+        <span class="neg-value">{{ reservation.parcelle_numero }}</span>
+      </div>
+    </div>
+
+    @if (success()) {
+      <div class="cam-alert cam-alert--success">
+        <i class="bi bi-check-circle-fill me-2"></i>{{ success() }}
+      </div>
+    }
+    @if (error()) {
+      <div class="cam-alert cam-alert--error">
+        <i class="bi bi-exclamation-circle-fill me-2"></i>{{ error() }}
+      </div>
+    }
+
+    <!-- ── Chargement ─────────────────────────────────────────────────────── -->
+    @if (loading()) {
+      <div class="neg-loading">
+        <span class="spinner-border spinner-border-sm text-success"></span>
+        Chargement des offres…
+      </div>
+    }
+
+    <!-- ── Erreur ─────────────────────────────────────────────────────────── -->
+    @if (error()) {
+      <div class="neg-alert neg-alert--danger">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+      </div>
+    }
+
+    <!-- ── Historique des offres ──────────────────────────────────────────── -->
+    @if (!loading() && offres().length > 0) {
+      <div class="neg-historique">
+        <h4 class="neg-section-title">
+          <i class="bi bi-clock-history"></i> Historique des échanges
+        </h4>
+        <div class="neg-timeline">
+          @for (offre of offres(); track offre.id) {
+            <div class="neg-timeline-item"
+                 [class.neg-timeline-item--active]="offre.statut === 'EN_ATTENTE'
+                                                 || offre.statut === 'CONTRE_PROPOSEE'">
+              <div class="neg-timeline-dot"></div>
+              <div class="neg-timeline-content">
+                <div class="neg-timeline-header">
+                  <!-- Qui a fait cette offre -->
+                  <span class="neg-timeline-actor">
+                    <i class="bi bi-person-fill-gear"></i> {{ offre.vendeur_nom }}
+                    <span class="neg-timeline-arrow">→</span>
+                    <i class="bi bi-person-fill"></i> {{ offre.client_nom }}
+                  </span>
+                  <span [class]="'neg-badge ' + STATUT_CLASSES[offre.statut]">
+                    {{ STATUT_LABELS[offre.statut] }}
+                  </span>
+                  <span class="neg-timeline-date">Tour {{ offre.tour }}</span>
+                </div>
+
+                <!-- Prix du vendor -->
+                <div class="neg-timeline-prix">
+                  <span class="neg-prix-label">Offre vendeur :</span>
+                  <strong class="neg-prix-value">
+                    {{ formatPrix(offre.prix_vendeur) }}
+                  </strong>
+                </div>
+
+                <!-- Contre-proposition du client (si existante) -->
+                @if (offre.prix_client) {
+                  <div class="neg-timeline-prix neg-timeline-prix--client">
+                    <span class="neg-prix-label">Contre-offre client :</span>
+                    <strong class="neg-prix-value neg-prix-value--contre">
+                      {{ formatPrix(offre.prix_client) }}
+                    </strong>
+                  </div>
+                }
+
+                <!-- Prix final accepté -->
+                @if (offre.prix_final) {
+                  <div class="neg-timeline-prix neg-timeline-prix--final">
+                    <i class="bi bi-check-circle-fill text-success me-1"></i>
+                    <span class="neg-prix-label">Prix final accepté :</span>
+                    <strong class="neg-prix-value neg-prix-value--final">
+                      {{ formatPrix(offre.prix_final) }}
+                    </strong>
+                  </div>
+                }
+
+                <div class="neg-timeline-meta">
+                  <span class="neg-timeline-date-small">
+                    {{ offre.created_at | date:'dd/MM/yyyy à HH:mm' }}
+                  </span>
+                  @if (offre.expire_le && 
+                      (offre.statut === 'EN_ATTENTE' || offre.statut === 'CONTRE_PROPOSEE')
+                      ) 
+                  {
+                    <span class="neg-timeline-expiry">
+                      Expire le {{ offre.expire_le | date:'dd/MM/yyyy' }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Aucune offre ────────────────────────────────────────────────────── -->
+    @if (!loading() && offres().length === 0) {
+      <div class="neg-empty">
+        <i class="bi bi-chat-dots"></i>
+        <p>
+          @if (estVendeur()) {
+            Aucune offre envoyée. Initiez la négociation en proposant un prix.
+          } @else {
+            En attente de la proposition de prix du vendeur.
+          }
+        </p>
+      </div>
+    }
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         ZONE D'ACTION — VENDOR
+         ════════════════════════════════════════════════════════════════════ -->
+    @if (estVendeur()) {
+
+      <!-- CAS A : Pas d'offre active → vendor peut en créer une -->
+      @if (peutFaireOffreVendeur()) {
+        <div class="neg-action-zone">
+          <h4 class="neg-section-title">
+            <i class="bi bi-send-fill"></i>
+            Proposer un prix de vente
+          </h4>
+          <p class="neg-action-hint">
+            Entrez votre prix de vente en XAF/m². 
+            Le client pourra accepter ou faire une contre-offre.
+          </p>
+          <div class="neg-prix-input">
+            <label class="neg-label" for="prixPropose">Prix proposé (XAF/m²)</label>
+            <div class="neg-input-group">
+              <input id="prixPropose" type="number" class="neg-input"
+                     placeholder="ex. 50000" min="1"
+                     [ngModel]="prixPropose()"
+                     (ngModelChange)="prixPropose.set($event)" />
+              <span class="neg-input-unit">XAF/m²</span>
+            </div>
+          </div>
+          <button class="neg-btn neg-btn--primary"
+                  [disabled]="!prixPropose() || (prixPropose() ?? 0) <= 0 || loadingAction()"
+                  (click)="faireOffreVendeur()">
+            @if (loadingAction()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+            } @else {
+              <i class="bi bi-send me-2"></i>
+            }
+            Envoyer l'offre au client
+          </button>
+        </div>
+      }
+
+      <!-- CAS B : Offre EN_ATTENTE → le vendor attend la réponse du client -->
+      @if (vendeurEnAttenteReponse()) {
+        <div class="neg-waiting">
+          <i class="bi bi-hourglass-split"></i>
+          <div>
+            <p>Votre offre de <strong>{{ formatPrix(offreActive()!.prix_vendeur) }}</strong>
+               a été envoyée au client.</p>
+            <p class="neg-waiting-sub">En attente de sa réponse…</p>
+          </div>
+        </div>
+      }
+
+      <!-- CAS C : CONTRE_PROPOSEE → le client a contre-proposé, vendor répond -->
+      @if (peutVendeurRepondreContreOffreClient()) {
+        <div class="neg-action-zone neg-action-zone--contre">
+          <h4 class="neg-section-title">
+            <i class="bi bi-reply-all-fill"></i>
+            Contre-offre reçue du client
+          </h4>
+          <div class="neg-offre-recue">
+            <div class="neg-prix-row">
+              <span class="neg-prix-label">Votre offre initiale :</span>
+              <strong class="neg-prix-value">
+                {{ formatPrix(offreActive()!.prix_vendeur) }}
+              </strong>
+            </div>
+            <div class="neg-prix-row neg-prix-row--highlight">
+              <span class="neg-prix-label">Contre-offre client :</span>
+              <strong class="neg-prix-value neg-prix-value--contre">
+                {{ formatPrix(offreActive()!.prix_client) }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="neg-action-btns">
+            <!-- Accepter la contre-offre client → attribution -->
+            <button class="neg-btn neg-btn--success"
+                    [disabled]="loadingAction()"
+                    (click)="vendeurAccepterOffreClient()">
+              @if (loadingAction()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+              }
+              <i class="bi bi-check-circle me-1"></i>
+              Accepter cette contre-offre
+            </button>
+          </div>
+
+          <div class="neg-separator">ou</div>
+
+          <!-- Contre-proposer à nouveau -->
+          <div class="neg-prix-input">
+            <label class="neg-label" for="prixVendeurContrePropose">
+              Votre nouvelle proposition (XAF/m²)
+            </label>
+            <div class="neg-input-group">
+              <input id="prixVendeurContrePropose" type="number" class="neg-input"
+                     placeholder="ex. 45000" min="1"
+                     [ngModel]="prixContrePropose()"
+                     (ngModelChange)="prixContrePropose.set($event)" />
+              <span class="neg-input-unit">XAF/m²</span>
+            </div>
+          </div>
+          <button class="neg-btn neg-btn--primary"
+                  [disabled]="!prixContrePropose() 
+                              || (prixContrePropose() ?? 0) <= 0 
+                              || loadingAction()"
+                  (click)="vendeurContreProposer()">
+            <i class="bi bi-reply me-1"></i>
+            Envoyer ma nouvelle proposition
+          </button>
+
+          <p class="neg-action-hint text-muted mt-3">
+            <i class="bi bi-info-circle me-1"></i>
+            En acceptant la contre-offre d'un client, la parcelle lui est automatiquement
+            attribuée et les autres candidats reçoivent 
+            un remboursement de 40% de leurs crédits.
+          </p>
+        </div>
+      }
+    }
+
+    <!-- ════════════════════════════════════════════════════════════════════
+         ZONE D'ACTION — ACHETEUR (PURCHASER)
+         Données loguées : offre EN_ATTENTE à 50 000 XAF/m² → cette zone s'affiche
+         ════════════════════════════════════════════════════════════════════ -->
+    @if (estAcheteur()) {
+
+      <!-- CAS A : Offre EN_ATTENTE du vendor → acheteur doit répondre -->
+      @if (peutAcheteurRepondreOffreVendeur()) {
+        <div class="neg-action-zone neg-action-zone--acheteur">
+          <h4 class="neg-section-title">
+            <i class="bi bi-currency-exchange"></i>
+            Offre reçue du vendeur
+          </h4>
+          <div class="neg-offre-recue">
+            <div class="neg-prix-row neg-prix-row--highlight">
+              <span class="neg-prix-label">
+                <i class="bi bi-person-fill-gear me-1"></i>
+                {{ offreActive()?.vendeur_nom }} propose :
+              </span>
+              <strong class="neg-prix-value">
+                {{ formatPrix(offreActive()!.prix_vendeur) }}
+              </strong>
+            </div>
+            @if (offreActive()?.type_prix === 'PAR_M2') {
+              <p class="neg-hint-m2">
+                <i class="bi bi-info-circle me-1"></i>
+                Prix au m² — montant total selon la superficie de la parcelle.
+              </p>
+            }
+          </div>
+
+          <!-- Accepter l'offre directement -->
+          <div class="neg-action-btns">
+            <button class="neg-btn neg-btn--success neg-btn--lg"
+                    [disabled]="loadingAction()"
+                    (click)="acheteurAccepterOffreVendeur()">
+              @if (loadingAction()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+              }
+              <i class="bi bi-check-circle me-1"></i>
+              Accepter l'offre du vendeur
+            </button>
+          </div>
+
+          <div class="neg-separator">ou négocier le prix</div>
+
+          <!-- Faire une contre-proposition -->
+          <div class="neg-prix-input">
+            <label class="neg-label" for="prixClientContrePropose">
+              Votre contre-proposition (XAF/m²)
+            </label>
+            <div class="neg-input-group">
+              <input id="prixClientContrePropose" type="number" class="neg-input"
+                     placeholder="ex. 40000" min="1"
+                     [ngModel]="prixContrePropose()"
+                     (ngModelChange)="prixContrePropose.set($event)" />
+              <span class="neg-input-unit">XAF/m²</span>
+            </div>
+            @if (prixContrePropose() && offreActive()?.prix_vendeur) {
+              @if (prixContrePropose()! >= offreActive()!.prix_vendeur) {
+                <span class="neg-input-warn">
+                  <i class="bi bi-exclamation-triangle me-1"></i>
+                  Votre prix est supérieur ou égal à l'offre — préférez accepter directement.
+                </span>
+              }
+            }
+          </div>
+          <button class="neg-btn neg-btn--outline"
+                  [disabled]="!prixContrePropose() 
+                              || (prixContrePropose() ?? 0) <= 0 
+                              || loadingAction()"
+                  (click)="acheteurContreProposer()">
+            <i class="bi bi-reply me-1"></i>
+            Envoyer ma contre-proposition
+          </button>
+
+          <p class="neg-action-hint text-muted mt-3">
+            <i class="bi bi-info-circle me-1"></i>
+            Si vous refusez et que la négociation échoue,
+            <strong>35% de vos crédits vous seront restitués</strong>.
+            L'offre expire le {{ offreActive()?.expire_le | date:'dd/MM/yyyy' }}.
+          </p>
+        </div>
+      }
+
+      <!-- CAS B : Aucune offre → attendre le vendor -->
+      @if (acheteurEnAttenteOffre()) {
+        <div class="neg-waiting">
+          <i class="bi bi-hourglass-split"></i>
+          <div>
+            <p>En attente de la proposition de prix du vendeur.</p>
+            <p class="neg-waiting-sub">
+              Le vendeur a été notifié de votre réservation. 
+              Il prendra contact prochainement.
+            </p>
+          </div>
+        </div>
+      }
+
+    }
+
+  </div>
+
+  <!-- ══ Footer ════════════════════════════════════════════════════════════ -->
+  <div class="neg-modal__footer">
+    <button class="neg-btn neg-btn--ghost" (click)="fermer()">
+      Fermer
+    </button>
+    <span class="neg-footer-hint">
+      <i class="bi bi-clock me-1"></i>
+      Réservation valide jusqu'au {{ reservation.expire_le | date:'dd/MM/yyyy' }}
+    </span>
+  </div>
+
+</div>

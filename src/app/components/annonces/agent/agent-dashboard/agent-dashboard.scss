@@ -1,0 +1,694 @@
+// agent-dashboard.scss ════════════════════════════════════════════════════════
+
+$green:   #008753;
+$green-l: #E8F5EE;
+$dark:    #111827;
+$gray:    #6B7280;
+$gray-l:  #F3F4F6;
+$gray-m:  #E5E7EB;
+$white:   #ffffff;
+$danger:  #EF4444;
+$orange:  #F59E0B;
+$red:     #DC2626;
+
+// ── Wrap ──────────────────────────────────────────────────────────────────
+.ag-wrap {
+  max-width:  1400px;
+  margin:     0 auto;
+  padding:    1.5rem 1.5rem 3rem;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────
+.ag-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  flex-wrap:       wrap;
+  gap:             12px;
+  margin-bottom:   1.5rem;
+
+  &__left    { display: flex; align-items: center; gap: 16px; }
+  &__icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: $green-l; color: $green; font-size: 1.4rem;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  &__title {
+    font-size: 1.25rem; font-weight: 700; color: $dark; margin: 0 0 2px;
+  }
+  &__sub { font-size: 0.8rem; color: $gray; margin: 0; }
+}
+
+.ag-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+// ── Stats Cards ───────────────────────────────────────────────────────────
+.ag-stats {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   16px;
+  margin-bottom:         1.5rem;
+}
+
+.ag-stat-card {
+  display:       flex;
+  align-items:   center;
+  gap:           14px;
+  padding:       16px 18px;
+  background:    $white;
+  border-radius: 12px;
+  box-shadow:    0 1px 3px rgba(0,0,0,0.04);
+  border:        1px solid $gray-m;
+  transition:    all 0.15s;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+
+  &__icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  &__val {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $dark;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  &__lbl {
+    font-size: 0.72rem;
+    color: $gray;
+    margin: 0;
+    //text-transform: uppercase;
+    //letter-spacing: 0.02em;
+  }
+
+  &--attente  { .ag-stat-card__icon { color: $orange; } }
+  &--traitees { .ag-stat-card__icon { color: #3B82F6; } }
+  &--approuvees { .ag-stat-card__icon { color: $green; } }
+  &--signalees  { .ag-stat-card__icon { color: $red; } }
+}
+
+// ── Body (layout principal) ───────────────────────────────────────────────
+.ag-body {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+
+  &--split {
+    .ag-list {
+      flex: 1;
+    }
+    .ag-verdict {
+      width: 490px;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// ── Liste des tickets ─────────────────────────────────────────────────────
+.ag-list {
+  flex: 1;
+  min-width: 0;
+}
+
+// Tabs
+.ag-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid $gray-m;
+  padding-bottom: 8px;
+}
+
+.ag-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $gray;
+  background: none;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: $gray-l;
+    color: $dark;
+  }
+
+  &--active {
+    color: $green;
+    background: $green-l;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: $gray-m;
+    color: $gray;
+    border-radius: 10px;
+    margin-left: 4px;
+
+    &--cours {
+      background: #FEF3C7;
+      color: #92400E;
+    }
+  }
+}
+
+// Loading
+.ag-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 3rem;
+  color: $gray;
+  font-size: 0.9rem;
+}
+
+// Empty state
+.ag-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background: $white;
+  border-radius: 12px;
+  border: 1px dashed $gray-m;
+
+  &__icon {
+    font-size: 2.5rem;
+    color: $gray-m;
+    margin-bottom: 12px;
+  }
+
+  p {
+    font-weight: 600;
+    color: $dark;
+    margin: 0 0 6px;
+  }
+
+  span {
+    font-size: 0.8rem;
+    color: $gray;
+  }
+}
+
+// Liste des tickets
+.ag-ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ag-ticket {
+  display: flex;
+  align-items: stretch;
+  background: $white;
+  border: 1px solid $gray-m;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: $green;
+    box-shadow: 0 2px 8px rgba(0,135,83,0.08);
+  }
+
+  &--active {
+    border-color: $green;
+    box-shadow: 0 0 0 2px rgba(0,135,83,0.15);
+  }
+
+  &--cours {
+    background: #FFFBEB;
+    border-color: #FCD34D;
+  }
+
+  &__photo {
+    position: relative;
+    width: 100px;
+    flex-shrink: 0;
+    background: $gray-l;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__no-photo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: $gray-m;
+  }
+
+  &__body {
+    flex: 1;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  &__titre {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: $dark;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__loc {
+    font-size: 0.75rem;
+    color: $gray;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    i { font-size: 0.7rem; }
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  &__prix {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: $green;
+  }
+
+  &__type {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    background: $gray-l;
+    border-radius: 20px;
+    color: $gray;
+  }
+
+  &__action {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    flex-shrink: 0;
+  }
+}
+
+// Badges
+.ag-overflow-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: $orange;
+  color: white;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.ag-cours-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  background: $orange;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.2);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.ag-overflow-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  background: #FEF3C7;
+  color: #92400E;
+  border-radius: 4px;
+}
+
+// ── Panneau de verdict ────────────────────────────────────────────────────
+.ag-verdict {
+  background: $white;
+  border: 1px solid $gray-m;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid $gray-m;
+  }
+
+  &__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $dark;
+    margin: 0;
+  }
+
+  &__close {
+    background: none;
+    border: none;
+    color: $gray;
+    font-size: 1rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      background: $gray-l;
+      color: $dark;
+    }
+  }
+
+  &__annonce {
+    padding: 20px;
+    border-bottom: 1px solid $gray-m;
+  }
+
+  &__photo {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    background: $gray-l;
+  }
+
+  &__annonce-titre {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $dark;
+    margin: 0 0 14px;
+    line-height: 1.4;
+  }
+
+  &__meta-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__meta-row {
+    display: flex;
+    align-items: baseline;
+    font-size: 0.85rem;
+
+    span:last-child {
+      color: $dark;
+      font-weight: 500;
+    }
+  }
+
+  &__meta-lbl {
+    width: 100px;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $gray;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  &__field {
+    padding: 16px 20px;
+    border-bottom: 1px solid $gray-m;
+
+    &:last-of-type {
+      border-bottom: none;
+    }
+  }
+
+  &__label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $dark;
+    margin-bottom: 8px;
+
+    i { color: $gray; margin-right: 4px; }
+  }
+
+  &__hint {
+    padding: 12px 20px;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    font-size: 0.8rem;
+    border-bottom: 1px solid $gray-m;
+
+    i { margin-right: 6px; }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 10px;
+    padding: 16px 20px;
+  }
+
+  &__footer-hint {
+    padding: 12px 20px;
+    margin: 0;
+    font-size: 0.75rem;
+    color: $gray;
+    background: $gray-l;
+    border-top: 1px solid $gray-m;
+
+    i { margin-right: 4px; }
+  }
+}
+
+// Champs de formulaire
+.ag-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  color: $dark;
+  background: $white;
+  border: 1.5px solid $gray-m;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &:focus {
+    border-color: $green;
+  }
+
+  &--textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+}
+
+.ag-optional {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: $gray;
+  margin-left: 6px;
+  text-transform: none;
+}
+
+.ag-required {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: $red;
+  margin-left: 6px;
+  text-transform: none;
+}
+
+.ag-error {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: $red;
+}
+
+// ── Boutons ───────────────────────────────────────────────────────────────
+.ag-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+
+  &--ghost {
+    background: $white;
+    color: $gray;
+    border: 1px solid $gray-m;
+
+    &:hover:not(:disabled) {
+      background: $gray-l;
+      color: $dark;
+    }
+  }
+
+  &--outline {
+    background: transparent;
+    color: $green;
+    border: 1.5px solid $green;
+
+    &:hover:not(:disabled) {
+      background: $green-l;
+    }
+  }
+
+  &--full {
+    width: 100%;
+  }
+
+  &--sm {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+  }
+
+  &--approve {
+    flex: 1;
+    background: $green;
+    color: $white;
+
+    &:hover:not(:disabled) {
+      background: darken($green, 8%);
+    }
+  }
+
+  &--signal {
+    flex: 1;
+    background: $white;
+    color: $red;
+    border: 1.5px solid $red;
+
+    &:hover:not(:disabled) {
+      background: #FEF2F2;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────
+@media (max-width: 1024px) {
+  .ag-body--split {
+    flex-direction: column;
+
+    .ag-verdict {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .ag-wrap {
+    padding: 1rem 1rem 2rem;
+  }
+
+  .ag-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .ag-ticket {
+    flex-wrap: wrap;
+
+    &__photo {
+      width: 100%;
+      height: 140px;
+    }
+
+    &__action {
+      width: 100%;
+      padding: 10px 14px;
+      border-top: 1px solid $gray-m;
+
+      .ag-btn {
+        width: 100%;
+      }
+    }
+  }
+
+  .ag-verdict__actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .ag-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .ag-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .ag-tabs {
+    .ag-tab {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+}

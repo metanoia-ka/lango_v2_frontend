@@ -1,0 +1,74 @@
+<div class="prem-wrap">
+  <div class="prem-header">
+    <div class="prem-header-icon" style="background:#fff8e1;color:#b45309">
+      <i class="bi bi-calendar-check-fill"></i>
+    </div>
+    <div>
+      <h5 class="prem-title">Mes réservations</h5>
+      <span class="prem-sub">Parcelles réservées exclusivement pour vous</span>
+    </div>
+  </div>
+ 
+  @if (isLoading()) {
+    <div class="prem-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement…</span>
+    </div>
+  } @else if (reservations().length === 0) {
+    <div class="prem-empty">
+      <i class="bi bi-calendar-x"></i>
+      <p>Aucune réservation active.</p>
+      <span class="prem-empty-hint">
+        Réservez une parcelle depuis sa fiche (25 crédits / 7 jours).
+      </span>
+    </div>
+  } @else {
+    <div class="prem-list">
+      @for (r of reservations(); track r.id) {
+        <div class="prem-card" [class.prem-card--inactive]="!r.est_active">
+ 
+          <div class="prem-card-left">
+            <div class="prem-card-icon" style="background:#fff8e1;color:#b45309">
+              <i class="bi bi-geo-alt-fill"></i>
+            </div>
+            <div class="prem-card-info">
+              <span class="prem-card-title">Parcelle {{ r.parcelle_numero }}</span>
+              <span class="prem-card-meta">
+                <i class="bi bi-clock me-1"></i>
+                {{ r.created_at | relativeTime }}
+              </span>
+              @if (r.est_active) {
+                <span class="prem-card-meta prem-urgence"
+                      [class.prem-urgence--warn]="r.heures_restantes < 24">
+                  <i class="bi bi-hourglass-split me-1"></i>
+                  {{ r.heures_restantes }}h restantes
+                </span>
+              }
+            </div>
+          </div>
+ 
+          <div class="prem-card-right">
+            <span class="prem-badge" [class]="getStatutClass(r.statut)">
+              {{ r.statut_label }}
+            </span>
+            <span class="prem-card-duree">{{ r.duree_jours }} jours</span>
+            @if (r.est_active) {
+              <button class="prem-btn-danger"
+                      [disabled]="annulant() === r.id"
+                      (click)="annuler(r)"
+                      ngbTooltip="Annuler la réservation" placement="top" triggers="hover">
+                @if (annulant() === r.id) {
+                  <span class="spinner-border spinner-border-sm"></span>
+                } @else {
+                  <i class="bi bi-x-circle"></i>
+                }
+                Annuler
+              </button>
+            }
+          </div>
+ 
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,152 @@
+<!-- role-list.html — redesign -->
+<div class="al-page mt-5">
+
+  <!-- ══════════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════════ -->
+  <div class="al-header">
+    <div class="al-header__left">
+      <div class="al-header__icon al-header__icon--gold">
+        <i class="bi bi-shield-fill-check"></i>
+      </div>
+      <div>
+        <h1 class="al-header__title">Rôles</h1>
+        <p class="al-header__sub">Gestion des permissions et des profils d'accès</p>
+      </div>
+    </div>
+    <button class="al-btn al-btn--primary" (click)="onCreateNewRole($event)">
+      <i class="bi bi-plus-circle-fill"></i>
+      Nouveau rôle
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       ALERTES
+  ══════════════════════════════════════════════ -->
+  @if (successMessage) {
+    <app-alert type="info" title="Information !"
+               [autoClose]="true" [autoCloseDelay]="4000"
+               (onClose)="clearSuccessMessage()">
+      <p class="mb-0 small">{{ successMessage }}</p>
+    </app-alert>
+  } @else if (errorMessage) {
+    <app-alert [type]="responseType" title="Erreur" (onClose)="clearErrorMessage()">
+      <p class="mb-0 small">{{ errorMessage }}</p>
+    </app-alert>
+  }
+
+  <!-- ══════════════════════════════════════════════
+       LOADING
+  ══════════════════════════════════════════════ -->
+  @if (isLoading) {
+    <div class="al-table-wrap">
+      <table class="al-table">
+        <thead>
+          <tr>
+            <th>Rôle</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (_ of [1,2,3]; track $index) {
+            <tr>
+              <td><div class="al-skeleton al-skeleton--text al-skeleton--short"></div></td>
+              <td><div class="al-skeleton al-skeleton--text"></div></td>
+              <td><div class="al-skeleton al-skeleton--text al-skeleton--short"></div></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════
+       EMPTY STATE
+  ══════════════════════════════════════════════ -->
+  @if (!isLoading && roles.length === 0) {
+    <div class="al-empty">
+      <div class="al-empty__icon al-empty__icon--gold">
+        <i class="bi bi-shield-exclamation"></i>
+      </div>
+      <h3 class="al-empty__title">Aucun rôle défini</h3>
+      <p class="al-empty__text">
+        Aucun rôle n'a encore été configuré.
+        Créez des rôles pour contrôler les accès de vos utilisateurs.
+      </p>
+      <button class="al-btn al-btn--primary" (click)="onCreateNewRole($event)">
+        <i class="bi bi-plus-circle-fill"></i> Créer un rôle
+      </button>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════
+       TABLEAU
+  ══════════════════════════════════════════════ -->
+  @if (!isLoading && roles.length > 0) {
+
+    <!-- Compteur -->
+    <div class="al-toolbar">
+      <span class="al-count">
+        <i class="bi bi-shield-fill-check"></i>
+        {{ roles.length }} rôle{{ roles.length > 1 ? 's' : '' }}
+      </span>
+    </div>
+
+    <div class="al-table-wrap">
+      <table class="al-table">
+        <thead>
+          <tr>
+            <th>Rôle</th>
+            <th>Description</th>
+            <th class="al-table__actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (role of roles; track role.id) {
+            <tr class="al-table__row">
+
+              <!-- Nom du rôle avec icône bouclier -->
+              <td>
+                <div class="al-role-cell">
+                  <div class="al-role-icon">
+                    <i class="bi bi-shield-fill"></i>
+                  </div>
+                  <span class="al-role-cell__name">{{ role.name }}</span>
+                </div>
+              </td>
+
+              <!-- Description -->
+              <td class="al-role-desc">
+                @if (role.description) {
+                  {{ role.description }}
+                } @else {
+                  <span class="al-no-value">Aucune description</span>
+                }
+              </td>
+
+              <!-- Actions -->
+              <td>
+                <div class="al-actions">
+                  <button class="al-icon-btn al-icon-btn--edit"
+                          (click)="onEdit(role, $event)"
+                          title="Modifier">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
+                  <button class="al-icon-btn al-icon-btn--danger"
+                          (click)="onDelete(role)"
+                          title="Supprimer">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  }
+
+</div>

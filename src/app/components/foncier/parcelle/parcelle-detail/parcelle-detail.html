@@ -1,0 +1,192 @@
+<!-- parcelle-detail.html -->
+
+<div class="pd-modal">
+
+  <!-- ── Header ──────────────────────────────────────────── -->
+  <div class="pd-header">
+    <div class="pd-header__left">
+      <div class="pd-header__icon">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+      </div>
+      <div>
+        @if (parcelle(); as p) {
+          <h5 class="pd-header__title">{{ p.nom }}</h5>
+          <span class="pd-header__sub">N° {{ p.numero }}</span>
+        } @else {
+          <h5 class="pd-header__title">Détail parcelle</h5>
+        }
+      </div>
+    </div>
+    <button class="pd-close" (click)="activeModal.dismiss()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- ── Body ────────────────────────────────────────────── -->
+  <div class="pd-body">
+
+    @if (loading()) {
+      <div class="pd-loading">
+        <div class="pd-spinner"></div>
+        <span>Chargement…</span>
+      </div>
+    }
+
+    @if (error()) {
+      <div class="pd-alert">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+      </div>
+    }
+
+    <!-- <app-parcelle-actions 
+      [parcelleId]="parcelle.id"
+      [parcelle]="parcelle"
+      (actionEffectuee)="onActionEffectuee($event)" /> -->
+
+    @if (!loading() && parcelle(); as p) {
+
+      <div class="pd-layout">
+
+        <!-- ══ Colonne gauche : infos ══════════════════════ -->
+        <div class="pd-col-info">
+
+          <!-- Statut -->
+          <div class="pd-stat-row">
+            <span class="pd-badge" [class]="getStatutBadge(p.statut)">
+              <i class="bi bi-circle-fill me-1"></i>
+              {{ getStatutLabel(p.statut) }}
+            </span>
+          </div>
+
+          <!-- Métriques -->
+          <div class="pd-metrics">
+            <div class="pd-metric">
+              <i class="bi bi-rulers"></i>
+              <div>
+                <span class="pd-metric__val">
+                  {{ p.superficie | number:'1.0-0' }} m²
+                </span>
+                <span class="pd-metric__lbl">Superficie</span>
+              </div>
+            </div>
+            <div class="pd-metric">
+              <i class="bi bi-geo-alt-fill"></i>
+              <div>
+                <span class="pd-metric__val">{{ p.bornes.length }}</span>
+                <span class="pd-metric__lbl">Bornes</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lotissement -->
+          <div class="pd-info-block">
+            <span class="pd-info-label">
+              <i class="bi bi-grid-3x3-gap"></i> Lotissement
+            </span>
+            <span class="pd-info-value">{{ p.lotissement_nom }}</span>
+          </div>
+
+          <!-- Date -->
+          <div class="pd-info-block">
+            <span class="pd-info-label">
+              <i class="bi bi-clock"></i> Créée
+            </span>
+            <span class="pd-info-value">{{ p.created_at | relativeTime }}</span>
+          </div>
+
+          <!-- Acquéreur -->
+          @if (p.acquereur) {
+            <div class="pd-info-block">
+              <span class="pd-info-label">
+                <i class="bi bi-person-fill"></i> Acquéreur
+              </span>
+              <span class="pd-info-value">
+                {{ p.acquereur.prenom }} {{ p.acquereur.nom }}
+              </span>
+            </div>
+          }
+
+          <!-- Bornes list -->
+          @if (p.bornes.length > 0) {
+            <div class="pd-bornes-section">
+              <p class="pd-section-label">
+                <i class="bi bi-geo-alt"></i> Coordonnées des bornes
+              </p>
+              <div class="pd-bornes-list">
+                @for (b of p.bornes; track b.id) {
+                  <div class="pd-borne-row">
+                    <span class="pd-borne-num">B{{ $index + 1 }}</span>
+                    @if (b.x !== undefined && b.y !== undefined) {
+                      <span class="pd-borne-coords">
+                        X: <strong>{{ b.x | number:'1.2-2' }}</strong>
+                        &nbsp;·&nbsp;
+                        Y: <strong>{{ b.y | number:'1.2-2' }}</strong>
+                      </span>
+                    } @else if (b.point_geom) {
+                      <span class="pd-borne-coords">
+                        Lng: <strong>{{ b.point_geom.coordinates[0] | number:'1.5-5' }}</strong>
+                        &nbsp;·&nbsp;
+                        Lat: <strong>{{ b.point_geom.coordinates[1] | number:'1.5-5' }}</strong>
+                      </span>
+                    } @else {
+                      <span class="pd-borne-coords pd-borne-coords--empty">
+                        Coordonnées non disponibles
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        </div>
+
+        <!-- ══ Colonne droite : carte OpenLayers ══════════ -->
+        <div class="pd-col-map">
+          <div class="pd-map-wrap">
+
+            <!-- Légende -->
+        <!-- <div class="pf-map-legend">
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#008753"></span>Disponible
+          </span>
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#2563EB"></span>Attribuée
+          </span>
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#F59E0B"></span>Réservée
+          </span>
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#EF4444"></span>Refusée
+          </span>
+        </div> -->
+
+        <!--  -->
+
+      <div class="map-attribution">
+        © <a href="https://www.openstreetmap.org/copyright"
+             target="_blank" rel="noopener">OpenStreetMap</a> contributors
+      </div>
+
+            @if (!mapReady() && !error()) {
+              <div class="pd-map-placeholder">
+                <div class="pd-spinner pd-spinner--sm"></div>
+                <span>Initialisation de la carte…</span>
+              </div>
+            }
+            @if (!p.forme && mapReady()) {
+              <div class="pd-map-no-geom">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span>Aucune géométrie disponible</span>
+              </div>
+            }
+            <div #mapContainer class="pd-map"></div>
+          </div>
+        </div>
+
+      </div>
+    }
+
+  </div>
+
+</div>

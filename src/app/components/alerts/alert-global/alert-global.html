@@ -1,0 +1,18 @@
+<div *ngFor="let alert of alerts" [@fade] [class]="getAlertClasses()" role="alert">
+  <div class="d-flex align-items-start">
+    <i [class]="getIcon() + ' me-2 mt-1'"></i>
+    <div class="flex-grow-1">
+      <h3 class="alert-heading mb-1" *ngIf="alert.title">
+				<strong>{{ alert.title }}</strong>
+			</h3>
+      <p>{{ alert.message }}</p>
+    </div>
+  </div>
+
+	<button  
+    type="button" 
+    class="btn-close btn-close-sm" 
+    (click)="close(alert?.id)" 
+    aria-label="Close">
+  </button>
+</div>

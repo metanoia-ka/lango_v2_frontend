@@ -1,0 +1,76 @@
+$green:   #008753;
+$green-l: #E8F5EE;
+$dark:    #111827;
+$gray:    #6B7280;
+$gray-l:  #F3F4F6;
+$gray-m:  #E5E7EB;
+$white:   #ffffff;
+
+.mf-hint-action {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  margin-left: .5rem;
+  padding: .3rem .75rem;
+  background: #fff;
+  color: #d97706;
+  border: 1.5px solid #d97706;
+  border-radius: 6px;
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+
+  &:hover {
+    background: #d97706;
+    color: #fff;
+  }
+
+  i { font-size: .8rem; }
+}
+
+// ── Transaction cards ──────────────────────────────────────────────────────
+.srm-tx-grid {
+  display:               grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:                   10px;
+}
+
+.srm-tx-card {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            6px;
+  padding:        14px 10px;
+  background:     $white;
+  border:         2px solid $gray-m;
+  border-radius:  10px;
+  cursor:         pointer;
+  transition:     all 0.15s;
+  text-align:     center;
+
+  &:hover { border-color: $green; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+
+  &--active {
+    border-color: $green;
+    background:   $green-l;
+  }
+
+  &__icon {
+    font-size: 1.5rem;
+    color:     $green;
+  }
+
+  &__label {
+    font-size:   0.85rem;
+    font-weight: 700;
+    color:       $dark;
+  }
+
+  &__desc {
+    font-size: 0.72rem;
+    color:     $gray;
+    line-height: 1.3;
+  }
+}

@@ -1,0 +1,20 @@
+<div [@fade] [class]="getAlertClasses()" role="alert">
+  <div class="d-flex align-items-start">
+    <i [class]="getIcon() + ' me-2 mt-1'"></i>
+    <div class="flex-grow-1">
+      @if (title) {
+        <h6 class="alert-heading mb-1">{{ title }}</h6>
+      }
+      <ng-content></ng-content>
+    </div>
+  </div>
+  
+  @if (dismissible) {
+    <button 
+      type="button" 
+      class="btn-close btn-close-sm" 
+      (click)="close()" 
+      aria-label="Close">
+    </button>
+  }
+</div>

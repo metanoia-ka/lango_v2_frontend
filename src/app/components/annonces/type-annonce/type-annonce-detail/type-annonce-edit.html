@@ -1,0 +1,195 @@
+
+<div class="mf-header">
+  <div class="mf-header-left">
+    <div class="mf-header-icon" [class]="isEditMode 
+                ? 'mf-header-icon--edit' : 'mf-header-icon--create'">
+      <i class="bi" [class.bi-plus-lg]="!isEditMode" [class.bi-pencil-fill]="isEditMode"></i>
+    </div>
+    <div>
+      <p class="mf-header-title">
+        {{ isEditMode ? 'Modifier le type' : 'Nouveau type d\'annonce' }}
+      </p>
+      <span class="mf-header-sub">
+        {{ isEditMode 
+          ? 'Mettez à jour les informations' 
+          : 'Définissez les propriétés du type' 
+        }}
+        </span>
+    </div>
+  </div>
+  <button class="mf-close-btn" (click)="onCancel()">
+    <i class="bi bi-x-lg"></i>
+  </button>
+</div>
+
+<!-- Body -->
+<div class="mf-body">
+  @if (isLoading) {
+    <div class="mf-loading">
+      <div class="mf-spinner"></div>
+      <span>Chargement en cours…</span>
+    </div>
+  } @else {
+    <form [formGroup]="typeAnnonceForm" (ngSubmit)="onSubmit($event)">
+
+      @if (successMessage) {
+        <app-alert type="success" title="Information !" [autoClose]="true"
+                   [autoCloseDelay]="4000" (onClose)="clearSuccessMessage()">
+          <p class="mb-0 small">{{ successMessage }}</p>
+        </app-alert>
+      } @else if (errorMessage) {
+        <app-alert type="danger" title="Erreur" (onClose)="clearErrorMessage()">
+          <p class="mb-0 small">{{ errorMessage }}</p>
+        </app-alert>
+      }
+
+      <div class="row g-3">
+
+        <!-- Colonne gauche -->
+        <div class="col-lg-6">
+
+          <div class="mf-field">
+            <div class="form-floating">
+              <input type="text" id="nom" formControlName="nom" class="form-control"
+                     placeholder="Nom"
+                     [class.is-invalid]="typeAnnonceForm.get('nom')?.invalid 
+                     && typeAnnonceForm.get('nom')?.touched">
+              <label for="nom">Nom du type <span class="text-danger">*</span></label>
+              <div class="invalid-feedback">Le nom est requis.</div>
+            </div>
+          </div>
+
+          <div class="mf-field">
+            <div class="form-floating">
+              <input type="text" id="slug" formControlName="slug" class="form-control" 
+              placeholder="slug">
+              <label for="slug">Slug</label>
+            </div>
+            <span class="mf-hint">Identifiant URL (ex: "immobilier", "services")</span>
+          </div>
+
+          <div class="mf-field">
+            <div class="form-floating">
+              <textarea id="description" formControlName="description"
+                        class="form-control mf-textarea" style="height:110px"
+                        placeholder="Description"></textarea>
+              <label for="description">Description 
+                <span class="text-muted">(optionnel)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="mf-field">
+            <p class="mf-section-label">
+              <i class="bi bi-emoji-smile"></i> Icône du type
+            </p>
+            <div class="mf-icon-group input-group">
+              <span class="input-group-text">
+                <i [class]="'bi ' + (typeAnnonceForm.get('icone')?.value || 'bi-tag')"></i>
+              </span>
+              <input type="text" class="form-control" formControlName="icone"
+                     placeholder="bi-house, bi-car, bi-building…">
+            </div>
+            <span class="mf-hint">
+              <a href="https://icons.getbootstrap.com/" target="_blank">
+                <i class="bi bi-box-arrow-up-right me-1"></i>
+                Voir toutes les icônes Bootstrap
+              </a>
+            </span>
+          </div>
+
+        </div>
+
+        <!-- Colonne droite -->
+        <div class="col-lg-6">
+
+          <!-- Couleur -->
+          <div class="mf-field">
+            <p class="mf-section-label">
+              <i class="bi bi-palette"></i> Couleur <span class="req">*</span>
+            </p>
+            <div class="mf-color-palette">
+              <button *ngFor="let color of colorPalette" type="button"
+                      class="mf-color-swatch"
+                      [style.background-color]="color"
+                      [class.selected]="typeAnnonceForm.get('couleur')?.value === color"
+                      (click)="setColor(color)">
+              </button>
+            </div>
+            <input type="color" class="mf-color-picker form-control form-control-color"
+                   formControlName="couleur">
+          </div>
+
+          <!-- Ordre + statut -->
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="mf-field">
+                <div class="form-floating">
+                  <input type="number" id="ordre" class="form-control"
+                         formControlName="ordre" min="0" placeholder="0"
+                         [class.is-invalid]="typeAnnonceForm.get('ordre')?.invalid 
+                         && typeAnnonceForm.get('ordre')?.touched">
+                  <label for="ordre">Ordre <span class="text-danger">*</span></label>
+                </div>
+                <span class="mf-hint">Plus petit = affiché en premier</span>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="mf-switch-row">
+                <div class="mf-switch-info">
+                  <span class="mf-switch-title">Statut</span>
+                  <span class="mf-switch-sub">
+                    {{ typeAnnonceForm.get('actif')?.value ? 'Actif' : 'Inactif' }}
+                  </span>
+                </div>
+                <div class="form-check form-switch mb-0">
+                  <input class="form-check-input" type="checkbox"
+                         formControlName="actif" id="actif" role="switch">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aperçu -->
+          <div class="mf-preview">
+            <p class="mf-preview-label"><i class="bi bi-eye me-1"></i>Aperçu</p>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="mf-preview-badge"
+                    [style.background-color]="typeAnnonceForm.get('couleur')?.value 
+                    || '#008753'">
+                <i [class]="'bi ' + (typeAnnonceForm.get('icone')?.value || 'bi-tag')"></i>
+                {{ typeAnnonceForm.get('nom')?.value || 'Nom du type' }}
+              </span>
+              @if (!typeAnnonceForm.get('actif')?.value) {
+                <span class="badge bg-warning text-dark">
+                  <i class="bi bi-exclamation-triangle me-1"></i>Inactif
+                </span>
+              }
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </form>
+  }
+</div>
+
+<!-- Actions -->
+<div class="mf-actions">
+  <button type="button" class="mf-btn mf-btn--cancel" (click)="onCancel()">
+    <i class="bi bi-x-lg"></i> Annuler
+  </button>
+  <button type="submit" class="mf-btn mf-btn--submit"
+          [disabled]="typeAnnonceForm.invalid || isLoading"
+          (click)="onSubmit()">
+    @if (isLoading) { <span class="spinner-border spinner-border-sm"></span> }
+    @else { 
+      <i class="bi" [class.bi-plus-lg]="!isEditMode" [class.bi-floppy]="isEditMode"></i> 
+    }
+    {{ isSubmitting 
+      ? 'Enregistrement…' 
+      : (isEditMode ? 'Mettre à jour' : 'Créer le type') 
+    }}
+  </button>
+</div>

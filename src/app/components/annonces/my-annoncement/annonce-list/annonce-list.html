@@ -1,0 +1,323 @@
+
+<div class="list-wrap mt-4">
+
+  <!-- Topbar -->
+  <div class="list-topbar">
+    <h5 class="list-title">
+      <i class="bi bi-megaphone"></i>
+      Annonces disponibles
+    </h5>
+    @if (isApproved(['Admin', 'Vendor'])) {
+      <button class="btn-new" (click)="onCreate()"
+              ngbTooltip="Ajouter une annonce" placement="left" triggers="hover">
+        <i class="bi bi-plus-circle"></i> Nouvelle annonce
+      </button>
+    }
+  </div>
+
+  <app-annonce-filter
+    (filtresChange)="onFiltresChange($event)">
+  </app-annonce-filter>
+
+  <!-- Alertes -->
+  <!-- @if (successMessage) {
+    <app-alert type="success" title="Information !"
+               [autoClose]="true" [autoCloseDelay]="4000"
+               (onClose)="clearSuccessMessage()">
+      <p class="mb-0">{{ successMessage }}</p>
+    </app-alert>
+  } @else if (errorMessage) {
+    <app-alert type="danger" title="Erreur"
+               (onClose)="clearErrorMessage()">
+      <p class="mb-0">{{ errorMessage }}</p>
+    </app-alert>
+  } -->
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="list-loading">
+      <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+      <span>Chargement des annonces…</span>
+    </div>
+  }
+
+  <!-- Vide -->
+  @if (!isLoading && annonces.length === 0) {
+    <div class="list-empty">
+      <i class="bi bi-megaphone"></i>
+      <strong>Aucune annonce trouvée</strong>
+      @if(!isLoadingAuth() && !user()) {
+        <p>Cliquez sur <strong>"Nouvelle annonce"</strong> pour en créer une.</p>
+      }
+    </div>
+  }
+
+  <!-- Grille de cartes -->
+  @if (!isLoading && annonces.length > 0) {
+
+    <div class="row g-3">
+      @for (annonce of annonces; track annonce.id) {
+        <div class="col-lg-4 col-md-6">
+        <div class="annonce-card">
+
+          <!-- Image -->
+          <div class="card-img-wrap">
+            @if (annonce.image_principale) {
+              <img [src]="annonce.image_principale" [alt]="annonce.titre">
+            } @else if (annonce.bien?.photos?.[0]) {
+              <img [src]="annonce.bien!.photos![0]" [alt]="annonce.bien">
+            } @else {
+              <div class="card-img-placeholder">
+                <i class="bi bi-house"></i>
+              </div>
+            }
+
+            <!-- Badge statut (si connecté) -->
+            @if (!isNotConnect()) {
+              <span class="img-badge"
+                    [class.published]="annonce.statut === 'PUBLISHED'"
+                    [class.pending]="annonce.statut === 'PENDING'"
+                    [class.draft]="annonce.statut === 'DRAFT'"
+                    [class.archived]="annonce.statut === 'ARCHIVED'"
+                    [class.rejected]="annonce.statut === 'REJECTED'">
+                {{ getStatusLabel(annonce.statut) }}
+              </span>
+            }
+          </div>
+
+          <!-- Contenu -->
+          <div class="card-content">
+            <p class="card-titre">{{ annonce.titre }}</p>
+
+            @if (annonce.type_annonce.nom) {
+              <span class="card-type">
+                <i class="bi bi-tag"></i>
+                {{ annonce.type_annonce.nom }}
+              </span>
+            }
+            @if (annonce.prix) {
+              <div class="card-prix">
+                <strong>{{ annonce.prix | number }}</strong>
+                {{ annonce.bien?.type_transaction === 'LOCATION' ? 'XAF/mois' : 'XAF/m²' }}
+              </div>
+            }
+
+            <div class="card-meta">
+              <i class="bi bi-clock"></i>
+              {{ annonce.created_at | relativeTime }}
+            </div>
+          </div>
+
+          <!-- Footer actions -->
+          <div class="card-footer-custom">
+            <span style="font-size:12px;color:#9ca3af">
+              {{ annonce.auteur_nom || '—' }}
+            </span>
+
+            <div class="btn-actions">
+              <button class="act-btn view"
+                      (click)="onDetail(annonce)"
+                      ngbTooltip="Voir le détail" placement="top" triggers="hover">
+                <i class="bi bi-eye"></i>
+              </button>
+              @if (isApproved(['Admin'])) {
+                <button class="act-btn edit"
+                        (click)="onEdit(annonce)"
+                        ngbTooltip="Modifier" placement="top" triggers="hover">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="act-btn del"
+                        (click)="onDelete(annonce)"
+                        ngbTooltip="Supprimer" placement="top" triggers="hover">
+                  <i class="bi bi-trash"></i>
+                </button>
+              }
+            </div>
+          </div>
+
+        </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Gère : souscription initiale + modification des préférences + désabonnement
+  uniquement des utilisateurs connectés -->
+  @if (this.auth.currentUserSignal()) {
+    <div class="mt-4">
+
+    <!-- ════════════════════════════════════════════════════════════════════════
+     WIDGET Newsletter générale — annonce-list
+     Gère : souscription initiale + modification des préférences + désabonnement
+  ════════════════════════════════════════════════════════════════════════ -->
+
+<!-- ── État : NON abonné ──────────────────────────────────────────────────── -->
+@if (!statut().abonne) {
+
+  <div class="nl-card">
+    <div class="nl-card-icon">
+      <i class="bi bi-bell-fill"></i>
+    </div>
+    <div class="nl-card-body">
+      <h6 class="nl-card-title">Restez informé des nouvelles annonces</h6>
+      <p class="nl-card-sub">
+        Recevez une notification dès qu'une annonce correspond à vos centres d'intérêt.
+      </p>
+
+      @if (!wizardOuvert()) {
+        <button class="nl-btn nl-btn--primary" (click)="wizardOuvert.set(true)">
+          <i class="bi bi-plus-circle me-2"></i> Souscrire à la newsletter
+        </button>
+      }
+
+      <!-- Wizard souscription -->
+      @if (wizardOuvert()) {
+        <div class="nl-wizard">
+          <ng-container *ngTemplateOutlet="wizardContent"></ng-container>
+        </div>
+      }
+
+    </div>
+  </div>
+
+}
+
+<!-- ── État : ABONNÉ ─────────────────────────────────────────────────────── -->
+@else {
+
+  <div class="nl-card nl-card--active">
+    <div class="nl-card-icon nl-card-icon--active">
+      <i class="bi bi-bell-fill"></i>
+    </div>
+    <div class="nl-card-body">
+
+      <!-- Résumé abonnement -->
+      @if (!wizardOuvert()) {
+        <h6 class="nl-card-title">
+          Vous êtes abonné à la newsletter
+          <span class="nl-badge-actif">Actif</span>
+        </h6>
+        <p class="nl-card-sub">
+          Fréquence :
+          <strong>{{ statut().subscription?.frequence | titlecase }}</strong>
+          —
+          @if (statut().subscription?.types_souhaites_details?.length) {
+            {{ statut().subscription?.types_souhaites_details?.length }} 
+            type(s) sélectionné(s)
+          } @else {
+            Tous les types
+          }
+        </p>
+
+        <!-- Tags des types souscrits -->
+        @if (statut().subscription?.types_souhaites_details?.length) {
+          <div class="nl-types-recap">
+            @for (t of statut().subscription?.types_souhaites_details!; track t.id) {
+              <span class="nl-type-tag"
+                    [style.border-color]="t.couleur"
+                    [style.color]="t.couleur"
+                    [style.background]="t.couleur + '15'">
+                <i [class]="'bi ' + t.icone"></i> {{ t.nom }}
+              </span>
+            }
+          </div>
+        }
+
+        <div class="nl-actions-row">
+          <button class="nl-btn nl-btn--outline-sm" (click)="ouvrirPreferences()">
+            <i class="bi bi-sliders me-1"></i> Préférences
+          </button>
+          <button class="nl-btn nl-btn--danger-sm" (click)="onConfirmerDesabonnement()">
+            <i class="bi bi-bell-slash me-1"></i> Se désabonner
+          </button>
+        </div>
+      }
+
+      <!-- Wizard préférences (mode modification) -->
+      @if (wizardOuvert() && modePreferences) {
+        <h6 class="nl-card-title">Modifier mes préférences</h6>
+        <div class="nl-wizard">
+          <ng-container *ngTemplateOutlet="wizardContent"></ng-container>
+        </div>
+      }
+
+    </div>
+  </div>
+
+}
+
+
+<!-- ════════════════════════════════════════════════════════════════════════
+     Template partagé du wizard (souscription ET préférences)
+  ════════════════════════════════════════════════════════════════════════ -->
+<ng-template #wizardContent>
+
+  <!-- Étape 1 : Fréquence -->
+  <div class="nl-wizard-step">
+    <span class="nl-wizard-label">
+      <i class="bi bi-clock me-1"></i>
+      {{ modePreferences ? 'Fréquence actuelle' : 'Fréquence de réception' }}
+    </span>
+    <div class="nl-freq-grid">
+      @for (f of frequences; track f.value) {
+        <div class="nl-freq-opt"
+             [class.active]="frequenceChoisie() === f.value"
+             (click)="frequenceChoisie.set(f.value)">
+          <i [class]="'bi ' + f.icone"></i>
+          <span>{{ f.label }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Étape 2 : Types d'annonces -->
+  <div class="nl-wizard-step">
+    <span class="nl-wizard-label">
+      <i class="bi bi-tags me-1"></i>
+      {{ modePreferences ? 'Types souscrits' : 'Types d\'annonces souhaités' }}
+      <span class="nl-optional">(laisser vide = tous)</span>
+    </span>
+    <div class="nl-types-grid">
+      @for (t of typesDisponibles(); track t.id) {
+        <div class="nl-type-opt"
+             [class.active]="typesChoisis().includes(t.id)"
+             [style.border-color]="typesChoisis().includes(t.id) ? t.couleur : ''"
+             [style.color]="typesChoisis().includes(t.id) ? t.couleur : ''"
+             [style.background]="typesChoisis().includes(t.id) ? t.couleur + '15' : ''"
+             (click)="toggleType(t.id)">
+          <i [class]="'bi ' + t.icone"></i>
+          <span>{{ t.nom }}</span>
+          @if (typesChoisis().includes(t.id)) {
+            <i class="bi bi-check-circle-fill nl-type-check"></i>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="nl-wizard-actions">
+    <button class="nl-btn nl-btn--ghost"
+            (click)="annulerWizard()">
+      <i class="bi bi-x me-1"></i> Annuler
+    </button>
+
+    <button class="nl-btn nl-btn--primary"
+            [disabled]="isSubmitting()"
+            (click)="validerSouscription()">
+      @if (isSubmitting()) {
+        <span class="spinner-border spinner-border-sm me-2"></span>
+      } @else {
+        <i class="bi bi-check-circle me-2"></i>
+      }
+      {{ modePreferences ? 'Mettre à jour' : 'Confirmer l\'abonnement' }}
+    </button>
+  </div>
+
+</ng-template>
+
+    </div>
+  }
+
+</div>
+

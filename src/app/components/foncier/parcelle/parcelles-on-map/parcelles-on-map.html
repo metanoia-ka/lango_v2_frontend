@@ -1,0 +1,210 @@
+<div class="mf-header">
+  <div class="mf-header-left">
+    <div class="mf-header-icon mf-header-icon--edit" >
+      <i class="bi bi-pencil-fill"></i>
+    </div>
+    <div>
+      <p class="mf-header-title">Parcelles du lotissement</p>
+      <span class="mf-header-sub">Choisissez au plus deux parcelles pour réserver</span>
+    </div>
+  </div>
+  <button class="mf-close-btn" (click)="onCancel()"><i class="bi bi-x-lg"></i></button>
+</div>
+<div class="pa-body-on-map">
+
+  @if (success()) {
+    <div class="cam-alert cam-alert--success">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ success() }}
+    </div>
+  }
+  @if (error()) {
+    <div class="cam-alert cam-alert--error">
+      <i class="bi bi-exclamation-circle-fill me-2"></i>{{ error() }}
+    </div>
+  }
+
+  <div class="pom-selection-bar">
+    @if (parcellesSelectionnees().length > 0) {
+      <div class="pom-selection-info">
+        <i class="bi bi-check2-circle text-success me-2"></i>
+        <strong>{{ parcellesSelectionnees().length }}</strong> parcelle(s) sélectionnée(s) :
+        @for (p of parcellesSelectionnees(); track p.id) {
+          <span class="pom-badge-sel">
+            {{ p.numero }}
+            <button (click)="toggleSelectionParcelle(p)" class="pom-badge-sel__rm">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </span>
+        }
+      </div>
+      <button class="pom-btn-reserver" (click)="reserverParcelles()" [disabled]="loading()">
+        @if (loading()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        } @else {
+          <i class="bi bi-calendar-check me-1"></i>
+        }
+        Réserver ({{ parcellesSelectionnees().length * MAX_RESERVATION }} crédits)
+      </button>
+    } @else {
+      <p class="pom-selection-hint">
+        <i class="bi bi-hand-index me-2"></i>
+        Cliquez sur une parcelle <span class="text-success fw-bold">disponible</span>
+        pour la sélectionner (max {{ MAX_SELECTION }}).
+      </p>
+    }
+  </div>
+
+  @if (activeView() === 'map') {
+    <div class="pf-map-layout">
+
+      <!-- Sidebar parcelles à gauche -->
+      <aside class="pf-map-sidebar">
+        <p class="pf-map-sidebar__count">
+          {{ parcellesLight().length }} parcelle{{ parcellesLight().length > 1 ? 's' : '' }}
+        </p>
+
+        <ul class="pf-parcelle-cards">
+          @for (p of parcellesLight(); track p.id) {
+            <li class="pf-parcelle-card"
+                [class.pf-parcelle-card--selected]="selectedParcelle()?.id === p.id"
+                (click)="zoomToParcelle(p); 
+                p.statut === 'DISPONIBLE' && toggleSelectionParcelle(p)">
+              <div class="pf-parcelle-card__top">
+                <span class="pf-parcelle-card__num">{{ p.numero }}</span>
+                <span [class]="getStatutClass(p.statut) + ' badge-statut'">
+                  {{ getStatutLabel(p.statut) }}
+                </span>
+              </div>
+              <div class="pf-parcelle-card__bot">
+                <span>{{ p.nom }}</span>
+                <span>{{ formatSuperficie(p.superficie) }}</span>
+              </div>
+              @if (!p.geom) {
+                <div class="pf-parcelle-card__no-geom">
+                  <i class="bi bi-exclamation-triangle"></i> Sans géométrie
+                </div>
+              }
+            </li>
+          }
+
+          @if (!parcellesLight().length) {
+            <li class="pf-map-empty">
+              <i class="bi bi-map"></i>
+              <p>Aucune parcelle à afficher.</p>
+            </li>
+          }
+        </ul>
+      </aside>
+
+      <!-- Conteneur carte OL -->
+      <div class="pf-map-wrap">
+
+        <!-- Légende -->
+        <div class="pf-map-legend">
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#008753"></span>
+            Disponible
+          </span>
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#2563EB"></span>
+            Attribuée
+          </span>
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#F59E0B"></span>
+            Réservée
+          </span>
+          <span class="pf-legend-item">
+            <span class="pf-legend-dot" style="background:#EF4444"></span>
+            Refusée
+          </span>
+        </div>
+
+        <!-- Panneau info parcelle sélectionnée -->
+        @if (selectedParcelle(); as p) {
+          <div class="pf-map-info">
+            <button class="pf-map-info__close"
+                    (click)="selectedParcelle.set(null)">✕</button>
+            <h4 class="pf-map-info__num">{{ p.numero }}</h4>
+            <p class="pf-map-info__nom">{{ p.nom }}</p>
+            <dl class="pf-map-info__dl">
+              <dt>Statut</dt>
+              <dd>
+                <span [class]="getStatutClass(p.statut) + ' badge-statut'">
+                  {{ getStatutLabel(p.statut) }}
+                </span>
+              </dd>
+              <dt>Superficie</dt>
+              <dd>{{ formatSuperficie(p.superficie) }}</dd>
+            </dl>
+          </div>
+
+          @if (selectedParcelle()?.statut === 'DISPONIBLE') {
+            <button class="pf-map-info__btn"
+                    [class.btn-success]="!estSelectionnee(selectedParcelle()!)"
+                    [class.btn-outline-danger]="estSelectionnee(selectedParcelle()!)"
+                    (click)="toggleSelectionParcelle(selectedParcelle()!)">
+              @if (estSelectionnee(selectedParcelle()!)) {
+                <i class="bi bi-dash-circle me-1"></i> Retirer
+              } @else {
+                <i class="bi bi-plus-circle me-1"></i> Sélectionner
+              }
+            </button>
+          }
+        }
+
+      <div class="map-controls">
+        
+        <!-- Zoom avant -->
+        <button class="map-ctrl-btn" (click)="mapZoomIn()" title="Zoom avant"
+                aria-label="Zoom avant">
+          <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+            <line x1="7" y1="2" x2="7" y2="12"/>
+            <line x1="2" y1="7" x2="12" y2="7"/>
+          </svg>
+        </button>
+ 
+        <!-- Zoom arrière -->
+        <button class="map-ctrl-btn" (click)="mapZoomOut()" title="Zoom arrière"
+                aria-label="Zoom arrière">
+          <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+            <line x1="2" y1="7" x2="12" y2="7"/>
+          </svg>
+        </button>
+ 
+        <!-- Centrer / fit all -->
+        <button class="map-ctrl-btn map-ctrl-btn--fit" (click)="mapFitAll()"
+                title="Centrer sur toutes les données" aria-label="Vue d'ensemble">
+          <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+            <!-- Coin haut-gauche -->
+            <polyline points="1,4 1,1 4,1"/>
+            <!-- Coin haut-droit -->
+            <polyline points="10,1 13,1 13,4"/>
+            <!-- Coin bas-droit -->
+            <polyline points="13,10 13,13 10,13"/>
+            <!-- Coin bas-gauche -->
+            <polyline points="4,13 1,13 1,10"/>
+          </svg>
+        </button>
+
+      </div>
+
+      <div class="map-attribution">
+        © <a href="https://www.openstreetmap.org/copyright"
+             target="_blank" rel="noopener">OpenStreetMap</a> contributors
+      </div>
+
+      <!-- Div OL -->
+      <div #mapContainer class="pf-ol-map"></div>
+
+      <!-- Pas de géom du tout -->
+      @if (hasParcellesWithoutGeometry()) {
+        <div class="pf-map-no-geom">
+          <i class="bi bi-geo-alt-fill"></i>
+          <p>Aucune parcelle n'a encore de géométrie définie.</p>
+        </div>
+      }
+      </div>
+    </div>
+  }
+
+</div>

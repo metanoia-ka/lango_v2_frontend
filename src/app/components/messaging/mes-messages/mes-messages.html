@@ -1,0 +1,142 @@
+<div class="mm-page mt-5">
+
+  <div class="mm-header">
+    <h1 class="mm-title">
+      <i class="bi bi-envelope-paper"></i>
+      Mes messages
+    </h1>
+    <button class="mm-btn mm-btn--primary" (click)="contactTeam()">
+      <i class="bi bi-plus-lg"></i> Nouveau message
+    </button>
+  </div>
+
+  <!-- Erreur -->
+  @if (error()) {
+    <div class="mm-alert mm-alert--danger">
+      <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="mm-list">
+      @for (_ of [1,2,3]; track $index) {
+        <div class="mm-item mm-item--skeleton">
+          <div class="sk sk--line sk--w60"></div>
+          <div class="sk sk--line sk--w40 mt-1"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Vide -->
+  @if (!loading() && messages().length === 0) {
+    <div class="mm-empty">
+      <i class="bi bi-envelope-open"></i>
+      <p>Vous n'avez encore envoyé aucun message.</p>
+      <button class="mm-btn mm-btn--primary" (click)="contactTeam()">
+        <i class="bi bi-send"></i> Contacter l'équipe
+      </button>
+    </div>
+  }
+
+  <!-- Liste -->
+  @if (!loading() && messages().length > 0) {
+    <div class="mm-list">
+      @for (msg of messages(); track trackById($index, msg)) {
+
+        <!-- En-tête du message -->
+        <div
+          class="mm-item"
+          [class.mm-item--open]="selected()?.id === msg.id"
+          [class.mm-item--repondu]="msg.statut === 'REPONDU'"
+          (click)="selectionner(msg)">
+
+          <div class="mm-item__left">
+            <span [class]="'mm-badge ' + statutClass(msg.statut)">
+              {{ statutLabel(msg.statut) }}
+            </span>
+            <span class="mm-item__objet">{{ msg.objet }}</span>
+          </div>
+
+          <div class="mm-item__right">
+            @if (msg.pj_url) {
+              <i class="bi bi-paperclip mm-pj-icon" title="Pièce jointe"></i>
+            }
+            @if (msg.nb_reponses > 0) {
+              <span class="mm-replies-count">
+                <i class="bi bi-chat-dots"></i>
+                {{ msg.nb_reponses }}
+              </span>
+            }
+            <span class="mm-item__date">
+              {{ msg.created_at | date:'dd/MM/yyyy' }}
+            </span>
+            <i class="bi mm-item__chevron"
+               [class.bi-chevron-down]="selected()?.id !== msg.id"
+               [class.bi-chevron-up]="selected()?.id === msg.id">
+            </i>
+          </div>
+        </div>
+
+        <!-- Détail déplié -->
+        @if (selected()?.id === msg.id) {
+          <div class="mm-detail">
+
+            <!-- Contenu original -->
+            <div class="mm-detail__section">
+              <p class="mm-detail__label">Votre message</p>
+              <div class="mm-detail__contenu">{{ msg.contenu }}</div>
+            </div>
+
+            <!-- Pièce jointe -->
+            @if (msg.pj_url) {
+              <div class="mm-detail__pj">
+                <i class="bi bi-paperclip"></i>
+                <a [href]="msg.pj_url"
+                   target="_blank" rel="noopener"
+                   class="mm-pj-link">
+                  {{ msg.pj_nom_original }}
+                </a>
+              </div>
+            }
+
+            <!-- Réponses reçues -->
+            @if (msg.reponses.length > 0) {
+              <div class="mm-detail__section mm-detail__section--replies">
+                <p class="mm-detail__label">
+                  <i class="bi bi-reply-fill" style="color:#008753"></i>
+                  Réponse{{ msg.reponses.length > 1 ? 's' : '' }} de l'équipe
+                </p>
+                @for (rep of msg.reponses; track rep.id) {
+                  <div class="mm-reply">
+                    <div class="mm-reply__header">
+                      <span class="mm-reply__admin">
+                        <i class="bi bi-person-fill-gear"></i>
+                        {{ rep.admin_nom }}
+                      </span>
+                      <span class="mm-reply__date">
+                        {{ rep.created_at | date:'dd/MM/yyyy à HH:mm' }}
+                      </span>
+                    </div>
+                    <div class="mm-reply__contenu">{{ rep.contenu }}</div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (msg.reponses.length === 0) {
+              <div class="mm-detail__pending">
+                <i class="bi bi-hourglass-split"></i>
+                En attente de réponse — nous vous répondrons dans les plus brefs délais.
+              </div>
+            }
+
+          </div>
+        }
+
+      }
+    </div>
+  }
+
+</div>

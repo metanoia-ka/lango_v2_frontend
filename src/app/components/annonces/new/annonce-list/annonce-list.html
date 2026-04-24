@@ -1,0 +1,318 @@
+<div class="list-wrap mt-5">
+
+  <!-- ══ Topbar ════════════════════════════════════════════════════════════ -->
+  <div class="list-topbar">
+    <div class="list-topbar__left">
+      <h5 class="list-title">
+        <span class="list-title__accent">Lango</span> — Annonces disponibles
+      </h5>
+      @if (totalDisponible() > 0) {
+        <span class="list-count-badge">{{ totalDisponible() }} annonce(s)</span>
+      }
+    </div>
+    @if (isAdmin() || isVendor()) {
+      <button class="btn-new" (click)="onCreate()"
+              ngbTooltip="Ajouter une annonce" placement="left">
+        <i class="bi bi-plus-circle me-1"></i> Nouvelle annonce
+      </button>
+    }
+  </div>
+
+  <!-- ══ Barre quota ════════════════════════════════════════════════════════ -->
+  @if (afficherQuota() && !solde()) {
+    <div class="quota-info-bar mb-3" [class.quota-info-bar--warn]="quotaAtteint()">
+      <div class="quota-info-bar__left">
+        <i class="bi bi-eye me-1"></i>
+        @if (quotaAtteint()) {
+          <span>Quota atteint —
+            <a routerLink="/lango/credits" class="quota-link">recharger des crédits</a>
+          </span>
+        } @else {
+          <span>Vues gratuites : <strong>{{ viewsLeft() }}</strong> / {{ viewsMax() }}</span>
+        }
+      </div>
+      <div class="quota-info-bar__bar">
+        <div class="quota-info-bar__fill"
+             [style.width.%]="quotaPercent()"
+             [class.quota-info-bar__fill--warn]="quotaAtteint()">
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ══ Filtre ═════════════════════════════════════════════════════════════ -->
+  <app-annonce-filter (filtresChange)="onFiltresChange($event)" />
+
+  <!-- ══ Alertes ═══════════════════════════════════════════════════════════ -->
+  @if (success()) {
+    <div class="lango-alert lango-alert--success">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ success() }}
+    </div>
+  }
+  @if (error()) {
+    <div class="lango-alert lango-alert--error">
+      <i class="bi bi-exclamation-circle-fill me-2"></i>{{ error() }}
+    </div>
+  }
+
+  <!-- ══ Skeleton initial (premier chargement) ══════════════════════════════ -->
+  @if (isLoading()) {
+    <div class="lango-grid">
+      @for (_ of skeletons; track $index) {
+        <div class="lango-card lango-card--skeleton">
+          <div class="sk-photo"></div>
+          <div class="sk-body">
+            <div class="sk-line sk-line--sm"></div>
+            <div class="sk-line sk-line--lg"></div>
+            <div class="sk-line sk-line--md"></div>
+            <div class="sk-line sk-line--sm"></div>
+          </div>
+          <div class="sk-footer"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ══ État vide contextuel ══════════════════════════════════════════════ -->
+  @if (!isLoading() && annonces().length === 0) {
+    <div class="list-empty">
+      @if (aFiltresActifs()) {
+        <i class="bi bi-search list-empty__icon"></i>
+        <p class="list-empty__titre">Aucune annonce ne correspond à votre recherche</p>
+        <p class="list-empty__sub">
+          Essayez de modifier les filtres : zone, type de transaction, prix ou superficie.
+        </p>
+        <button class="btn-effacer" (click)="effacerFiltres()">
+          <i class="bi bi-x-circle me-1"></i> Effacer les filtres
+        </button>
+      } @else {
+        <i class="bi bi-megaphone list-empty__icon"></i>
+        <p class="list-empty__titre">Aucune annonce disponible pour le moment</p>
+        <p class="list-empty__sub">
+          Revenez bientôt — de nouvelles annonces sont publiées régulièrement.
+        </p>
+        @if (isVendor() || isAdmin()) {
+          <button class="btn-new mt-2" (click)="onCreate()">
+            <i class="bi bi-plus-circle me-1"></i> Publier une annonce
+          </button>
+        }
+      }
+    </div>
+  }
+
+  <!-- ══ Grille d'annonces ══════════════════════════════════════════════════ -->
+  @if (!isLoading() && annonces().length > 0) {
+
+    <!-- Compteur chargés -->
+    <p class="list-progress">
+      <span class="list-progress__val">{{ nbCharges() }}</span>
+      sur {{ totalDisponible() }} annonce(s) affichée(s)
+    </p>
+
+    <div class="lango-grid">
+      @for (annonce of annonces(); track annonce.id) {
+        <div class="lango-card" (click)="onDetail(annonce)">
+
+          <!-- Photo -->
+          <div class="lango-card__photo">
+            @if (getPhotoUrl(annonce)) {
+              <img [src]="getPhotoUrl(annonce)!" [alt]="annonce.titre" loading="lazy">
+            } @else {
+              <div class="lango-card__no-photo"><i class="bi bi-building"></i></div>
+            }
+
+            <!-- Badge transaction -->
+            <span class="lango-tx-badge lango-tx-badge--{{ annonce.bien?.type_transaction?.toLowerCase() }}">
+              @switch (annonce.bien?.type_transaction) {
+                @case ('VENTE')          { <i class="bi bi-house-door-fill me-1"></i>Vente }
+                @case ('LOCATION')       { <i class="bi bi-key-fill me-1"></i>Location }
+                @case ('LOCATION_VENTE') { <i class="bi bi-arrow-left-right me-1"></i>Location-vente }
+              }
+            </span>
+
+            <!-- Badge statut (connecté) -->
+            @if (isConnecte()) {
+              <span class="lango-statut-badge {{ getStatusClass(annonce.statut) }}">
+                {{ getStatusLabel(annonce.statut) }}
+              </span>
+            }
+
+            <!-- Badge vérifié -->
+            @if (annonce.bien?.is_verified) {
+              <span class="lango-verified-badge" ngbTooltip="Bien vérifié">
+                <i class="bi bi-patch-check-fill"></i>
+              </span>
+            }
+          </div>
+
+          <!-- Corps -->
+          <div class="lango-card__body">
+            <div class="lango-card__tags">
+              @if (getCategorieLabel(annonce)) {
+                <span class="lango-tag lango-tag--categorie">{{ getCategorieLabel(annonce) }}</span>
+              }
+              @if (annonce.type_annonce.nom) {
+                <span class="lango-tag lango-tag--type">{{ annonce.type_annonce.nom }}</span>
+              }
+            </div>
+
+            <p class="lango-card__titre">{{ annonce.titre }}</p>
+            <div class="lango-card__prix">{{ formatPrix(annonce) }}</div>
+
+            <div class="lango-card__loc">
+              <i class="bi bi-geo-alt-fill me-1"></i>
+              @if (getVilleLabel(annonce)) {
+                <strong>{{ getVilleLabel(annonce) }}</strong>
+                @if (annonce.bien?.localisation_approx && annonce.bien?.localisation_approx !== getVilleLabel(annonce)) {
+                  <span class="lango-card__loc-sep">·</span>
+                  <span>{{ annonce.bien!.localisation_approx }}</span>
+                }
+              } @else {
+                {{ annonce.bien?.localisation_approx ?? '—' }}
+              }
+            </div>
+
+            <div class="lango-card__meta">
+              <i class="bi bi-clock me-1"></i>{{ annonce.created_at | relativeTime }}
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="lango-card__footer">
+            <span class="lango-card__auteur">
+              <i class="bi bi-person me-1"></i>{{ annonce.auteur_nom || '—' }}
+            </span>
+            <div class="lango-card__actions" (click)="$event.stopPropagation()">
+              @if (isAdmin() || isVendor()) {
+                <button class="lango-action-btn" ngbTooltip="Modifier" (click)="onEdit(annonce, $event)">
+                  <i class="bi bi-pencil"></i>
+                </button>
+              }
+              @if ((isAdmin() || isManager()) && annonce.statut === 'REJECTED') {
+                <button class="lango-action-btn lango-action-btn--warning"
+                        ngbTooltip="Remettre en attente"
+                        (click)="ouvrirRemise(annonce, $event)">
+                  <i class="bi bi-arrow-counterclockwise"></i>
+                </button>
+              }
+              @if (isAdmin() || isVendor()) {
+                <button class="lango-action-btn lango-action-btn--danger"
+                        ngbTooltip="Supprimer" (click)="onDelete(annonce)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              }
+            </div>
+          </div>
+
+        </div>
+      }
+    </div>
+
+    <!-- ══ Sentinelle IntersectionObserver (invisible) ══════════════════════ -->
+    <!-- Elle est observée : quand elle entre dans le viewport, on charge le batch suivant -->
+    <div #scrollSentinelle class="scroll-sentinelle"></div>
+
+    <!-- ══ Skeleton "batch suivant" ═════════════════════════════════════════ -->
+    @if (isLoadingMore()) {
+      <div class="lango-grid lango-grid--more">
+        @for (_ of [1,2,3]; track $index) {
+          <div class="lango-card lango-card--skeleton">
+            <div class="sk-photo"></div>
+            <div class="sk-body">
+              <div class="sk-line sk-line--sm"></div>
+              <div class="sk-line sk-line--lg"></div>
+              <div class="sk-line sk-line--md"></div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ══ Bouton "Charger plus" — fallback si IntersectionObserver non déclenché ══ -->
+    @if (!isLoadingMore() && plusDePages()) {
+      <div class="load-more-wrap">
+        <button class="btn-load-more" (click)="chargerPlus()">
+          <i class="bi bi-arrow-down-circle me-2"></i>
+          Voir {{ restantes() }} annonce(s) de plus
+        </button>
+      </div>
+    }
+
+    <!-- ══ Fin de liste ══════════════════════════════════════════════════════ -->
+    @if (!plusDePages() && !isLoadingMore()) {
+      <div class="list-end">
+        <div class="list-end__line"></div>
+        <span class="list-end__txt">
+          <i class="bi bi-check-circle me-1"></i>
+          Toutes les annonces sont affichées ({{ totalDisponible() }})
+        </span>
+        <div class="list-end__line"></div>
+      </div>
+    }
+
+  }
+
+</div>
+
+<!-- ══ Boutons de navigation flottants ══════════════════════════════════════ -->
+
+<!-- ↑ Retour en haut -->
+@if (afficherBoutonHaut()) {
+  <button class="fab fab--haut" (click)="scrollHaut()"
+          ngbTooltip="Retour en haut" placement="left">
+    <i class="bi bi-arrow-up"></i>
+  </button>
+}
+
+<!-- ↓ Reprendre où j'en étais (après retour du détail) -->
+@if (afficherBoutonRetour()) {
+  <button class="fab fab--retour" (click)="scrollRetour()">
+    <i class="bi bi-arrow-down me-1"></i>
+    <span class="fab__txt">Reprendre</span>
+  </button>
+}
+
+<!-- ══ Panneau remise en attente ════════════════════════════════════════════ -->
+@if (annonceEnRemise()) {
+  <div class="rem-overlay" (click)="fermerRemise()"></div>
+  <div class="rem-panel">
+    <div class="rem-panel__header">
+      <h4 class="rem-panel__title">
+        <i class="bi bi-arrow-counterclockwise me-2 text-warning"></i>
+        Remettre en attente
+      </h4>
+      <button class="rem-panel__close" (click)="fermerRemise()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="rem-panel__body">
+      <p class="rem-panel__annonce"><strong>{{ annonceEnRemise()!.titre }}</strong></p>
+      <p class="rem-panel__info">
+        <i class="bi bi-info-circle me-1"></i>
+        L'annonce passera de <strong>Rejeté</strong> à <strong>En attente</strong>
+        pour une nouvelle vérification. Le vendeur sera notifié.
+      </p>
+      <label class="rem-panel__label">
+        Motif <span class="text-danger">*</span>
+        <em class="text-muted">(min. 40 caractères)</em>
+      </label>
+      <textarea class="rem-panel__textarea" rows="4"
+                placeholder="Ex: Photos mises à jour, adresse corrigée…"
+                [ngModel]="motifRemise()"
+                (ngModelChange)="motifRemise.set($event)">
+      </textarea>
+      <span class="rem-panel__count" 
+      [class.rem-panel__count--ok]="motifRemise().trim().length >= 40">
+        {{ motifRemise().trim().length }} / 40 min.
+      </span>
+      <div class="rem-panel__actions">
+        <button class="rem-btn rem-btn--ghost" (click)="fermerRemise()">Annuler</button>
+        <button class="rem-btn rem-btn--confirm"
+                [disabled]="motifRemise().trim().length < 40"
+                (click)="confirmerRemise()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> Confirmer
+        </button>
+      </div>
+    </div>
+  </div>
+}

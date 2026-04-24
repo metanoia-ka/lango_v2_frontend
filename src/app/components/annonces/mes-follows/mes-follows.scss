@@ -1,0 +1,382 @@
+// mes-follows.scss ════════════════════════════════════════════════════════════
+
+$green:   #008753;
+$green-l: #E8F5EE;
+$dark:    #111827;
+$gray:    #6B7280;
+$gray-l:  #F3F4F6;
+$gray-m:  #E5E7EB;
+$white:   #ffffff;
+$danger:  #EF4444;
+$purple:  #7C3AED;
+$purple-l:#F5F3FF;
+
+// ── Wrap ──────────────────────────────────────────────────────────────────
+.mf-wrap {
+  max-width:  760px;
+  margin:     0 auto;
+  padding:    2rem 1rem 4rem;
+}
+
+// ── Header ────────────────────────────────────────────────────────────────
+.mf-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  margin-bottom:   1.5rem;
+
+  &__left { display: flex; align-items: center; gap: 14px; }
+
+  &__icon {
+    font-size:     1.5rem;
+    color:         $green;
+    background:    $green-l;
+    border-radius: 10px;
+    width:         44px;
+    height:        44px;
+    display:       flex;
+    align-items:   center;
+    justify-content: center;
+    flex-shrink:   0;
+  }
+
+  &__title {
+    font-size:   1.15rem;
+    font-weight: 700;
+    color:       $dark;
+    margin:      0 0 2px;
+  }
+
+  &__sub {
+    font-size: 0.8rem;
+    color:     $gray;
+    margin:    0;
+  }
+}
+
+.mf-refresh-btn {
+  background:    none;
+  border:        1px solid $gray-m;
+  border-radius: 8px;
+  padding:       7px 10px;
+  color:         $gray;
+  cursor:        pointer;
+  font-size:     1rem;
+  transition:    all 0.15s;
+  &:hover:not(:disabled) { background: $gray-l; color: $dark; }
+  &:disabled { opacity: 0.5; }
+}
+
+// ── Cartes stats cliquables ───────────────────────────────────────────────
+.mf-stats {
+  display:       grid;
+  grid-template-columns: 1fr 1fr;
+  gap:           12px;
+  margin-bottom: 1.25rem;
+}
+
+.mf-stat-card {
+  display:       flex;
+  align-items:   center;
+  gap:           14px;
+  padding:       16px 20px;
+  background:    $white;
+  border:        2px solid $gray-m;
+  border-radius: 12px;
+  cursor:        pointer;
+  transition:    all 0.15s;
+
+  &:hover { border-color: $green; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+
+  &--active {
+    border-color: $green;
+    background:   $green-l;
+  }
+
+  &--follows &__icon { color: $green; background: $green-l; }
+  &--abonnes &__icon { color: $purple; background: $purple-l; }
+
+  &--abonnes.mf-stat-card--active {
+    border-color: $purple;
+    background:   $purple-l;
+  }
+
+  &__icon {
+    font-size:     1.4rem;
+    width:         42px;
+    height:        42px;
+    border-radius: 10px;
+    display:       flex;
+    align-items:   center;
+    justify-content: center;
+    flex-shrink:   0;
+  }
+
+  &__value {
+    font-size:   1.4rem;
+    font-weight: 700;
+    color:       $dark;
+    margin:      0 0 1px;
+    line-height: 1;
+  }
+
+  &__label {
+    font-size:   0.82rem;
+    font-weight: 600;
+    color:       $dark;
+    margin:      0 0 1px;
+  }
+
+  &__hint {
+    font-size: 0.72rem;
+    color:     $gray;
+    margin:    0;
+  }
+}
+
+// ── Onglets ───────────────────────────────────────────────────────────────
+.mf-tabs {
+  display:       flex;
+  gap:           4px;
+  border-bottom: 2px solid $gray-m;
+  margin-bottom: 1.25rem;
+}
+
+.mf-tab {
+  display:       inline-flex;
+  align-items:   center;
+  padding:       9px 18px;
+  border:        none;
+  border-bottom: 3px solid transparent;
+  background:    none;
+  color:         $gray;
+  font-size:     0.85rem;
+  font-weight:   600;
+  cursor:        pointer;
+  margin-bottom: -2px;
+  transition:    all 0.15s;
+  border-radius: 6px 6px 0 0;
+
+  &:hover { color: $dark; }
+
+  &--active {
+    color:               $green;
+    border-bottom-color: $green;
+    background:          $green-l;
+  }
+
+  &__badge {
+    margin-left:   6px;
+    background:    $gray-m;
+    color:         $gray;
+    font-size:     0.7rem;
+    font-weight:   700;
+    padding:       1px 7px;
+    border-radius: 12px;
+  }
+}
+
+// ── Corps ─────────────────────────────────────────────────────────────────
+.mf-body { display: flex; flex-direction: column; gap: 14px; }
+
+// ── Loading ───────────────────────────────────────────────────────────────
+.mf-loading {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  color:       $gray;
+  font-size:   0.88rem;
+  padding:     2rem;
+  justify-content: center;
+}
+
+// ── Recherche ─────────────────────────────────────────────────────────────
+.mf-search {
+  display:       flex;
+  align-items:   center;
+  background:    $white;
+  border:        1px solid $gray-m;
+  border-radius: 9px;
+  overflow:      hidden;
+  transition:    border-color 0.15s;
+
+  &:focus-within { border-color: $green; }
+
+  &__icon {
+    padding:   0 12px;
+    color:     $gray;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  &__input {
+    flex:       1;
+    border:     none;
+    outline:    none;
+    padding:    10px 0;
+    font-size:  0.875rem;
+    color:      $dark;
+    background: transparent;
+
+    &::placeholder { color: $gray; }
+  }
+
+  &__clear {
+    background: none;
+    border:     none;
+    color:      $gray;
+    cursor:     pointer;
+    padding:    0 12px;
+    font-size:  1rem;
+    &:hover { color: $dark; }
+  }
+}
+
+// ── Liste ─────────────────────────────────────────────────────────────────
+.mf-list { display: flex; flex-direction: column; gap: 8px; }
+
+// ── Card ──────────────────────────────────────────────────────────────────
+.mf-card {
+  display:         flex;
+  align-items:     center;
+  gap:             14px;
+  padding:         14px 18px;
+  background:      $white;
+  border:          1px solid $gray-m;
+  border-radius:   12px;
+  transition:      box-shadow 0.15s;
+
+  &:hover { box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+
+  &__avatar {
+    width:           40px;
+    height:          40px;
+    border-radius:   50%;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    color:           $white;
+    font-size:       1rem;
+    font-weight:     700;
+    flex-shrink:     0;
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    font-size:   0.9rem;
+    font-weight: 700;
+    color:       $dark;
+    margin:      0 0 3px;
+    white-space: nowrap;
+    overflow:    hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__meta {
+    display:     flex;
+    align-items: center;
+    flex-wrap:   wrap;
+    gap:         6px;
+    font-size:   0.75rem;
+    color:       $gray;
+  }
+
+  &__dot { color: $gray-m; }
+
+  &__actions {
+    display:     flex;
+    align-items: center;
+    gap:         8px;
+    flex-shrink: 0;
+    flex-wrap:   wrap;
+  }
+}
+
+// ── Boutons ───────────────────────────────────────────────────────────────
+.mf-btn {
+  display:       inline-flex;
+  align-items:   center;
+  padding:       7px 14px;
+  border-radius: 7px;
+  font-size:     0.78rem;
+  font-weight:   600;
+  border:        none;
+  cursor:        pointer;
+  transition:    all 0.15s;
+  text-decoration: none;
+  white-space:   nowrap;
+
+  &--ghost {
+    background: transparent;
+    color:      $gray;
+    border:     1px solid $gray-m;
+    &:hover { background: $gray-l; color: $dark; }
+  }
+
+  &--unfollow {
+    background: transparent;
+    color:      $danger;
+    border:     1.5px solid $danger;
+    &:hover:not(:disabled) { background: #FEF2F2; }
+    &:disabled { opacity: 0.6; cursor: default; }
+  }
+
+  &--sm { padding: 5px 12px; font-size: 0.75rem; }
+}
+
+// ── Badge ─────────────────────────────────────────────────────────────────
+.mf-badge {
+  display:       inline-flex;
+  align-items:   center;
+  padding:       4px 10px;
+  border-radius: 20px;
+  font-size:     0.72rem;
+  font-weight:   700;
+  white-space:   nowrap;
+
+  &--abonne {
+    background: $purple-l;
+    color:      $purple;
+  }
+}
+
+// ── Empty ─────────────────────────────────────────────────────────────────
+.mf-empty {
+  text-align:    center;
+  padding:       3rem 2rem;
+  color:         $gray;
+
+  i {
+    display:       block;
+    font-size:     2.5rem;
+    color:         $gray-m;
+    margin-bottom: 12px;
+  }
+
+  p { margin: 0 0 6px; font-size: 0.92rem; }
+
+  &__hint {
+    font-size: 0.8rem;
+    color:     #9CA3AF;
+    max-width: 320px;
+    display:   block;
+    margin:    0 auto;
+    line-height: 1.5;
+  }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────────
+@media (max-width: 540px) {
+  .mf-stats { grid-template-columns: 1fr; }
+
+  .mf-card {
+    flex-wrap: wrap;
+    &__actions { width: 100%; justify-content: flex-end; }
+  }
+
+  .mf-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+}

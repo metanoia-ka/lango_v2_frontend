@@ -1,0 +1,8 @@
+<nav class="breadcrumb">
+  <a routerLink="/home">Accueil</a>
+
+  @for (bc of breadcrumbs(); track bc.url) {
+    <span> / </span>
+    <a [routerLink]="bc.url">{{ bc.label }}</a>
+  }
+</nav>

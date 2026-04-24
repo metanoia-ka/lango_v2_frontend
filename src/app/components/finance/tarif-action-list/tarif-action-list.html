@@ -1,0 +1,182 @@
+<div class="ta-wrap mt-5">
+
+  <!-- Header -->
+  <div class="ta-header">
+    <div class="ta-header-left">
+      <div class="ta-icon">
+        <i class="bi bi-currency-exchange"></i>
+      </div>
+      <div>
+        <h5 class="ta-title">Grille tarifaire</h5>
+        <span class="ta-sub">Coût en crédits de chaque action utilisateur</span>
+      </div>
+    </div>
+    <button class="ta-btn-add" (click)="ouvrirAjout()" [disabled]="afficherForm()">
+      <i class="bi bi-plus-lg me-1"></i> Nouveau tarif
+    </button>
+  </div>
+
+  @if (isAdmin || isAdminOrManager) {
+    <button class="ta-btn-back mb-3" (click)="backToCredits()">
+      <i class="bi bi-arrow-left me-1"></i> Retour à crédits
+    </button>
+  }
+
+  <!-- Formulaire inline (ajout ou édition) -->
+  @if (afficherForm()) {
+    <div class="ta-form-card">
+      <h6 class="ta-form-title">
+        {{ enEdition() ? 'Modifier le tarif' : 'Nouveau tarif' }}
+      </h6>
+
+      <div class="ta-form-grid">
+
+        <!-- Cause -->
+        <div class="ta-field">
+          <label class="ta-label">Cause 
+            <span class="text-danger">*</span>
+          </label>
+          @if (enEdition()) {
+            <!-- En édition : cause non modifiable (clé métier) -->
+            <input type="text" class="ta-input" [value]="form.cause" disabled>
+          } @else {
+            <select class="ta-select" [(ngModel)]="form.cause">
+              <option value="">— Sélectionner —</option>
+              @for (c of causesDispos; track c.value) {
+                <option [value]="c.value">{{ c.value }} — {{ c.label }}</option>
+              }
+            </select>
+          }
+        </div>
+
+        <!-- Coût -->
+        <div class="ta-field">
+          <label class="ta-label">Coût (crédits) <span class="text-danger">*</span></label>
+          <input type="number" class="ta-input" [(ngModel)]="form.cout"
+                 min="0" max="999" placeholder="Ex : 1">
+        </div>
+
+        <!-- Description -->
+        <div class="ta-field ta-field--full">
+          <label class="ta-label">Description</label>
+          <input type="text" class="ta-input" [(ngModel)]="form.description"
+                 placeholder="Ex : Consultation détail annonce">
+        </div>
+
+        <!-- Actif -->
+        <div class="ta-field ta-field--check">
+          <label class="ta-check-label">
+            <input type="checkbox" [(ngModel)]="form.est_actif">
+            <span>Actif</span>
+          </label>
+        </div>
+
+      </div>
+
+      <div class="ta-form-actions">
+        <button class="ta-btn-cancel" (click)="annulerForm()">
+          <i class="bi bi-x me-1"></i> Annuler
+        </button>
+        <button class="ta-btn-save" (click)="enregistrer()" [disabled]="enregistrant()">
+          @if (enregistrant()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          } @else {
+            <i class="bi bi-check-lg me-1"></i>
+          }
+          {{ enEdition() ? 'Enregistrer' : 'Créer' }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="ta-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement…</span>
+    </div>
+  }
+
+  <!-- Tableau des tarifs -->
+  @if (!isLoading() && tarifs().length > 0) {
+    <div class="ta-table-wrap">
+      <table class="ta-table">
+        <thead>
+          <tr>
+            <th>Cause</th>
+            <th>Description</th>
+            <th class="ta-td-center">Coût</th>
+            <th class="ta-td-center">Statut</th>
+            <th class="ta-td-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of tarifs(); track t.cause) {
+            <tr [class.ta-row--inactive]="!t.est_actif">
+
+              <!-- Cause -->
+              <td>
+                <span class="ta-cause-code">{{ t.cause }}</span>
+                <!-- 
+                <span style="color: red; font-size: 0.8em;">(id = {{ t.id || 'PAS D’ID !' }})</span>
+                 -->
+                <span class="ta-cause-label">{{ getLabelCause(t.cause) }}</span>
+              </td>
+
+              <!-- Description -->
+              <td class="ta-desc">{{ t.description || '—' }}</td>
+
+              <!-- Coût -->
+              <td class="ta-td-center">
+                <span class="ta-cout-badge">{{ t.cout }} cr.</span>
+              </td>
+
+              <!-- Statut toggle -->
+              <td class="ta-td-center">
+                <button class="ta-toggle-btn"
+                        [class.ta-toggle-btn--on]="t.est_actif"
+                        [class.ta-toggle-btn--off]="!t.est_actif"
+                        (click)="toggle(t)"
+                        ngbTooltip="{{ t.est_actif ? 'Désactiver' : 'Activer' }}"
+                        placement="top" triggers="hover">
+                  <i class="bi" [class.bi-toggle-on]="t.est_actif"
+                                [class.bi-toggle-off]="!t.est_actif"></i>
+                  {{ t.est_actif ? 'Actif' : 'Inactif' }}
+                </button>
+              </td>
+
+              <!-- Actions -->
+              <td class="ta-td-right">
+                <div class="ta-actions">
+                  <button class="ta-act-btn ta-act-btn--edit"
+                          (click)="ouvrirEdition(t)"
+                          ngbTooltip="Modifier" placement="top" triggers="hover">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="ta-act-btn ta-act-btn--delete"
+                          (click)="supprimer(t)"
+                          ngbTooltip="Supprimer" placement="top" triggers="hover">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Vide -->
+  @if (!isLoading() && tarifs().length === 0) {
+    <div class="ta-empty">
+      <i class="bi bi-currency-exchange"></i>
+      <p>Aucun tarif configuré.</p>
+      <button class="ta-btn-add" (click)="ouvrirAjout()">
+        <i class="bi bi-plus-lg me-1"></i> Créer le premier tarif
+      </button>
+    </div>
+  }
+
+</div>

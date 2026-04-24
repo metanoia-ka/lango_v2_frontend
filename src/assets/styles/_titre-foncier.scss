@@ -1,0 +1,747 @@
+// ─────────────────────────────────────────────────────────────────
+// _titre-foncier.scss
+// Intégrer dans theme.scss via : @use 'titre-foncier';
+// ─────────────────────────────────────────────────────────────────
+
+$green:       #008753;
+$green-light: #e6f4ee;
+$green-hover: #00a86b;
+$yellow:      #FCD116;
+$border:      #e5e7eb;
+$text:        #111827;
+$text-muted:  #6b7280;
+$text-light:  #9ca3af;
+$bg:          #f9fafb;
+$white:       #fff;
+$radius:      12px;
+$radius-sm:   8px;
+
+// ── Page ───────────────────────────────────────────────────────────
+.tf-page {
+  padding: 1.5rem;
+  max-width: 1280px;
+  margin: 0 auto;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    &-left {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
+    }
+  }
+
+  &__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: $radius-sm;
+    background: $green-light;
+    color: $green;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: $text;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    font-size: 0.825rem;
+    color: $text-muted;
+    margin: 0;
+  }
+}
+
+// ── Toolbar ────────────────────────────────────────────────────────
+.tf-toolbar {
+  margin-bottom: 1.25rem;
+}
+
+.tf-search {
+  position: relative;
+  max-width: 380px;
+
+  &__icon {
+    position: absolute;
+    left: 0.875rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $text-light;
+    font-size: 0.875rem;
+    pointer-events: none;
+  }
+
+  &__input {
+    width: 100%;
+    padding: 0.6rem 1rem 0.6rem 2.4rem;
+    border: 1.5px solid $border;
+    border-radius: $radius-sm;
+    background: $white;
+    font-size: 0.875rem;
+    color: $text;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      border-color: $green;
+      box-shadow: 0 0 0 3px rgba($green, 0.1);
+    }
+
+    &::placeholder { color: $text-light; }
+  }
+}
+
+// ── Table ─────────────────────────────────────────────────────────
+.tf-table-wrap {
+  background: $white;
+  border-radius: $radius;
+  border: 1px solid $border;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.tf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  thead tr {
+    background: $bg;
+    border-bottom: 1.5px solid $border;
+  }
+
+  th {
+    padding: 0.875rem 1rem;
+    font-size: 0.775rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $text-muted;
+    white-space: nowrap;
+    text-align: left;
+  }
+
+  td {
+    padding: 0.875rem 1rem;
+    color: $text;
+    vertical-align: middle;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  &__row {
+    transition: background 0.12s;
+    &:last-child td { border-bottom: none; }
+    &:hover { background: #fafafa; }
+  }
+
+  &__actions-col { width: 140px; }
+  &__actions {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+}
+
+// ── Éléments cellule ──────────────────────────────────────────────
+.tf-link {
+  color: $green;
+  font-weight: 600;
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+
+.tf-owner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &__avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: $green-light;
+    color: $green;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__name { font-weight: 500; }
+}
+
+.tf-surface {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $text;
+
+  &--restante { color: $green; }
+}
+
+.tf-date { color: $text-muted; white-space: nowrap; }
+
+// ── Badges statut ─────────────────────────────────────────────────
+.tf-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &--success { background: #dcfce7; color: #15803d; }
+  &--warning { background: #fef9c3; color: #b45309; }
+  &--danger  { background: #fee2e2; color: #dc2626; }
+}
+
+// ── Vérification ──────────────────────────────────────────────────
+.tf-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+
+  &--yes { color: $green; }
+  &--no  { color: $text-muted; }
+}
+
+// ── Boutons action ligne ──────────────────────────────────────────
+.tf-action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: $radius-sm;
+  border: 1.5px solid $border;
+  background: $white;
+  color: $text-muted;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+  text-decoration: none;
+
+  &:hover {
+    border-color: $green;
+    color: $green;
+    background: $green-light;
+  }
+
+  &--verify:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+    background: #eff6ff;
+  }
+
+  &--danger:hover {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: #fee2e2;
+  }
+}
+
+// ── Skeletons ─────────────────────────────────────────────────────
+.tf-skeleton-wrap { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.tf-skeleton-row {
+  height: 52px;
+  border-radius: $radius-sm;
+  background: linear-gradient(90deg, #f3f4f6 25%, #e9eaeb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: tf-shimmer 1.4s infinite;
+}
+
+@keyframes tf-shimmer {
+  0%   { background-position:  200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+// ── Empty state ───────────────────────────────────────────────────
+.tf-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  &__icon {
+    font-size: 3rem;
+    color: $text-light;
+    margin-bottom: 0.5rem;
+  }
+  &__title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: $text;
+    margin: 0;
+  }
+  &__sub {
+    color: $text-muted;
+    font-size: 0.875rem;
+    margin: 0 0 1rem;
+  }
+}
+
+// ── Pagination ────────────────────────────────────────────────────
+.tf-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+// ── Alertes ───────────────────────────────────────────────────────
+.tf-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  border-radius: $radius-sm;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+
+  i { flex-shrink: 0; margin-top: 1px; }
+
+  &--danger { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+  &--info   { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+}
+
+// ── Boutons principaux ────────────────────────────────────────────
+.tf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: $radius-sm;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+
+  &--primary {
+    background: linear-gradient(135deg, $green, $green-hover);
+    color: $white;
+    box-shadow: 0 2px 8px rgba($green, 0.25);
+    &:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &--ghost {
+    background: $white;
+    color: $text-muted;
+    border: 1.5px solid $border;
+    &:hover { border-color: $text-muted; color: $text; }
+  }
+
+  &--success {
+    background: #15803d;
+    color: $white;
+    &:hover:not(:disabled) { background: #166534; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &--warning {
+    background: #d97706;
+    color: $white;
+    &:hover:not(:disabled) { background: #b45309; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &--danger {
+    background: #dc2626;
+    color: $white;
+    &:hover:not(:disabled) { background: #b91c1c; }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+}
+
+// ── Spinner ───────────────────────────────────────────────────────
+.tf-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba($white, 0.3);
+  border-top-color: $white;
+  border-radius: 50%;
+  animation: tf-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes tf-spin {
+  to { transform: rotate(360deg); }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  MODALES (Form + Vérification)
+// ════════════════════════════════════════════════════════════════
+
+.tf-modal {
+  border-radius: $radius;
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 1.25rem 1.5rem 1rem;
+    border-bottom: 1px solid $border;
+    background: $white;
+
+    &--verify { background: #f8fafc; }
+  }
+
+  &__header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-sm;
+    background: $green-light;
+    color: $green;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+
+    &--edit   { background: #eff6ff; color: #2563eb; }
+    &--verify { background: #eff6ff; color: #2563eb; }
+  }
+
+  &__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $text;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    font-size: 0.8rem;
+    color: $text-muted;
+    margin: 0;
+
+    &--mono {
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      color: $green;
+    }
+  }
+
+  &__close {
+    margin-left: auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: #f3f4f6;
+    color: $text-muted;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    transition: background 0.15s, color 0.15s;
+    &:hover { background: #fee2e2; color: #dc2626; }
+  }
+
+  &__body {
+    padding: 1.25rem 1.5rem;
+    background: $white;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.625rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid $border;
+    margin-top: 1.25rem;
+
+    &--verify {
+      padding: 1rem 1.5rem;
+      background: #f8fafc;
+      margin: 0;
+    }
+  }
+}
+
+// ── Champs formulaire (modale) ────────────────────────────────────
+.tf-field {
+  margin-bottom: 1.125rem;
+
+  &--error .tf-input-wrap { border-color: #dc2626; background: #fff8f8; }
+  &--error .tf-textarea   { border-color: #dc2626; background: #fff8f8; }
+}
+
+.tf-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.35rem;
+}
+
+.tf-required { color: #dc2626; margin-left: 2px; }
+
+.tf-input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid $border;
+  border-radius: $radius-sm;
+  background: $bg;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus-within {
+    border-color: $green;
+    background: $white;
+    box-shadow: 0 0 0 3px rgba($green, 0.1);
+  }
+}
+
+.tf-input-ico {
+  padding: 0 0.75rem;
+  color: $text-light;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.tf-input-suffix {
+  padding: 0 0.75rem;
+  color: $text-muted;
+  font-size: 0.8rem;
+  background: #f3f4f6;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  border-left: 1px solid $border;
+}
+
+.tf-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0.6rem 0;
+  font-size: 0.875rem;
+  color: $text;
+  outline: none;
+  min-width: 0;
+
+  &::placeholder { color: $text-light; }
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button { -webkit-appearance: none; }
+}
+
+.tf-textarea {
+  width: 100%;
+  border: 1.5px solid $border;
+  border-radius: $radius-sm;
+  background: $bg;
+  padding: 0.65rem 0.875rem;
+  font-size: 0.875rem;
+  color: $text;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus {
+    border-color: $green;
+    background: $white;
+    box-shadow: 0 0 0 3px rgba($green, 0.1);
+  }
+
+  &::placeholder { color: $text-light; }
+}
+
+.tf-field-error {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-top: 0.3rem;
+}
+
+// ── Dropzone ──────────────────────────────────────────────────────
+.tf-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  border: 2px dashed $border;
+  border-radius: $radius;
+  padding: 1.5rem 1rem;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:hover {
+    border-color: $green;
+    background: $green-light;
+
+    .tf-dropzone__icon { color: $green; }
+  }
+
+  &__icon {
+    font-size: 1.75rem;
+    color: $text-light;
+    transition: color 0.2s;
+    margin-bottom: 0.25rem;
+  }
+
+  &__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  &__hint { font-size: 0.75rem; color: $text-light; }
+}
+
+// ── Scan preview ──────────────────────────────────────────────────
+.tf-scan-preview {
+  position: relative;
+  border-radius: $radius-sm;
+  border: 1.5px solid $border;
+  overflow: hidden;
+
+  &--image img {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+    display: block;
+  }
+
+  &--pdf {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: #fff7ed;
+    color: #c2410c;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  &__pdf-icon { font-size: 2rem; flex-shrink: 0; }
+
+  &__remove {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(0,0,0,0.55);
+    color: $white;
+    border: none;
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    &:hover { background: #dc2626; }
+  }
+}
+
+// ── Résumé vérification ───────────────────────────────────────────
+.tf-verify-summary {
+  background: $bg;
+  border-radius: $radius-sm;
+  border: 1px solid $border;
+  padding: 1rem 1.125rem;
+  margin-bottom: 1.25rem;
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.35rem 0;
+    font-size: 0.875rem;
+    border-bottom: 1px solid #f3f4f6;
+    &:last-child { border-bottom: none; }
+  }
+
+  &__label { color: $text-muted; font-weight: 500; }
+  &__value { color: $text; font-weight: 600; text-align: right; }
+}
+
+// ── Cartes de décision ────────────────────────────────────────────
+.tf-decision-group {
+  margin-bottom: 1.25rem;
+
+  &__label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.75rem;
+  }
+}
+
+.tf-decision-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.625rem;
+
+  @media (max-width: 500px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tf-decision-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 1rem 0.75rem;
+  border-radius: $radius-sm;
+  border: 2px solid $border;
+  background: $white;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+
+  &__icon { font-size: 1.5rem; }
+  &__label { font-size: 0.875rem; font-weight: 700; color: $text; }
+  &__desc  { font-size: 0.725rem; color: $text-muted; line-height: 1.3; }
+
+  &--success:hover, &--success.tf-decision-card--active {
+    border-color: #15803d;
+    background: #f0fdf4;
+    .tf-decision-card__icon  { color: #15803d; }
+    .tf-decision-card__label { color: #15803d; }
+  }
+
+  &--warning:hover, &--warning.tf-decision-card--active {
+    border-color: #d97706;
+    background: #fffbeb;
+    .tf-decision-card__icon  { color: #d97706; }
+    .tf-decision-card__label { color: #d97706; }
+  }
+
+  &--danger:hover, &--danger.tf-decision-card--active {
+    border-color: #dc2626;
+    background: #fff5f5;
+    .tf-decision-card__icon  { color: #dc2626; }
+    .tf-decision-card__label { color: #dc2626; }
+  }
+}

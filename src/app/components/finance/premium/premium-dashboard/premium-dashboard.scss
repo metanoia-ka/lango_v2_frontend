@@ -1,0 +1,76 @@
+.prem-tarif-bandeau {
+  display:       flex;
+  gap:           14px;
+  padding:       16px;
+  background:    #fffbeb;
+  border:        1px solid #fcd116;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  align-items:   flex-start;
+}
+
+.prem-tarif-bandeau-icon {
+  font-size:  20px;
+  color:      #d97706;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.prem-tarif-bandeau-body {
+  flex: 1;
+
+  strong {
+    font-size:     14px;
+    color:         #92400e;
+    display:       block;
+    margin-bottom: 4px;
+  }
+
+  p {
+    font-size:     13px;
+    color:         #b45309;
+    margin-bottom: 10px;
+  }
+}
+
+.prem-tarif-solde {
+  color: #008753;
+}
+
+.prem-tarif-grille {
+  display:        flex;
+  flex-direction: column;
+  gap:            5px;
+}
+
+.prem-tarif-ligne {
+  display:     flex;
+  align-items: center;
+  font-size:   12px;
+  color:       #6b7280;
+  gap:         6px;
+
+  span:first-of-type { flex: 1; }
+}
+
+.prem-tarif-prix {
+  font-size:   11px;
+  font-weight: 600;
+  color:       #d97706;
+  background:  #fef3c7;
+  padding:     2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.prem-tarif-bandeau-close {
+  background:  none;
+  border:      none;
+  color:       #9ca3af;
+  cursor:      pointer;
+  font-size:   13px;
+  padding:     2px;
+  flex-shrink: 0;
+  &:hover { color: #374151; }
+}

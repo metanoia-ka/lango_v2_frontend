@@ -1,0 +1,119 @@
+.annonce-form-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+
+  .page-header {
+    h2 {
+      color: $primary;
+      font-weight: 600;
+    }
+  }
+}
+
+// Cards
+.card {
+  border: 1px solid #e0e0e0;
+
+  .card-header {
+    h5 {
+      color: $primary;
+      font-weight: 600;
+    }
+  }
+}
+
+// Image preview
+.image-preview {
+  position: relative;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: #f5f5f5;
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .btn-remove {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.image-placeholder {
+  height: 250px;
+  border: 2px dashed #ddd;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+
+  i {
+    font-size: 4rem;
+    color: #ccc;
+  }
+}
+
+// Form controls
+.form-control,
+.form-select {
+  border-radius: 0.5rem;
+  border: 1.5px solid #dee2e6;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 0.2rem rgba(0, 135, 83, 0.15);
+  }
+
+  &.is-invalid {
+    border-color: #dc3545;
+  }
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 150px;
+}
+
+// Input groups
+.input-group-text {
+  background: #f8f9fa;
+  border: 1.5px solid #dee2e6;
+  
+  i {
+    color: $primary;
+  }
+}
+
+// Boutons actions
+.form-actions {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+  border: 2px solid #e0e0e0;
+
+  .btn-primary {
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+  }
+}
+
+// Responsive
+@media (max-width: 992px) {
+  .sticky-top {
+    position: relative !important;
+    top: 0 !important;
+  }
+}

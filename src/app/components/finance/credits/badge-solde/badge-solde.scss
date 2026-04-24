@@ -1,0 +1,6 @@
+.badge-container { 
+  cursor: pointer; transition: transform 0.2s; 
+} 
+.badge-container:hover { 
+  transform: scale(1.05); 
+}

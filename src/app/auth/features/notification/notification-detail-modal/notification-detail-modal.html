@@ -1,0 +1,390 @@
+
+<div class="ndm">
+
+  <!-- ── Header ── -->
+  <div class="ndm-header">
+    <div class="ndm-header-left">
+      <h5 class="ndm-title">
+        <i class="bi me-2" [class]="meta.icone"
+           [style.color]="meta.couleur"></i>
+        {{ notification.titre }}
+      </h5>
+    </div>
+    <button type="button" class="btn-close btn-sm" (click)="close()"></button>
+  </div>
+
+  <!-- ── Body ── -->
+  <div class="ndm-body">
+
+    <!-- Alertes -->
+    @if (successMsg()) {
+      <div class="nam-alert success">
+        <i class="bi bi-check-circle-fill"></i> {{ successMsg() }}
+      </div>
+    }
+    @if (errorMsg()) {
+      <div class="nam-alert error">
+        <i class="bi bi-x-circle-fill"></i> {{ errorMsg() }}
+      </div>
+    }
+
+    <!-- Chips statut -->
+    <div class="ndm-chips">
+  <span class="ndm-chip"
+        [style.background]="getTypeConfig().bg"
+        [style.color]="getTypeConfig().color">
+    <i class="bi" [class]="getTypeConfig().icon"></i>
+    {{ getTypeConfig().label }}
+  </span>
+
+  @if (!notification.lue) {
+    <span class="ndm-chip ndm-chip-nonlue">
+      <i class="bi bi-circle-fill" style="font-size:7px"></i>
+      Non lue
+    </span>
+  }
+
+  <!-- FIX deja_repondu : chip vert si déjà répondu -->
+  @if (dejaRepondu) {
+    <span class="ndm-chip ndm-chip-repondu">
+      <i class="bi bi-check2-circle"></i>
+      Déjà répondu
+    </span>
+  }
+
+  <!-- Chip expiration urgente -->
+  @if (expireBientot) {
+    <span class="ndm-chip ndm-chip-urgent">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      Expire bientôt
+    </span>
+  }
+  @if (estExpiree) {
+    <span class="ndm-chip ndm-chip-expired">
+      <i class="bi bi-x-circle-fill"></i>
+      Expirée
+    </span>
+  }
+</div>
+
+    <!-- Bloc infos -->
+    <div class="ndm-infos">
+      <div class="ndm-infos-header">
+        <i class="bi bi-info-circle"></i>
+        Informations
+      </div>
+
+      <div class="ndm-infos-grid">
+
+  <!-- Date de création -->
+  <div class="ndm-info-cell">
+    <div class="ndm-info-label">Reçue le</div>
+    <div class="ndm-info-value">
+      {{ notification.date_creation | date:'dd/MM/yyyy' }}
+    </div>
+    <div class="ndm-info-sub">
+      {{ notification.date_creation | date:'HH:mm' }}
+      · {{ notification.depuis }}
+    </div>
+  </div>
+
+  <!-- FIX date_lecture : afficher même si undefined au chargement -->
+  <div class="ndm-info-cell">
+    @if (notifData().lue && notifData().date_lecture) {
+      <div class="ndm-info-label">Lue le</div>
+      <div class="ndm-info-value">
+        {{ notifData().date_lecture | date:'dd/MM/yyyy' }}
+      </div>
+      <div class="ndm-info-sub">
+        {{ notifData().date_lecture | date:'HH:mm' }}
+      </div>
+    } @else if (notifData().lue && !notifData().date_lecture) {
+      <!-- Lue mais date_lecture non retournée par le sérialiseur -->
+      <div class="ndm-info-label">Statut</div>
+      <div class="ndm-info-value" style="color:var(--green)">
+        <i class="bi bi-check2-circle"></i> Lue
+      </div>
+      <div class="ndm-info-sub">
+        Date de lecture: non disponible
+      </div>
+    } @else {
+      <div class="ndm-info-label">Statut</div>
+      <div class="ndm-info-value" style="color:#9ca3af">Non lue</div>
+    }
+  </div>
+
+  <!-- FIX expire_le : cellule dédiée avec état visuel -->
+  @if (aExpiration) {
+    <div class="ndm-info-cell" [class]="expirationClass">
+      <div class="ndm-info-label">
+        <i class="bi bi-clock me-1"></i>
+        @if (estExpiree) { Expirée le }
+        @else if (expireBientot) { Expire bientôt }
+        @else { Expire le }
+      </div>
+      <div class="ndm-info-value">
+        {{ notification.expire_le | date:'dd/MM/yyyy' }}
+      </div>
+      <div class="ndm-info-sub">
+        {{ notification.expire_le | date:'HH:mm' }}
+        @if (!estExpiree) {
+          · {{ notification.expire_le | date:'dd/MM/yyyy' }}
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Personne concernée -->
+  @if (notification.personne_nom) {
+    <div class="ndm-info-cell full">
+      <div class="ndm-info-label">Concerne</div>
+      <div class="ndm-info-value">{{ notification.personne_nom }}</div>
+    </div>
+  }
+
+    </div>
+  </div>
+
+  <!-- Expiration -->
+  @if (aExpiration) {
+    <div class="ndm-expiry" [class]="expirationClass">
+      <i class="bi bi-clock"></i>
+      @if (estExpiree)    { Expirée le }
+      @else if (expireBientot) { Expire bientôt — }
+      @else               { Expire le }
+      <strong>{{ notification.expire_le | date:'dd/MM/yyyy à HH:mm' }}</strong>
+    </div>
+  }
+
+  <!-- Message -->
+  <div class="ndm-message">{{ notification.message }}</div>
+
+  @if (notification.pieces_jointes.length > 0) {
+  <div class="ndm-section-label">
+    <i class="bi bi-file-earmark-pdf" style="color:#dc2626"></i>
+    Document(s) joint(s)
+  </div>
+
+  <div class="ndm-pj-list">
+    @for (pj of notification.pieces_jointes; track pj.id) {
+      <a [href]="pj.url"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="ndm-pj-item"
+         [title]="'Télécharger ' + pj.nom_original">
+
+        <div class="ndm-pj-icon">
+          <i class="bi bi-file-earmark-pdf"></i>
+        </div>
+
+        <div class="ndm-pj-info">
+          <span class="ndm-pj-name">{{ pj.nom_original }}</span>
+          @if (pj.taille) {
+            <span class="ndm-pj-size">
+              {{ (pj.taille / 1024 / 1024).toFixed(1) }} Mo
+            </span>
+          }
+          @if (pj.type === 'externe') {
+            <span class="ndm-pj-badge-ext">Lien externe</span>
+          }
+        </div>
+
+        <i class="bi bi-download ndm-pj-dl"></i>
+
+      </a>
+    }
+  </div>
+  }
+
+  @if (estVoirReponse && notificationSourceId) {
+    <div class="mar">
+      <div class="ndm-section-label">
+        <i class="bi bi-chat-square-text" style="color:#008753;"></i>
+      Réponse(s) reçue(s)
+      </div>
+      <app-admin-reponses
+        [notificationId]="notificationSourceId"
+        (toutesTraitees)="markAsReadAndClose()">
+      </app-admin-reponses>
+    </div>
+  }
+
+  <!-- ══ CAS UTILISATEUR : actions ════════════════════════════ -->
+  @if (!dejaRepondu && !estVoirReponse) {
+
+    <!-- CAS 1 : fournir_documents -->
+    @if (typeAction === 'fournir_documents') {
+        <div class="nam-section">
+          <i class="bi bi-paperclip" style="color:#7c3aed"></i>
+          Documents à fournir
+        </div>
+
+        @for (slot of slots(); track slot.doc.id; let i = $index) {
+          <div class="nam-doc"
+               [class.ok]="slot.fichier"
+               [class.missing]="slot.doc.obligatoire && !slot.fichier">
+
+            <div class="nam-doc-nom">
+              <i class="bi bi-file-earmark"></i>
+              {{ slot.doc.nom }}
+              @if (slot.doc.obligatoire) {
+                <span class="nam-doc-req">* Obligatoire</span>
+              }
+            </div>
+            @if (slot.doc.description) {
+              <div class="nam-doc-desc">{{ slot.doc.description }}</div>
+            }
+            @if (slot.doc.formats_acceptes.length) {
+              <div class="nam-doc-formats">
+                Formats : {{ slot.doc.formats_acceptes.join(', ').toUpperCase() }}
+                @if (slot.doc.taille_max_mo) { · Max {{ slot.doc.taille_max_mo }} Mo }
+              </div>
+            }
+            <input type="file" class="nam-doc-input"
+                   [accept]="getAcceptFormats(slot)"
+                   (change)="onFichier(i, $event)">
+            @if (slot.fichier && !slot.erreur) {
+              <div class="nam-doc-ok">
+                <i class="bi bi-check-circle-fill"></i>
+                {{ slot.fichier.name }}
+              </div>
+            }
+            @if (slot.erreur) {
+              <div class="nam-doc-err">{{ slot.erreur }}</div>
+            }
+          </div>
+        }
+    }
+
+    <!-- CAS 2 : confirmer_action -->
+    @if (typeAction === 'confirmer_action') {
+        <div class="nam-section">
+          <i class="bi bi-hand-index" style="color:#f97316"></i>
+          Votre réponse
+        </div>
+
+        <div class="nam-options" [formGroup]="confirmForm">
+
+          @for (opt of options; track opt.valeur) {
+            <div class="nam-option"
+                 [class.selected]="confirmForm.get('choix')?.value === opt.valeur"
+                 (click)="confirmForm.get('choix')?.setValue(opt.valeur)">
+              <div class="nam-option-radio"></div>
+              {{ opt.label }}
+            </div>
+          }
+
+          @if (options.length === 0) {
+            <textarea class="nam-comment" formControlName="commentaire"
+                      placeholder="Votre réponse…"></textarea>
+          } @else {
+            <textarea class="nam-comment" formControlName="commentaire"
+                      placeholder="Commentaire optionnel…"></textarea>
+          }
+
+        </div>
+    }
+
+    <!-- CAS 3 : voir_annonce -->
+    @if (typeAction === 'voir_annonce') {
+        <div class="nam-alert"
+             style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd">
+          <i class="bi bi-info-circle-fill"></i>
+          Cliquez sur le bouton ci-dessous pour accéder au contenu lié.
+        </div>
+    }
+
+  }
+
+  <!-- Alertes état réponse -->
+  @if (dejaRepondu) {
+    <div class="nam-alert"
+         style="background:#e6f4ee;color:#008753;border:1px solid #b3d9c8">
+      <i class="bi bi-check2-circle-fill"></i>
+      Vous avez déjà répondu à cette notification.
+      Aucune action supplémentaire n'est requise.
+    </div>
+  }
+
+  @if (estExpiree && !dejaRepondu) {
+    <div class="nam-alert"
+         style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca">
+      <i class="bi bi-x-circle-fill"></i>
+      Cette notification a expiré. Il n'est plus possible d'y répondre.
+    </div>
+  }
+
+</div>
+
+  <!-- ── Footer ── -->
+  <div class="ndm-footer">
+
+    <!-- Gauche : supprimer -->
+    <button type="button" class="ndm-btn ndm-btn-delete"
+            (click)="onDelete(notification)">
+      <i class="bi bi-trash"></i>
+      Supprimer
+    </button>
+
+  @if (typeAction === 'fournir_documents' && !dejaRepondu && !estExpiree) {
+    <button class="btn-submit"
+            [disabled]="!tousObligatoiresRemplis() || isSubmitting()"
+            (click)="soumettre()">
+      @if (isSubmitting()) {
+        <span class="spinner-border" style="width:13px;height:13px;border-width:2px"></span>
+        Envoi…
+      } @else {
+        <i class="bi bi-send-fill"></i> Envoyer les documents
+      }
+    </button>
+  }
+
+  @if (typeAction === 'confirmer_action' && !dejaRepondu && !estExpiree) {
+    <button class="btn-submit"
+            [disabled]="confirmForm.invalid || isSubmitting()"
+            (click)="soumettre()">
+      @if (isSubmitting()) {
+        <span class="spinner-border" 
+              style="width:13px;height:13px;border-width:2px"></span>
+        Envoi…
+      } @else {
+        <i class="bi bi-check-lg"></i> Confirmer
+      }
+    </button>
+  }
+
+    @if (typeAction === 'voir_annonce') {
+      <button class="btn-submit btn btn-sm btn-primary-custom"
+              (click)="goToAnnonce()">
+        <i class="bi bi-house"></i> Voir l'annonce
+      </button>
+    }
+
+    <!-- Droite : actions -->
+    <div class="ndm-footer-right">
+
+      @if (!notification.lue) {
+        <button type="button" class="ndm-btn ndm-btn-read"
+                (click)="markAsReadAndClose()">
+          <i class="bi bi-check2"></i>
+          Marquer comme lu
+        </button>
+      }
+
+      @if (notification.lien) {
+        <button type="button" class="ndm-btn ndm-btn-link"
+                (click)="goToLink()">
+          <i class="bi bi-arrow-right-circle"></i>
+          Voir le détail
+        </button>
+      }
+
+      <button type="button" class="ndm-btn ndm-btn-close"
+              (click)="close()">
+        Fermer
+      </button>
+
+    </div>
+  </div>
+
+</div>

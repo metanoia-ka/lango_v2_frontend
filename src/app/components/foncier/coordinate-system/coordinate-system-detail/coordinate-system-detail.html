@@ -1,0 +1,172 @@
+<div class="mf-modal">
+
+  <div class="mf-modal__header">
+    <h5 class="mf-modal__title">
+      <i class="bi bi-globe2"></i>
+      @if (system()) { {{ system()!.nom }} }
+      @else { Détail du système }
+    </h5>
+    <button class="mf-modal__close" (click)="activeModal.dismiss()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <div class="mf-modal__body">
+
+    <!-- ── Chargement ────────────────────────────────────────── -->
+    @if (loading()) {
+      <div class="cs-detail-loading">
+        <span class="mf-spinner mf-spinner--lg mf-spinner--green"></span>
+        <p>Chargement des métadonnées…</p>
+      </div>
+    }
+
+    @if (error()) {
+      <div class="mf-alert mf-alert--danger">
+        <i class="bi bi-exclamation-triangle-fill"></i> {{ error() }}
+      </div>
+    }
+
+    @if (!loading() && system()) {
+
+      <!-- ── Infos de base ────────────────────────────────────── -->
+      <div class="cs-detail-section">
+        <h6 class="cs-detail-section__title">Informations générales</h6>
+        <div class="cs-detail-grid">
+
+          <div class="cs-detail-item">
+            <span class="cs-detail-item__label">Code EPSG / SRID</span>
+            <span class="cs-detail-item__value cs-detail-item__value--srid">
+              {{ system()!.srid }}
+            </span>
+          </div>
+
+          <div class="cs-detail-item">
+            <span class="cs-detail-item__label">Nom enregistré</span>
+            <span class="cs-detail-item__value">{{ system()!.nom }}</span>
+          </div>
+
+          @if (system()!.description) {
+            <div class="cs-detail-item cs-detail-item--full">
+              <span class="cs-detail-item__label">Description</span>
+              <span class="cs-detail-item__value">{{ system()!.description }}</span>
+            </div>
+          }
+
+          <div class="cs-detail-item">
+            <span class="cs-detail-item__label">Créé le</span>
+            <span class="cs-detail-item__value">
+              {{ system()!.created_at | date:'dd/MM/yyyy à HH:mm' }}
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── Métadonnées pyproj ───────────────────────────────── -->
+      @if (system()!.metadata && system()!.metadata!.epsg_code) {
+        <div class="cs-detail-section">
+          <h6 class="cs-detail-section__title">
+            <i class="bi bi-layers"></i> Métadonnées EPSG
+            <span class="cs-detail-section__badge">via pyproj</span>
+          </h6>
+          <div class="cs-detail-grid">
+
+            <div class="cs-detail-item">
+              <span class="cs-detail-item__label">Nom officiel EPSG</span>
+              <span class="cs-detail-item__value">{{ system()!.metadata!.name }}</span>
+            </div>
+
+            <div class="cs-detail-item">
+              <span class="cs-detail-item__label">Type</span>
+              <span class="cs-detail-item__value">{{ system()!.metadata!.type }}</span>
+            </div>
+
+            <div class="cs-detail-item">
+              <span class="cs-detail-item__label">Datum</span>
+              <span class="cs-detail-item__value">
+                {{ system()!.metadata!.datum ?? '—' }}
+              </span>
+            </div>
+
+            <div class="cs-detail-item">
+              <span class="cs-detail-item__label">Ellipsoïde</span>
+              <span class="cs-detail-item__value">
+                {{ system()!.metadata!.ellipsoid ?? '—' }}
+              </span>
+            </div>
+
+            <div class="cs-detail-item">
+              <span class="cs-detail-item__label">Unité</span>
+              <span class="cs-detail-item__value">
+                {{ system()!.metadata!.units ?? '—' }}
+              </span>
+            </div>
+
+            <div class="cs-detail-item cs-detail-item--full">
+              <span class="cs-detail-item__label">Zone d'utilisation (bbox)</span>
+              <span class="cs-detail-item__value cs-detail-item__value--mono">
+                {{ formatBounds(system()!.metadata!.area_of_use) }}
+              </span>
+            </div>
+
+            <!-- Badges géographique / projeté -->
+            <div class="cs-detail-item cs-detail-item--full">
+              <span class="cs-detail-item__label">Nature</span>
+              <div class="cs-detail-badges">
+                @if (system()!.metadata!.is_geographic) {
+                  <span class="lt-badge lt-badge--info">
+                    <i class="bi bi-globe-europe-africa"></i> Géographique
+                  </span>
+                }
+                @if (system()!.metadata!.is_projected) {
+                  <span class="lt-badge lt-badge--primary">
+                    <i class="bi bi-grid-3x3"></i> Projeté
+                  </span>
+                }
+              </div>
+            </div>
+
+          </div>
+        </div>
+      } @else {
+        <div class="mf-hint mf-hint--warning">
+          <i class="bi bi-exclamation-triangle"></i>
+          Les métadonnées EPSG ne sont pas disponibles pour ce SRID.
+          Vérifiez que pyproj est installé et que le SRID est valide.
+        </div>
+      }
+
+      <!-- ── Opérations supportées ────────────────────────────── -->
+      @if (system()!.supported_operations?.length) {
+        <div class="cs-detail-section">
+          <h6 class="cs-detail-section__title">
+            <i class="bi bi-tools"></i> Opérations supportées
+          </h6>
+          <div class="cs-operations-grid">
+            @for (op of opKeys; track op) {
+              <div class="cs-operation-chip"
+                   [class.cs-operation-chip--active]="hasOperation(op)"
+                   [class.cs-operation-chip--inactive]="!hasOperation(op)">
+                <i class="bi {{ OP_ICON[op] }}"></i>
+                <span>{{ OP_LABELS[op] }}</span>
+                @if (hasOperation(op)) {
+                  <i class="bi bi-check-circle-fill cs-operation-chip__check"></i>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    }
+
+  </div>
+
+  <div class="mf-modal__footer">
+    <button class="mf-btn mf-btn--secondary" (click)="activeModal.dismiss()">
+      Fermer
+    </button>
+  </div>
+
+</div>

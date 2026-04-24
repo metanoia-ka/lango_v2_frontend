@@ -1,0 +1,64 @@
+$green:  #008753;
+$green-l:#E8F5EE;
+$dark:   #111827;
+$gray:   #6B7280;
+$gray-l: #F3F4F6;
+$gray-m: #E5E7EB;
+$danger: #EF4444;
+
+.mf-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 12px;border-bottom:1px solid $gray-m;
+  &-left{display:flex;align-items:center;gap:12px;}
+  &-icon{width:36px;height:36px;background:$green-l;color:$green;
+    border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+  &-title{font-size:.92rem;font-weight:700;color:$dark;margin:0 0 2px;}
+  &-sub{font-size:.72rem;color:$gray;margin:0;}
+}
+.mf-close-btn{background:none;border:none;color:$gray;cursor:pointer;
+  font-size:1rem;padding:4px 8px;border-radius:6px;&:hover{background:$gray-l;}}
+.mf-body{padding:16px 20px;display:flex;flex-direction:column;gap:14px;
+  max-height:70vh;overflow-y:auto;}
+.mf-alert{padding:10px 14px;border-radius:8px;font-size:.82rem;
+  &--danger{background:#FEF2F2;color:#991B1B;border:1px solid #FCA5A5;}}
+
+// Aperçu
+.tf-preview{padding:10px 16px;background:$green-l;border-radius:8px;
+  border:1px solid darken($green-l,5%);font-size:.85rem;color:$dark;
+  &__ref{font-size:1rem;color:$green;font-family:monospace;margin-left:8px;}}
+
+// Fieldsets
+.tf-fieldset{border:1px solid $gray-m;border-radius:8px;padding:14px 16px;
+  &__legend{font-size:.78rem;font-weight:700;color:$gray;padding:0 8px;}}
+
+// Champs
+.mf-field{display:flex;flex-direction:column;gap:5px;}
+.mf-label{font-size:.75rem;font-weight:600;color:$gray;.req{color:$danger;}}
+.mf-input{padding:8px 12px;border:1px solid $gray-m;border-radius:7px;
+  font-size:.875rem;color:$dark;outline:none;&:focus{border-color:$green;}
+  &--error{border-color:$danger;}&--file{padding:6px;}}
+select.mf-input{cursor:pointer;}
+.mf-error{font-size:.73rem;color:$danger;}
+.mf-hint{font-size:.73rem;color:$gray;&--ok{color:#059669;}}
+.mf-optional{font-weight:400;font-size:.72rem;}
+
+// Groupe numéro
+.tf-numero-group{display:flex;align-items:center;gap:0;border:1px solid $gray-m;
+  border-radius:7px;overflow:hidden;&:focus-within{border-color:$green;}}
+.tf-numero-prefix,.tf-numero-suffix{padding:8px 12px;background:$gray-l;
+  font-size:.82rem;font-weight:600;color:$gray;white-space:nowrap;}
+.tf-numero-input{border:none !important;border-radius:0 !important;outline:none;
+  flex:1;padding:8px 12px;font-size:.875rem;color:$dark;}
+
+// Doc existant
+.tf-doc-existant{font-size:.78rem;color:$gray;a{color:$green;text-decoration:none;
+  &:hover{text-decoration:underline;}}}
+
+// Actions
+.mf-actions{display:flex;justify-content:flex-end;gap:10px;
+  padding:12px 20px 16px;border-top:1px solid $gray-m;}
+.mf-btn{display:inline-flex;align-items:center;padding:8px 16px;border-radius:7px;
+  font-size:.82rem;font-weight:600;border:none;cursor:pointer;transition:all .15s;
+  &--cancel{background:transparent;color:$gray;border:1px solid $gray-m;&:hover{background:$gray-l;}}
+  &--submit{background:$green;color:#fff;&:hover:not(:disabled){background:#006B42;}
+    &:disabled{opacity:.6;cursor:default;}}}

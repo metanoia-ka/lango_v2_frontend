@@ -1,0 +1,508 @@
+<div class="credit-wrap mt-5">
+  
+  <!-- ══ Header avec stats ═══════════════════════════════════════════════ -->
+  <div class="credit-header">
+    <div class="credit-header__main">
+      <div class="credit-header__icon">
+        <i class="bi bi-coin"></i>
+      </div>
+      <div class="credit-header__info">
+        <h1 class="credit-header__title">Gestion des crédits</h1>
+        <p class="credit-header__sub">Historique des transactions et remboursements</p>
+      </div>
+    </div>
+    
+    <div class="credit-header__actions">
+      
+      @if (isAdminOrManager) {
+        <button class="btn-primary" (click)="ouvrirAjout()">
+          <i class="bi bi-plus-circle"></i>
+          <span>Nouveau remboursement</span>
+        </button>
+      }
+    </div>
+  </div>
+  
+  <!-- ══ Stats Cards ═════════════════════════════════════════════════════ -->
+  <div class="credit-stats">
+    <div class="stat-card stat-card--total">
+      <div class="stat-card__icon">
+        <i class="bi bi-arrow-left-right"></i>
+      </div>
+      <div class="stat-card__content">
+        <span class="stat-card__value">{{ totalMouvements() }}</span>
+        <span class="stat-card__label">Transactions totales</span>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-card--rembourses">
+      <div class="stat-card__icon">
+        <i class="bi bi-arrow-counterclockwise"></i>
+      </div>
+      <div class="stat-card__content">
+        <span class="stat-card__value">{{ totalRembourses() | number:'1.0-0' }}</span>
+        <span class="stat-card__label">Crédits remboursés</span>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-card--achats">
+      <div class="stat-card__icon">
+        <i class="bi bi-cart-check"></i>
+      </div>
+      <div class="stat-card__content">
+        <span class="stat-card__value">{{ totalAchats() | number:'1.0-0' }}</span>
+        <span class="stat-card__label">Crédits achetés</span>
+      </div>
+    </div>
+    
+    <div class="stat-card stat-card--solde">
+      <div class="stat-card__icon">
+        <i class="bi bi-piggy-bank"></i>
+      </div>
+      <div class="stat-card__content">
+        <span class="stat-card__value">{{ soldeTotal() | number:'1.0-0' }}</span>
+        <span class="stat-card__label">Solde en circulation</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ══ Filtres et recherche ═══════════════════════════════════════════ -->
+  <div class="credit-filters">
+    <div class="search-wrapper">
+      <i class="bi bi-search search-icon"></i>
+      <input type="text" 
+             class="search-input" 
+             placeholder="Rechercher par utilisateur ou référence..."
+             [(ngModel)]="searchTerm"
+             (input)="onSearchChange()">
+      @if (searchTerm()) {
+        <button class="search-clear" (click)="searchTerm.set(''); onSearchChange()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      }
+    </div>
+    
+    <div class="filter-group">
+      <button class="filter-chip" 
+              [class.filter-chip--active]="filterType() === 'all'"
+              (click)="filterType.set('all'); loadMouvements()">
+        <i class="bi bi-grid"></i>
+        Tous
+      </button>
+      <button class="filter-chip" 
+              [class.filter-chip--active]="filterType() === 'ACHAT'"
+              (click)="filterType.set('ACHAT'); loadMouvements()">
+        <i class="bi bi-cart"></i>
+        Achats
+      </button>
+      <button class="filter-chip" 
+              [class.filter-chip--active]="filterType() === 'REMBOURSEMENT'"
+              (click)="filterType.set('REMBOURSEMENT'); loadMouvements()">
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Remboursements
+      </button>
+    </div>
+    
+    <button class="btn-refresh" (click)="loadMouvements()" [disabled]="isLoading()">
+      <i class="bi bi-arrow-clockwise" [class.spinning]="isLoading()"></i>
+    </button>
+  </div>
+  
+  <!-- ══ Formulaire de remboursement (Slide-in) ══════════════════════════ -->
+  @if (afficherForm()) {
+    <div class="form-overlay" (click)="annulerForm()">
+      <div class="form-panel" (click)="$event.stopPropagation()" @slideIn>
+        <div class="form-panel__header">
+          <div class="form-panel__title">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <span>
+              {{ enEdition() ? 'Modifier le remboursement' : 'Nouveau remboursement' }}
+            </span>
+          </div>
+          <button class="form-panel__close" (click)="annulerForm()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        
+        <div class="form-panel__body">
+          <!-- Info utilisateur -->
+          <div class="form-section">
+            <label class="form-label">
+              <i class="bi bi-person"></i>
+              Utilisateur concerné
+            </label>
+            
+            @if (!enEdition()) {
+              <div class="user-selector">
+                <div class="search-user" [class.focused]="userSearchFocused">
+                  <i class="bi bi-search"></i>
+                  <input type="text" 
+                         placeholder="Rechercher un utilisateur..."
+                         [(ngModel)]="userSearch"
+                         (focus)="userSearchFocused = true"
+                         (blur)="userSearchFocused = false"
+                         (input)="searchUsers()">
+                </div>
+                
+                @if (filteredUsers().length > 0 && userSearch()) {
+                  <div class="user-dropdown">
+                    @for (user of filteredUsers(); track user.id) {
+                      <div class="user-option" 
+                           [class.user-option--selected]="refundData.user_id === user.id"
+                           (click)="selectUser(user)">
+                        <div class="user-avatar">
+                          {{ user.username.charAt(0).toUpperCase() }}
+                        </div>
+                        <div class="user-info">
+                          <span class="user-name">{{ user.username }}</span>
+                          <span class="user-email">{{ user.email || user.phone }}</span>
+                        </div>
+                        <span class="user-credits">
+                          <i class="bi bi-coin"></i>
+                          {{ user.credit_balance || 0 }}
+                        </span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          
+          <!-- Montant -->
+          <div class="form-section">
+            <label class="form-label">
+              <i class="bi bi-cash"></i>
+              Montant à rembourser
+            </label>
+            
+            <div class="amount-input">
+              <div class="amount-field">
+                <input type="number" 
+                       [(ngModel)]="refundData.montant"
+                       min="1"
+                       step="1"
+                       class="amount-input__field"
+                       placeholder="0">
+                <span class="amount-input__unit">crédits</span>
+              </div>
+              
+              <!-- Montants suggérés -->
+              <div class="amount-suggestions">
+                @for (amount of [10, 50, 100, 500]; track amount) {
+                  <button class="amount-chip" 
+                          [class.amount-chip--active]="refundData.montant === amount"
+                          (click)="refundData.montant = amount">
+                    +{{ amount }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+          
+          <!-- Raison -->
+          <div class="form-section">
+            <label class="form-label">
+              <i class="bi bi-chat-text"></i>
+              Motif du remboursement
+            </label>
+            
+            <div class="reason-selector">
+              @for (reason of quickReasons; track reason) {
+                <button class="reason-chip" 
+                        [class.reason-chip--active]="refundData.raison === reason"
+                        (click)="refundData.raison = reason">
+                  {{ reason }}
+                </button>
+              }
+            </div>
+            
+            <textarea class="reason-textarea" 
+                      [(ngModel)]="refundData.raison"
+                      placeholder="Ou saisissez un motif personnalisé..."
+                      rows="3"></textarea>
+          </div>
+          
+          <!-- Résumé -->
+          @if (refundData.user_id && refundData.montant > 0) {
+            <div class="refund-summary">
+              <i class="bi bi-info-circle"></i>
+              <span>
+                <strong>{{ refundData.montant }} crédits</strong> seront ajoutés au solde de 
+                <!-- <strong>{{ selectedUser()?.username || 'l\'utilisateur' }}</strong> -->
+              </span>
+            </div>
+          }
+        </div>
+        
+        <div class="form-panel__footer">
+          <button class="btn-secondary" (click)="annulerForm()">
+            Annuler
+          </button>
+          <button class="btn-primary" 
+                  [disabled]="!isFormValid() || enregistrant()"
+                  (click)="enregistrer()">
+            @if (enregistrant()) {
+              <span class="spinner spinner--sm spinner--light"></span>
+              <span>Traitement...</span>
+            } @else {
+              <i class="bi bi-check-lg"></i>
+              <span>{{ enEdition() ? 'Mettre à jour' : 'Confirmer le remboursement' }}</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+  
+  <!-- ══ Tableau des mouvements ══════════════════════════════════════════ -->
+  <div class="credit-table-container">
+    @if (isLoading() && mouvements().length === 0) {
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <span>Chargement des transactions...</span>
+      </div>
+    } @else if (filteredMouvements().length === 0) {
+      <div class="empty-state">
+        <div class="empty-state__icon">
+          <i class="bi bi-inbox"></i>
+        </div>
+        <h3>Aucune transaction trouvée</h3>
+        <p>
+          @if (searchTerm() || filterType() !== 'all') {
+            Aucun résultat ne correspond à vos critères de recherche.
+          } @else {
+            Aucun mouvement de crédit n'a encore été enregistré.
+          }
+        </p>
+        @if (searchTerm() || filterType() !== 'all') {
+          <button class="btn-outline" (click)="clearFilters()">
+            <i class="bi bi-x-circle"></i>
+            Effacer les filtres
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="table-wrapper">
+        <table class="credit-table">
+          <thead>
+            <tr>
+              <th class="col-date" (click)="sortBy('created_at')">
+                Date
+                <i class="bi" [class.bi-arrow-down]="sortField() === 'created_at' 
+                && sortDirection() === 'desc'"
+                   [class.bi-arrow-up]="sortField() === 'created_at' 
+                   && sortDirection() === 'asc'"></i>
+              </th>
+              <th class="col-user" (click)="sortBy('user_username')">
+                Utilisateur
+                <i class="bi" [class.bi-arrow-down]="sortField() === 'user_username' 
+                && sortDirection() === 'desc'"
+                   [class.bi-arrow-up]="sortField() === 'user_username' 
+                   && sortDirection() === 'asc'"></i>
+              </th>
+              <th class="col-type">Type</th>
+              <th class="col-amount" (click)="sortBy('montant')">
+                Montant
+                <i class="bi" [class.bi-arrow-down]="sortField() === 'montant' 
+                && sortDirection() === 'desc'"
+                   [class.bi-arrow-up]="sortField() === 'montant' 
+                   && sortDirection() === 'asc'"></i>
+              </th>
+              <th class="col-description">Description</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (mvt of paginatedMouvements(); track mvt.id) {
+              <tr class="table-row" 
+                  [class.table-row--refund]="mvt.type_mouvement === 'REMBOURSEMENT'"
+                  [class.table-row--purchase]="mvt.type_mouvement === 'ACHAT'">
+                
+                <td class="col-date">
+                  <div class="date-display">
+                    <span class="date-main">{{ mvt.created_at | date:'dd MMM yyyy' }}</span>
+                    <span class="date-time">{{ mvt.created_at | date:'HH:mm' }}</span>
+                  </div>
+                </td>
+                
+                <td class="col-user">
+                  <div class="user-display">
+                    <div class="user-avatar user-avatar--small">
+                      {{ mvt.user_username.charAt(0).toUpperCase() || '?' }}
+                    </div>
+                    <span class="user-name">{{ mvt.user_username }}</span>
+                  </div>
+                </td>
+                
+                <td class="col-type">
+                  <span class="type-badge" [class]="getTypeClass(mvt.type_mouvement)">
+                    <i [class]="getTypeIcon(mvt.type_mouvement)"></i>
+                    {{ mvt.type_display }}
+                  </span>
+                </td>
+                
+                <td class="col-amount">
+                  <span class="amount-display" 
+                    [class.amount-display--positive]="mvt.type_mouvement === 'REMBOURSEMENT'">
+                    @if (mvt.type_mouvement === 'REMBOURSEMENT') {
+                      <i class="bi bi-plus-circle"></i>
+                    }
+                    {{ mvt.montant | number:'1.0-0' }}
+                    <span class="amount-unit">crédits</span>
+                  </span>
+                </td>
+                
+                <td class="col-description">
+                  <div class="description-cell">
+                    {{ mvt.description || '—' }}
+                  </div>
+                </td>
+                
+                <td class="col-actions">
+                  <div class="action-buttons">
+                    <button class="action-btn action-btn--info" 
+                            (click)="showDetails(mvt)"
+                            ngbTooltip="Voir les détails">
+                      <i class="bi bi-info-circle"></i>
+                    </button>
+                    @if (isAdmin && mvt.type_mouvement === 'REMBOURSEMENT') {
+                      <button class="action-btn action-btn--edit" 
+                              (click)="ouvrirEdition(mvt)"
+                              ngbTooltip="Modifier">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button class="pagination-btn" 
+                  [disabled]="currentPage === 1"
+                  (click)="goToPage(currentPage - 1)">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          
+          <div class="pagination-pages">
+            @for (page of visiblePages(); track page) {
+              @if (page === '...') {
+                <span class="pagination-ellipsis">...</span>
+              } @else {
+                <button class="pagination-page" 
+                        [class.pagination-page--active]="page === currentPage"
+                        (click)="goToPage(page)">
+                  {{ page }}
+                </button>
+              }
+            }
+          </div>
+          
+          <button class="pagination-btn" 
+                  [disabled]="currentPage === totalPages()"
+                  (click)="goToPage(currentPage + 1)">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      }
+    }
+  </div>
+  
+  <!-- ══ Modale de détails ══════════════════════════════════════════════ -->
+  @if (selectedMouvement()) {
+    <div class="modal-overlay mt-3" (click)="closeDetails()">
+      <div class="detail-modal" (click)="$event.stopPropagation()" @fadeIn>
+        <div class="detail-modal__header">
+          <div class="detail-modal__title">
+            <i [class]="getTypeIcon(selectedMouvement()!.type_mouvement)"></i>
+            Détails de la transaction
+          </div>
+          <button class="detail-modal__close" (click)="closeDetails()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        
+        <div class="detail-modal__body">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="detail-label">Type</span>
+              <span class="detail-value">
+                <span class="type-badge" 
+                      [class]="getTypeClass(selectedMouvement()!.type_mouvement)">
+                  {{ selectedMouvement()!.type_display }}
+                </span>
+              </span>
+            </div>
+            
+            <div class="detail-item">
+              <span class="detail-label">Montant</span>
+              <span class="detail-value detail-value--large">
+                {{ selectedMouvement()!.montant | number:'1.0-0' }} crédits
+              </span>
+            </div>
+            
+            <div class="detail-item">
+              <span class="detail-label">Utilisateur</span>
+              <span class="detail-value">{{ selectedMouvement()!.user_username }}</span>
+            </div>
+            
+            <div class="detail-item">
+              <span class="detail-label">Date</span>
+              <span class="detail-value">
+                {{ selectedMouvement()!.created_at | date:'EEEE dd MMMM yyyy à HH:mm' }}
+              </span>
+            </div>
+            
+            <div class="detail-item detail-item--full">
+              <span class="detail-label">Description</span>
+              <span class="detail-value">
+                {{ selectedMouvement()!.description || '—' }}
+              </span>
+            </div>
+            
+            <div class="detail-item">
+              <span class="detail-label">Référence</span>
+              <span class="detail-value">
+                <code>{{ selectedMouvement()!.reference_id }}</code>
+              </span>
+            </div>
+            
+            <div class="detail-item">
+              <span class="detail-label">Type de référence</span>
+              <span class="detail-value">
+                {{ selectedMouvement()!.reference_type }}
+              </span>
+            </div>
+            
+            <div class="detail-item">
+              <span class="detail-label">Statut</span>
+              <span class="detail-value">
+                @if (selectedMouvement()!.processed) {
+                  <span class="status-badge status-badge--success">
+                    <i class="bi bi-check-circle"></i> Traité
+                  </span>
+                } @else {
+                  <span class="status-badge status-badge--pending">
+                    <i class="bi bi-clock"></i> En attente
+                  </span>
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="detail-modal__footer">
+          <button class="btn-secondary" (click)="closeDetails()">
+            Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

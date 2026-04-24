@@ -1,0 +1,288 @@
+<div class="ag-wrap mt-5">
+  <!-- Header -->
+  <div class="ag-header">
+    <div class="ag-header__left">
+      <div class="ag-header__icon"><i class="bi bi-shield-check"></i></div>
+      <div>
+        <h1 class="ag-header__title">Dashboard Agent</h1>
+        <p class="ag-header__sub">Vérifications terrain en attente</p>
+      </div>
+    </div>
+    <button class="ag-btn ag-btn--ghost" (click)="rafraichir()" [disabled]="isLoading()">
+      <i class="bi bi-arrow-clockwise me-1" [class.ag-spin]="isLoading()"></i> Actualiser
+    </button>
+  </div>
+
+  <!-- Stats -->
+  @if (stats(); as s) {
+    <div class="ag-stats">
+      <div class="ag-stat-card ag-stat-card--attente">
+        <i class="bi bi-hourglass-split ag-stat-card__icon"></i>
+        <div>
+          <p class="ag-stat-card__val">{{ s.en_attente }}</p>
+          <p class="ag-stat-card__lbl">En attente</p>
+        </div>
+      </div>
+      <div class="ag-stat-card ag-stat-card--traitees">
+        <i class="bi bi-check2-all ag-stat-card__icon"></i>
+        <div>
+          <p class="ag-stat-card__val">{{ s.traitees_aujourd_hui }}</p>
+          <p class="ag-stat-card__lbl">Traitées aujourd'hui</p>
+        </div>
+      </div>
+      <div class="ag-stat-card ag-stat-card--approuvees">
+        <i class="bi bi-patch-check-fill ag-stat-card__icon"></i>
+        <div>
+          <p class="ag-stat-card__val">{{ s.approuvees_aujourd_hui }}</p>
+          <p class="ag-stat-card__lbl">Approuvées</p>
+        </div>
+      </div>
+      <div class="ag-stat-card ag-stat-card--signalees">
+        <i class="bi bi-flag-fill ag-stat-card__icon"></i>
+        <div>
+          <p class="ag-stat-card__val">{{ s.signalees_aujourd_hui }}</p>
+          <p class="ag-stat-card__lbl">Signalées</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Corps principal -->
+  <div class="ag-body" [class.ag-body--split]="ticketActif()">
+    <!-- Liste des tickets -->
+    <div class="ag-list">
+      <div class="ag-tabs">
+        <button class="ag-tab" [class.ag-tab--active]="ongletActif() === 'attente'"
+                (click)="ongletActif.set('attente')">
+          <i class="bi bi-hourglass-split me-1"></i> En attente
+          @if (ticketsEnAttente().length) {
+            <span class="ag-tab__badge">{{ ticketsEnAttente().length }}</span>
+          }
+        </button>
+        <button class="ag-tab" [class.ag-tab--active]="ongletActif() === 'en_cours'"
+                (click)="ongletActif.set('en_cours')">
+          <i class="bi bi-person-walking me-1"></i> En cours
+          @if (ticketsEnCours().length) {
+            <span class="ag-tab__badge ag-tab__badge--cours">
+              {{ ticketsEnCours().length }}
+            </span>
+          }
+        </button>
+      </div>
+
+      @if (isLoading()) {
+        <div class="ag-loading">
+          <span class="spinner-border spinner-border-sm text-success"></span> 
+          Chargement…
+        </div>
+      }
+
+      @if (!isLoading() && ongletActif() === 'attente') {
+        @if (ticketsEnAttente().length === 0) {
+          <div class="ag-empty">
+            <i class="bi bi-inbox ag-empty__icon"></i>
+            <p>Aucune annonce en attente.</p>
+            <span>Le système vous en assignera automatiquement.</span>
+          </div>
+        } @else {
+          <div class="ag-ticket-list">
+            @for (ticket of ticketsEnAttente(); track ticket.id) {
+              <div class="ag-ticket" 
+                   [class.ag-ticket--active]="ticketActif()?.id === ticket.id"
+                   (click)="ouvrirTicket(ticket)">
+                <div class="ag-ticket__photo">
+                  @if (ticket.photo_principale) {
+                    <img [src]="ticket.photo_principale" [alt]="ticket.annonce_titre">
+                  } @else {
+                    <div class="ag-ticket__no-photo"><i class="bi bi-building"></i></div>
+                  }
+                  @if (ticket.zone_overflow) {
+                    <span class="ag-overflow-badge" title="Zone secondaire (overflow)">
+                      <i class="bi bi-arrow-left-right"></i>
+                    </span>
+                  }
+                </div>
+                <div class="ag-ticket__body">
+                  <p class="ag-ticket__titre">{{ ticket.annonce_titre }}</p>
+                  <p class="ag-ticket__loc">
+                    <i class="bi bi-geo-alt me-1"></i>
+                    {{ ticket.arrondissement_nom ?? ticket.localisation ?? '—' }}
+                  </p>
+                  <div class="ag-ticket__meta">
+                    <span class="ag-ticket__prix">
+                      {{ formatPrix(ticket.annonce_prix, ticket.type_transaction) }}
+                    </span>
+                    <span class="ag-ticket__type">{{ ticket.type_annonce_nom }}</span>
+                  </div>
+                </div>
+                <div class="ag-ticket__action" (click)="$event.stopPropagation()">
+                  <button class="ag-btn ag-btn--sm ag-btn--outline"
+                          [disabled]="isActionLoading(ticket.id, actionsTypes.Start)"
+                          (click)="prendreEnCharge(ticket)">
+                    @if (isActionLoading(ticket.id, actionsTypes.Start)) {
+                      <span class="spinner-border spinner-border-sm"></span>
+                    } @else {
+                      <i class="bi bi-play-fill me-1"></i>
+                    }
+                    Commencer
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      @if (!isLoading() && ongletActif() === 'en_cours') {
+        @if (ticketsEnCours().length === 0) {
+          <div class="ag-empty">
+            <i class="bi bi-person-walking ag-empty__icon"></i>
+            <p>Aucune vérification en cours.</p>
+          </div>
+        } @else {
+          <div class="ag-ticket-list">
+            @for (ticket of ticketsEnCours(); track ticket.id) {
+              <div class="ag-ticket ag-ticket--cours"
+                   [class.ag-ticket--active]="ticketActif()?.id === ticket.id"
+                   (click)="ouvrirTicket(ticket)">
+                <div class="ag-ticket__photo">
+                  @if (ticket.photo_principale) {
+                    <img [src]="ticket.photo_principale" [alt]="ticket.annonce_titre">
+                  } @else {
+                    <div class="ag-ticket__no-photo"><i class="bi bi-building"></i></div>
+                  }
+                  <span class="ag-cours-dot"></span>
+                </div>
+                <div class="ag-ticket__body">
+                  <p class="ag-ticket__titre">{{ ticket.annonce_titre }}</p>
+                  <p class="ag-ticket__loc">
+                    <i class="bi bi-geo-alt me-1"></i>
+                    {{ ticket.arrondissement_nom ?? ticket.localisation ?? '—' }}
+                  </p>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Panneau de verdict -->
+    @if (ticketActif(); as ticket) {
+      <div class="ag-verdict">
+        <div class="ag-verdict__header">
+          <h3 class="ag-verdict__title">Vérification terrain</h3>
+          <button class="ag-verdict__close" (click)="fermerTicket()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <div class="ag-verdict__annonce">
+          @if (ticket.photo_principale) {
+            <img [src]="ticket.photo_principale" [alt]="ticket.annonce_titre" 
+            class="ag-verdict__photo">
+          }
+          <h4 class="ag-verdict__annonce-titre">{{ ticket.annonce_titre }}</h4>
+          <div class="ag-verdict__meta-grid">
+            <div class="ag-verdict__meta-row">
+              <span class="ag-verdict__meta-lbl">Auteur</span>
+              <span>&#64;{{ ticket.auteur_nom }}</span>
+            </div>
+            <div class="ag-verdict__meta-row">
+              <span class="ag-verdict__meta-lbl">Transaction</span>
+              <span>{{ getTxLabel(ticket.type_transaction) }}</span>
+            </div>
+            <div class="ag-verdict__meta-row">
+              <span class="ag-verdict__meta-lbl">Prix</span>
+              <span>{{ formatPrix(ticket.annonce_prix, ticket.type_transaction) }}</span>
+            </div>
+            <div class="ag-verdict__meta-row">
+              <span class="ag-verdict__meta-lbl">Zone</span>
+              <span>{{ ticket.arrondissement_nom ?? ticket.localisation ?? '—' }}</span>
+            </div>
+            @if (ticket.zone_overflow) {
+              <div class="ag-verdict__meta-row">
+                <span class="ag-verdict__meta-lbl">Overflow</span>
+                <span class="ag-overflow-tag">Zone secondaire</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="ag-verdict__field">
+          <label class="ag-verdict__label">
+            <i class="bi bi-geo-alt me-1"></i>Adresse constatée
+            <em class="ag-optional">(optionnel)</em>
+          </label>
+          <input type="text" 
+                 class="ag-input" 
+                 placeholder="Ex: Face à la station Total…"
+                 [ngModel]="localisationVerifiee()" 
+                 (ngModelChange)="localisationVerifiee.set($event)">
+        </div>
+
+        <div class="ag-verdict__field">
+          <label class="ag-verdict__label">
+            <i class="bi bi-exclamation-triangle me-1"></i>Motif du signalement
+            <em class="ag-required">(obligatoire si signalement)</em>
+          </label>
+          <textarea class="ag-input ag-input--textarea" 
+                    rows="4"
+                    placeholder="Décrivez le problème constaté : discordance, adresse incorrecte… (min. 10 caractères)"
+                    [ngModel]="motifSignalement()" 
+                    (ngModelChange)="motifSignalement.set($event)">
+          </textarea>
+          @if (erreurMotif()) {
+            <span class="ag-error">{{ erreurMotif() }}</span>
+          }
+        </div>
+
+        @if (ticket.statut === 'EN_ATTENTE') {
+          <div class="ag-verdict__hint">
+            <i class="bi bi-info-circle me-1"></i>
+            Cliquez « Commencer » avant de rendre votre verdict.
+          </div>
+          <button class="ag-btn ag-btn--outline ag-btn--full mt-3"
+                  [disabled]="isActionLoading(ticket.id, actionsTypes.Visit)"
+                  (click)="prendreEnCharge(ticket)">
+            @if (isActionLoading(ticket.id, actionsTypes.Visit)) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            } @else {
+              <i class="bi bi-play-fill me-1"></i>
+            }
+            Je suis sur le terrain — commencer
+          </button>
+        }
+
+        <div class="ag-verdict__actions">
+          <button class="ag-btn ag-btn--approve"
+                  [disabled]="isActionLoading(ticket.id, actionsTypes.Approve)"
+                  (click)="approuver()">
+            @if (isActionLoading(ticket.id, actionsTypes.Approve)) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            } @else {
+              <i class="bi bi-patch-check-fill me-1"></i>
+            }
+            Approuver — conforme
+          </button>
+          <button class="ag-btn ag-btn--signal"
+                  [disabled]="isActionLoading(ticket.id, actionsTypes.Reject)"
+                  (click)="signaler()">
+            @if (isActionLoading(ticket.id, actionsTypes.Reject)) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            } @else {
+              <i class="bi bi-flag-fill me-1"></i>
+            }
+            Signaler — non conforme
+          </button>
+        </div>
+
+        <p class="ag-verdict__footer-hint">
+          <i class="bi bi-shield-check me-1"></i>
+          Votre verdict est définitif. 
+          Un signalement bloque l'annonce jusqu'à décision admin.
+        </p>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,222 @@
+<div class="srm">
+
+  <!-- Header -->
+  <div class="srm-header">
+    <div class="srm-header__icon"><i class="bi bi-search"></i></div>
+    <div class="srm-header__text">
+      <h2 class="srm-header__title">Que recherchez-vous ?</h2>
+      <p class="srm-header__sub">Précisez votre besoin pour trouver les bonnes annonces.</p>
+    </div>
+    <button class="srm-header__skip" (click)="passer()"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <!-- Étapes -->
+  <div class="srm-steps">
+    @for (s of [{n:1,l:'Type'},{n:2,l:'Lieu'},{n:3,l:'Détails'}]; track s.n) {
+      <div class="srm-step" [class.srm-step--active]="etape() >= s.n" [class.srm-step--done]="etape() > s.n">
+        <span class="srm-step__num">{{ etape() > s.n ? '✓' : s.n }}</span>
+        <span class="srm-step__lbl">{{ s.l }}</span>
+      </div>
+      @if (s.n < 3) { <div class="srm-step__line" [class.srm-step__line--done]="etape() > s.n"></div> }
+    }
+  </div>
+
+  @if (resumeSelection()) {
+    <div class="srm-resume"><i class="bi bi-funnel-fill me-2"></i>{{ resumeSelection() }}</div>
+  }
+
+  <!-- ══ ÉTAPE 1 — Type de bien ════════════════════════════════════════════ -->
+  @if (etape() === 1) {
+    <div class="srm-section">
+      <p class="srm-section__label">Quel type de bien ?</p>
+
+      <!-- Choix mode -->
+      <div class="srm-mode-grid">
+        <button class="srm-mode-card" [class.srm-mode-card--active]="modeBien() === 'IMMOBILIER'"
+                type="button" (click)="choisirModeBien('IMMOBILIER')">
+          <i class="bi bi-house-fill srm-mode-card__icon"></i>
+          <span class="srm-mode-card__label">Bien immobilier</span>
+          <span class="srm-mode-card__desc">Maison, appartement, terrain, bureau…</span>
+        </button>
+        <button class="srm-mode-card" [class.srm-mode-card--active]="modeBien() === 'EVENEMENTIEL'"
+                type="button" (click)="choisirModeBien('EVENEMENTIEL')">
+          <i class="bi bi-balloon-heart-fill srm-mode-card__icon srm-mode-card__icon--event"></i>
+          <span class="srm-mode-card__label">Espace événementiel</span>
+          <span class="srm-mode-card__desc">Salle de fêtes, conférence, mariage…</span>
+        </button>
+      </div>
+
+      <!-- Sous-sélection IMMOBILIER : intention -->
+      @if (modeBien() === 'IMMOBILIER') {
+        <div class="srm-intentions">
+          @for (t of INTENTIONS; track t.val) {
+            <button class="srm-intention" type="button"
+                    [class.srm-intention--active]="typeTransactionSel() === t.val"
+                    (click)="choisirIntention(t.val)">
+              <i [class]="'bi ' + t.icone + ' srm-intention__icon'"></i>
+              <span class="srm-intention__label">{{ t.label }}</span>
+              <span class="srm-intention__desc">{{ t.desc }}</span>
+              @if (typeTransactionSel() === t.val) {
+                <span class="srm-intention__check"><i class="bi bi-check2"></i></span>
+              }
+            </button>
+          }
+        </div>
+        <button class="srm-link" (click)="etape.set(2)">
+          Passer cette étape <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+      }
+
+      <!-- Sous-sélection ÉVÉNEMENTIEL : type d'espace -->
+      @if (modeBien() === 'EVENEMENTIEL') {
+        <div class="srm-cat-grid">
+          @for (te of TYPES_ESPACE; track te.val) {
+            <button class="srm-cat-chip" type="button"
+                    [class.srm-cat-chip--active]="typeEspaceSel().includes(te.val)"
+                    (click)="toggleTypeEspace(te.val)">
+              <i [class]="'bi ' + te.icone + ' me-1'"></i>{{ te.label }}
+            </button>
+          }
+        </div>
+        <div class="srm-footer">
+          <button class="srm-btn srm-btn--ghost" (click)="passer()">Passer</button>
+          <button class="srm-btn srm-btn--next" (click)="etape.set(2)">
+            Lieu <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ══ ÉTAPE 2 — Lieu ════════════════════════════════════════════════════ -->
+  @if (etape() === 2) {
+    <div class="srm-section">
+      <!-- <button class="srm-back" (click)="retourEtape(1)">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+      </button> -->
+
+      @if (loading()) {
+        <div class="srm-loading">
+          <span class="spinner-border spinner-border-sm text-success me-2"></span>
+          Chargement…
+        </div>
+      } @else {
+        <!-- Villes -->
+        <div class="srm-field">
+          <label class="srm-label">
+            <i class="bi bi-geo-alt-fill me-1"></i>Dans quelle ville ?
+          </label>
+          <div class="srm-villes">
+            @for (v of villes(); track v.ville) {
+              <button class="srm-ville-chip" type="button"
+                      [class.srm-ville-chip--active]="villeSel() === v.ville"
+                      (click)="onVilleChange(v.ville)">
+                {{ v.ville }}
+                <span class="srm-ville-chip__count">{{ v.arrondissements.length }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Arrondissements si ville choisie -->
+        @if (villeSel() && arrondissementsDispo().length > 0) {
+          <div class="srm-field srm-field--mt">
+            <label class="srm-label">
+              <i class="bi bi-chevron-right me-1"></i>Quel secteur dans <strong>{{ villeSel() }}</strong> ?
+              <em class="srm-optional">(optionnel)</em>
+            </label>
+            <select class="srm-select" [ngModel]="arrondissementSel()" (ngModelChange)="arrondissementSel.set($event)">
+              <option value="">— Tout {{ villeSel() }} —</option>
+              @for (a of arrondissementsDispo(); track a.id) {
+                <option [value]="a.id">{{ a.nom }} @if (a.quartiers_apercu) { ({{ a.quartiers_apercu }}…) }</option>
+              }
+            </select>
+          </div>
+        }
+
+        <!-- Recherche texte libre -->
+        <div class="srm-field srm-field--mt">
+          <label class="srm-label"><i class="bi bi-keyboard me-1"></i>Ou saisir un quartier / lieu</label>
+          <div class="srm-search-zone">
+            <i class="bi bi-search srm-search-zone__icon"></i>
+            <input type="text" class="srm-search-zone__input"
+                   placeholder="Ex: Essos, Bastos, Bonaberi, face station Total…"
+                   [ngModel]="rechercheSaisie()" (ngModelChange)="rechercheSaisie.set($event)">
+          </div>
+          <p class="srm-hint"><i class="bi bi-lightbulb me-1"></i>Taper "Essos" trouve les biens de Yaoundé 3e.</p>
+        </div>
+
+        <!-- Filtres événementiel supplémentaires -->
+        @if (modeBien() === 'EVENEMENTIEL') {
+          <div class="srm-row srm-field--mt">
+            <div class="srm-field">
+              <label class="srm-label"><i class="bi bi-people me-1"></i>Capacité minimum</label>
+              <input type="number" class="srm-select" placeholder="Ex: 100"
+                     [ngModel]="capaciteMinSel()" (ngModelChange)="capaciteMinSel.set($event ? +$event : null)" min="1">
+            </div>
+            <div class="srm-field">
+              <label class="srm-label"><i class="bi bi-calendar me-1"></i>Disponible le</label>
+              <input type="date" class="srm-select"
+                     [ngModel]="dateDispoSel()" (ngModelChange)="dateDispoSel.set($event)">
+            </div>
+          </div>
+          <div class="srm-field">
+            <label class="srm-label"><i class="bi bi-wifi me-1"></i>Équipement recherché</label>
+            <input type="text" class="srm-select" placeholder="Ex: WiFi, Sono, Parking, Climatisation"
+                   [ngModel]="equipementSel()" (ngModelChange)="equipementSel.set($event)">
+          </div>
+        }
+      }
+
+      <div class="srm-footer">
+        <button class="srm-btn srm-btn--ghost" (click)="passer()">Passer</button>
+        @if (modeBien() === 'IMMOBILIER') {
+          <button class="srm-btn srm-btn--next" (click)="etape.set(3)">Type de bien <i class="bi bi-arrow-right ms-1"></i></button>
+        }
+        <button class="srm-btn srm-btn--primary" (click)="appliquer()">
+          <i class="bi bi-search me-1"></i>Voir les annonces
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ══ ÉTAPE 3 — Type de bien immobilier ══════════════════════════════════ -->
+  @if (etape() === 3) {
+    <div class="srm-section">
+      <!-- <button class="srm-back" (click)="retourEtape(2)">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+      </button> -->
+      <div class="srm-row">
+        <div class="srm-field">
+          <label class="srm-label"><i class="bi bi-grid me-1"></i>Catégorie</label>
+          <div class="srm-cat-grid">
+            @for (cat of categoriesAvecTypes(); track cat.id) {
+              <button class="srm-cat-chip" type="button"
+                      [class.srm-cat-chip--active]="categorieSel() === cat.id"
+                      (click)="categorieSel.set(cat.id === categorieSel() ? '' : cat.id)">
+                @if (cat.icone) { <i [class]="'bi ' + cat.icone + ' me-1'"></i> }{{ cat.nom }}
+              </button>
+            }
+          </div>
+        </div>
+        @if (typesFiltres().length > 0) {
+          <div class="srm-field">
+            <label class="srm-label"><i class="bi bi-list-ul me-1"></i>Type précis</label>
+            <select class="srm-select" [ngModel]="typeBienSel()" (ngModelChange)="typeBienSel.set($event)">
+              <option value="">— Tous les types —</option>
+              @for (t of typesFiltres(); track t.id) {
+                <option [value]="t.id">{{ t.nom }} @if (t.meuble) { (meublé) }</option>
+              }
+            </select>
+          </div>
+        }
+      </div>
+      <div class="srm-footer">
+        <button class="srm-btn srm-btn--ghost" (click)="passer()">Passer</button>
+        <button class="srm-btn srm-btn--primary" (click)="appliquer()">
+          <i class="bi bi-search me-1"></i>Voir les annonces
+        </button>
+      </div>
+    </div>
+  }
+</div>

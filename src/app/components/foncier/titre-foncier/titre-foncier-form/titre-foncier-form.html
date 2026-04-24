@@ -1,0 +1,214 @@
+<div class="mf-header">
+  <div class="mf-header-left">
+    <div class="mf-header-icon">
+      <i class="bi bi-file-earmark-check-fill"></i>
+    </div>
+    <div>
+      <p class="mf-header-title">
+        {{ isEdit ? 'Modifier le titre foncier' : 'Nouveau titre foncier' }}
+      </p>
+    </div>
+  </div>
+  <button class="mf-close-btn" (click)="fermer()">
+    <i class="bi bi-x-lg"></i>
+  </button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="soumettre()">
+<div class="mf-body">
+
+  <!-- Aperçu du numéro généré -->
+  @if (preview()) {
+    <div class="tf-preview">
+      <i class="bi bi-eye me-2"></i>
+      Référence générée :
+      <strong class="tf-preview__ref">{{ preview() }}</strong>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="mf-alert mf-alert--danger">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error() }}
+    </div>
+  }
+
+  <!-- ── Localisation géographique ──────────────────────────────────────── -->
+  <fieldset class="tf-fieldset">
+    <legend class="tf-fieldset__legend">
+      <i class="bi bi-geo-alt-fill me-2"></i>Localisation
+    </legend>
+
+    <!-- Région -->
+    <div class="mf-field">
+      <label class="mf-label">Région</label>
+      <select class="mf-input" formControlName="region_id">
+        <option value="">— Sélectionner une région —</option>
+        @for (r of regions(); track r.id) {
+          <option [value]="r.id">{{ r.nom }}</option>
+        }
+      </select>
+      <span class="mf-hint">
+        <i class="bi bi-info-circle me-1"></i>
+        Le département détermine automatiquement la région.
+      </span>
+    </div>
+
+    <!-- Département -->
+    <div class="mf-field">
+      <label class="mf-label">
+        Département <span class="req">*</span>
+      </label>
+      <select class="mf-input" formControlName="departement_id"
+              [class.mf-input--error]="isFieldInvalid('departement_id')">
+        <option value="">— Sélectionner un département —</option>
+        @if (departements().length > 0) {
+          @for (d of departements(); track d.id) {
+            <option [value]="d.id">
+              {{ d.nom }} ({{ d.abreviation }})
+            </option>
+          }
+        } @else {
+          <!-- Tous les depts si pas de région sélectionnée -->
+          @for (r of regions(); track r.id) {
+            <optgroup [label]="r.nom">
+              @for (d of r.departements; track d.id) {
+                <option [value]="d.id">
+                  {{ d.nom }} ({{ d.abreviation }})
+                </option>
+              }
+            </optgroup>
+          }
+        }
+      </select>
+      @if (isFieldInvalid('departement_id')) {
+        <span class="mf-error">Le département est obligatoire.</span>
+      }
+      @if (abrDeptSelectionne()) {
+        <span class="mf-hint">
+          <i class="bi bi-tag me-1"></i>
+          Abréviation : <strong>{{ abrDeptSelectionne() }}</strong>
+          — utilisée dans le numéro du TF
+        </span>
+      }
+    </div>
+
+    <!-- Arrondissement -->
+    <div class="mf-field">
+      <label class="mf-label">Arrondissement <em class="mf-optional">(optionnel)</em></label>
+      <select class="mf-input" formControlName="arrondissement_id">
+        <option value="">— Sélectionner un arrondissement —</option>
+        @for (a of arrondissements(); track a.id) {
+          <option [value]="a.id">{{ a.nom }}</option>
+        }
+      </select>
+    </div>
+  </fieldset>
+
+  <!-- ── Numérotation ───────────────────────────────────────────────────── -->
+  <fieldset class="tf-fieldset">
+    <legend class="tf-fieldset__legend">
+      <i class="bi bi-hash me-2"></i>Numérotation
+    </legend>
+
+    <div class="mf-field">
+      <label class="mf-label">
+        Numéro de séquence <span class="req">*</span>
+      </label>
+      <div class="tf-numero-group">
+        <span class="tf-numero-prefix">TF N°</span>
+        <input type="number" class="mf-input tf-numero-input"
+               formControlName="numero_sequence"
+               placeholder="1234" min="1"
+               [class.mf-input--error]="isFieldInvalid('numero_sequence')">
+        @if (abrDeptSelectionne()) {
+          <span class="tf-numero-suffix">/ {{ abrDeptSelectionne() }}</span>
+        }
+      </div>
+      @if (isFieldInvalid('numero_sequence')) {
+        <span class="mf-error">Numéro obligatoire (entier positif).</span>
+      }
+      <span class="mf-hint">
+        Partie numérique du titre foncier (ex: 1234 → TF N°1234/{{ abrDeptSelectionne() || 'Maf' }})
+      </span>
+    </div>
+  </fieldset>
+
+  <!-- ── Superficie ─────────────────────────────────────────────────────── -->
+  <fieldset class="tf-fieldset">
+    <legend class="tf-fieldset__legend">
+      <i class="bi bi-rulers me-2"></i>Superficie
+    </legend>
+
+    <div class="mf-field">
+      <label class="mf-label">
+        Superficie totale (m²) <span class="req">*</span>
+      </label>
+      <div class="tf-numero-group">
+        <input type="number" class="mf-input"
+               formControlName="superficie_totale"
+               placeholder="5000" min="1" step="0.01"
+               [class.mf-input--error]="isFieldInvalid('superficie_totale')">
+        <span class="tf-numero-suffix">m²</span>
+      </div>
+      @if (isFieldInvalid('superficie_totale')) {
+        <span class="mf-error">Superficie obligatoire (m² positif).</span>
+      }
+    </div>
+  </fieldset>
+
+  <!-- ── Document scan ──────────────────────────────────────────────────── -->
+  <fieldset class="tf-fieldset">
+    <legend class="tf-fieldset__legend">
+      <i class="bi bi-file-earmark-pdf me-2"></i>Document
+    </legend>
+
+    <div class="mf-field">
+      <label class="mf-label">
+        Scan du titre foncier
+        @if (!isEdit) { <span class="req">*</span> }
+        @else { <em class="mf-optional">(laisser vide pour conserver l'actuel)</em> }
+      </label>
+      <input type="file"
+             class="mf-input mf-input--file"
+             accept=".pdf,.jpg,.jpeg,.png"
+             (change)="onFichierChange($event)">
+      @if (fichierScan) {
+        <span class="mf-hint mf-hint--ok">
+          <i class="bi bi-check-circle-fill me-1 text-success"></i>
+          {{ fichierScan.name }}
+          ({{ (fichierScan.size / 1024 / 1024).toFixed(2) }} Mo)
+        </span>
+      } @else {
+        <span class="mf-hint">PDF, JPG, PNG — max 1.5 Mo</span>
+      }
+    </div>
+
+    @if (isEdit && titreFoncier?.document_scan_url) {
+      <div class="tf-doc-existant">
+        <i class="bi bi-paperclip me-1"></i>
+        Document actuel :
+        <a [href]="titreFoncier!.document_scan_url!" target="_blank" rel="noopener">
+          Voir le scan
+        </a>
+      </div>
+    }
+  </fieldset>
+
+</div>
+
+<!-- Actions -->
+<div class="mf-actions">
+  <button type="button" class="mf-btn mf-btn--cancel" (click)="fermer()">
+    <i class="bi bi-x-lg me-1"></i> Annuler
+  </button>
+  <button type="submit" class="mf-btn mf-btn--submit"
+          [disabled]="saving()">
+    @if (saving()) {
+      <span class="spinner-border spinner-border-sm me-1"></span>
+    } @else {
+      <i class="bi bi-check-circle me-1"></i>
+    }
+    {{ saving() ? 'Enregistrement…' : (isEdit ? 'Mettre à jour' : 'Créer le titre foncier') }}
+  </button>
+</div>
+</form>

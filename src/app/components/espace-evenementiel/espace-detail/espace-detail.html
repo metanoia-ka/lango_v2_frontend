@@ -1,0 +1,196 @@
+<div class="espace-detail-page">
+
+  <!-- ── Loader ──────────────────────────────────────────────────────────── -->
+  <div class="page-loader" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Chargement en cours…</p>
+  </div>
+
+  <!-- ── Erreur ─────────────────────────────────────────────────────────── -->
+  <div class="page-error" *ngIf="error() && !loading()">
+    <i class="bi bi-exclamation-octagon-fill"></i>
+    <h2>Une erreur est survenue</h2>
+    <p>{{ error() }}</p>
+    <a routerLink="/lango/evenementiel/espaces" class="btn-back">← Retour à la liste</a>
+  </div>
+
+  <!-- ── Contenu ─────────────────────────────────────────────────────────── -->
+  <ng-container *ngIf="espace() as e">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb-bar">
+      <div class="breadcrumb-inner">
+        <a routerLink="/lango/evenementiel/espaces" class="btn-back" >
+          Espaces événementiels
+        </a>
+        <i class="bi bi-chevron-right"></i>
+        <span>{{ e.nom }}</span>
+      </div>
+    </nav>
+
+    <div class="detail-layout">
+
+      <!-- ── Colonne gauche ─────────────────────────────────────────────── -->
+      <div class="detail-main">
+
+        <!-- Galerie photos -->
+        <section class="gallery" *ngIf="e.photos.length > 0">
+          <div class="gallery-main">
+            <img [src]="activePhoto()?.image ?? 'assets/images/espace-placeholder.jpg'"
+                 [alt]="e.nom"
+                 class="gallery-main-img" />
+            <button class="gallery-nav prev" (click)="prevPhoto()" *ngIf="e.photos.length > 1">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="gallery-nav next" (click)="nextPhoto()" *ngIf="e.photos.length > 1">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+            <div class="gallery-counter" *ngIf="e.photos.length > 1">
+              {{ activePhotoIndex() + 1 }} / {{ e.photos.length }}
+            </div>
+          </div>
+          <div class="gallery-thumbs" *ngIf="e.photos.length > 1">
+            <button
+              class="thumb"
+              *ngFor="let photo of e.photos; let i = index"
+              [class.active]="i === activePhotoIndex()"
+              (click)="setActivePhoto(i)"
+            >
+              <img [src]="photo.image" [alt]="photo.legende || e.nom" />
+            </button>
+          </div>
+        </section>
+
+        <!-- Pas de photo -->
+        <div class="no-photo" *ngIf="e.photos.length === 0">
+          <i class="bi bi-image"></i>
+          <span>Aucune photo disponible</span>
+        </div>
+
+        <!-- Description -->
+        <section class="detail-section">
+          <h2 class="section-title">À propos de cet espace</h2>
+          <p class="description-text">{{ e.description }}</p>
+        </section>
+
+        <!-- Équipements -->
+        <section class="detail-section" *ngIf="e.equipements.length > 0">
+          <h2 class="section-title">
+            Équipements
+            <span class="section-sub">{{ e.equipements_inclus_count }} inclus
+              <ng-container *ngIf="e.equipements_option_count > 0">
+                · {{ e.equipements_option_count }} en option
+              </ng-container>
+            </span>
+          </h2>
+          <div class="equipements-grid">
+            <div class="equip-item" *ngFor="let eq of e.equipements">
+              <i [class]="'bi ' + (eq.icone || 'bi-check-circle')"></i>
+              <div class="equip-info">
+                <span class="equip-nom">{{ eq.nom }}</span>
+                <span class="equip-tarif" *ngIf="!eq.inclus && eq.prix_option">
+                  + {{ eq.prix_option | number:'1.0-0' }} FCFA
+                </span>
+                <span class="equip-inclus" *ngIf="eq.inclus">Inclus</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tarifs détaillés -->
+        <section class="detail-section">
+          <h2 class="section-title">Tarifs</h2>
+          <div class="tarifs-list" *ngIf="e.tarifs.length > 0; else noTarif">
+            <div class="tarif-row" *ngFor="let t of e.tarifs">
+              <span class="tarif-unite">{{ t.unite_label }}</span>
+              <div class="tarif-right">
+                <span class="tarif-prix">
+                  {{ t.prix | number:'1.0-0' }} FCFA
+                </span>
+                <span class="tarif-min" *ngIf="t.duree_min > 1">
+                  min. {{ t.duree_min }} {{ t.unite_label }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <ng-template #noTarif>
+            <p class="text-muted">Contactez le propriétaire pour connaître les tarifs.</p>
+          </ng-template>
+        </section>
+
+      </div>
+
+      <!-- ── Colonne droite (sticky) ────────────────────────────────────── -->
+      <aside class="detail-aside">
+        <div class="aside-card">
+
+          <!-- Nom + type + statut -->
+          <div class="aside-header">
+            <div class="aside-badges">
+              <span class="badge-type">{{ e.type_espace_label }}</span>
+              <span class="badge-verified" *ngIf="e.is_verified">
+                <i class="bi bi-patch-check-fill"></i> Vérifié
+              </span>
+            </div>
+            <h1 class="aside-title">{{ e.nom }}</h1>
+            <p class="aside-location">
+              <i class="bi bi-geo-alt-fill"></i>
+              {{ e.arrondissement?.nom ?? e.localisation_approx }}
+              <ng-container *ngIf="e.ville_label"> — {{ e.ville_label }}</ng-container>
+            </p>
+          </div>
+
+          <!-- Prix principal -->
+          <div class="aside-prix" *ngIf="tarifPrincipal() as t">
+            <span class="prix-amount">{{ t.prix | number:'1.0-0' }} FCFA</span>
+            <span class="prix-unite">{{ t.unite_label }}</span>
+          </div>
+
+          <!-- Stats capacité -->
+          <div class="aside-stats">
+            <div class="stat-item">
+              <i class="bi bi-people-fill"></i>
+              <div>
+                <span class="stat-label">Capacité</span>
+                <span class="stat-value">{{ e.capacite_min }}–{{ e.capacite_max }} pers.</span>
+              </div>
+            </div>
+            <div class="stat-item" *ngIf="e.superficie_m2">
+              <i class="bi bi-rulers"></i>
+              <div>
+                <span class="stat-label">Superficie</span>
+                <span class="stat-value">{{ e.superficie_m2 }} m²</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Statut -->
+          <div
+            class="aside-statut"
+            [class.disponible]="e.statut === 'DISPONIBLE'"
+            [class.reserve]="e.statut === 'RESERVE'"
+            [class.indisponible]="e.statut === 'INDISPONIBLE'"
+          >
+            <i class="bi bi-circle-fill"></i>
+            {{ e.statut_label }}
+          </div>
+
+          <!-- CTA -->
+          <button class="btn-cta" [disabled]="e.statut !== 'DISPONIBLE'">
+            <i class="bi bi-calendar2-check"></i>
+            {{ e.statut === 'DISPONIBLE' ? 'Demander une réservation' : 'Espace non disponible' }}
+          </button>
+
+          <!-- Propriétaire -->
+          <div class="aside-proprio">
+            <i class="bi bi-person-circle"></i>
+            <span>Proposé par <strong>{{ proprioNom() }}</strong></span>
+          </div>
+
+        </div>
+      </aside>
+
+    </div>
+  </ng-container>
+
+</div>

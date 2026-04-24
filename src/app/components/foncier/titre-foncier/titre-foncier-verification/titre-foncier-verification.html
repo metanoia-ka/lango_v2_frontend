@@ -1,0 +1,207 @@
+<div class="tf-modal tf-modal--verify">
+
+  <!-- Header -->
+  <div class="tf-modal__header tf-modal__header--verify">
+    <div class="tf-modal__header-icon tf-modal__header-icon--verify">
+      <i class="bi bi-shield-check"></i>
+    </div>
+    <div>
+      <h4 class="tf-modal__title">Vérification du titre foncier</h4>
+      <p class="tf-modal__subtitle tf-modal__subtitle--mono">{{ titre.numero }}</p>
+    </div>
+    <button class="tf-modal__close" (click)="activeModal.dismiss()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="tf-modal__body">
+
+    <!-- ── État actuel de vérification ──────────────────────── -->
+    @if (titre.est_verifie) {
+
+    <!-- Bandeau validé — visuel fort, pas un simple alert -->
+    <div class="tf-verified-banner">
+      <div class="tf-verified-banner__icon">
+        <i class="bi bi-patch-check-fill"></i>
+      </div>
+      <div class="tf-verified-banner__content">
+        <p class="tf-verified-banner__title">Titre déjà validé</p>
+        <p class="tf-verified-banner__meta">
+          Le <strong>{{ titre.date_verification | date:'dd/MM/yyyy' }}</strong>
+          à <strong>{{ titre.date_verification | date:'HH:mm' }}</strong>
+        </p>
+        @if (titre.commentaire_verification) {
+          <p class="tf-verified-banner__comment">
+            <i class="bi bi-chat-left-quote-fill"></i>
+            {{ titre.commentaire_verification }}
+          </p>
+        }
+      </div>
+      <!-- Badge statique non cliquable -->
+      <span class="tf-verified-banner__badge">
+        <i class="bi bi-lock-fill"></i> Verrouillé
+      </span>
+    </div>
+
+    <!-- Message d'information à la place des cartes de décision -->
+    <div class="tf-locked-notice">
+      <i class="bi bi-info-circle-fill"></i>
+      Ce titre foncier a été validé. Aucune modification de décision n'est possible.
+      Contactez un administrateur système si une révision est nécessaire.
+    </div>
+
+  }
+
+    <!-- Résumé du titre -->
+    <div class="tf-verify-summary">
+      <div class="tf-verify-summary__row">
+        <span class="tf-verify-summary__label">Propriétaire</span>
+        <span class="tf-verify-summary__value">{{ titre.proprietaire_nom }}</span>
+      </div>
+      <div class="tf-verify-summary__row">
+        <span class="tf-verify-summary__label">Superficie</span>
+        <span class="tf-verify-summary__value">
+          {{ titre.superficie_totale | number:'1.2-2' }} m²
+        </span>
+      </div>
+      <div class="tf-verify-summary__row">
+        <span class="tf-verify-summary__label">Créé le</span>
+        <span class="tf-verify-summary__value">
+          {{ titre.created_at | date:'dd/MM/yyyy à HH:mm' }}
+        </span>
+      </div>
+      @if (titre.document_scan_url) {
+        <div class="tf-verify-summary__row">
+          <span class="tf-verify-summary__label">Document</span>
+          <a [href]="titre.document_scan_url" target="_blank" class="tf-link">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Voir le scan
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- Erreur globale -->
+    @if (error()) {
+      <div class="tf-alert tf-alert--danger">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        {{ error() }}
+      </div>
+    }
+
+    @if (!titre.est_verifie) {
+
+    <div class="tf-decision-group">
+      <p class="tf-decision-group__label">Décision <span class="tf-required">*</span></p>
+
+      <div class="tf-decision-cards">
+
+        <button type="button"
+                class="tf-decision-card tf-decision-card--success"
+                [class.tf-decision-card--active]="decision() === 'valider'"
+                (click)="setDecision('valider')">
+          <i class="bi bi-patch-check-fill tf-decision-card__icon"></i>
+          <span class="tf-decision-card__label">Valider</span>
+          <span class="tf-decision-card__desc">Le titre est authentique et complet</span>
+        </button>
+
+        <button type="button"
+                class="tf-decision-card tf-decision-card--warning"
+                [class.tf-decision-card--active]="decision() === 'a_corriger'"
+                (click)="setDecision('a_corriger')">
+          <i class="bi bi-pencil-square tf-decision-card__icon"></i>
+          <span class="tf-decision-card__label">À corriger</span>
+          <span class="tf-decision-card__desc">Des corrections sont nécessaires</span>
+        </button>
+
+        <button type="button"
+                class="tf-decision-card tf-decision-card--danger"
+                [class.tf-decision-card--active]="decision() === 'rejeter'"
+                (click)="setDecision('rejeter')">
+          <i class="bi bi-x-octagon-fill tf-decision-card__icon"></i>
+          <span class="tf-decision-card__label">Rejeter</span>
+          <span class="tf-decision-card__desc">Rejet définitif du dossier</span>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- Commentaire -->
+    @if (decision()) {
+      <form [formGroup]="form">
+        <div class="tf-field"
+             [class.tf-field--error]="form.controls['commentaire'].invalid
+             && form.controls['commentaire'].touched">
+          <label class="tf-label">
+            Commentaire
+            @if (decision() !== 'valider') {
+              <span class="tf-required">*</span>
+            }
+          </label>
+          <textarea
+            class="tf-textarea"
+            formControlName="commentaire"
+            rows="4"
+            [placeholder]="decision() === 'valider'
+              ? 'Commentaire optionnel pour le propriétaire…'
+              : 'Expliquez la raison de votre décision (obligatoire)…'"
+          ></textarea>
+          @if (form.controls['commentaire'].invalid
+              && form.controls['commentaire'].touched) {
+            <span class="tf-field-error">
+              <i class="bi bi-exclamation-circle"></i>
+              {{ decision() !== 'valider'
+                  ? 'Le commentaire est obligatoire.'
+                  : 'Trop long (max 1000 car.).' }}
+            </span>
+          }
+        </div>
+      </form>
+    }
+
+    @if (decision()) {
+      <div class="tf-alert tf-alert--info">
+        <i class="bi bi-bell-fill"></i>
+        Une notification sera automatiquement envoyée au propriétaire.
+      </div>
+    }
+
+  }
+
+  </div>
+
+  <!-- Footer -->
+  
+  <div class="tf-modal__actions tf-modal__actions--verify">
+    <button type="button" class="tf-btn tf-btn--ghost"
+            (click)="activeModal.dismiss()">
+      {{ titre.est_verifie ? 'Fermer' : 'Annuler' }}
+    </button>
+    @if (!titre.est_verifie) {
+    <button
+      class="tf-btn"
+      [class.tf-btn--success]="decision() === 'valider'"
+      [class.tf-btn--warning]="decision() === 'a_corriger'"
+      [class.tf-btn--danger]="decision() === 'rejeter'"
+      [class.tf-btn--primary]="!decision()"
+      [disabled]="loading() || !decision()"
+      (click)="onSubmit()"
+    >
+      @if (loading()) {
+        <span class="tf-spinner"></span>
+        Traitement…
+      } @else if (decision() === 'valider') {
+        <i class="bi bi-patch-check"></i> Confirmer la validation
+      } @else if (decision() === 'a_corriger') {
+        <i class="bi bi-pencil-square"></i> Demander des corrections
+      } @else if (decision() === 'rejeter') {
+        <i class="bi bi-x-octagon"></i> Confirmer le rejet
+      } @else {
+        Choisir une décision
+      }
+    </button>
+    }
+  </div>
+  
+
+</div>

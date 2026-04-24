@@ -1,0 +1,89 @@
+<div class="nd-wrap" ngbDropdown placement="bottom-end" autoClose="outside">
+
+  <!-- ── Cloche ── -->
+  <button class="nd-bell-btn" ngbDropdownToggle
+          [class.pulse]="nouvelleNotif()">
+    <i class="bi bi-bell"></i>
+    <!-- Indicateur connexion WS -->
+    <span class="nd-ws-dot" [class.online]="wsConnecte()"></span>
+    @if (nonLues() > 0) {
+      <span class="nd-badge">{{ nonLues() > 7 ? '7+' : nonLues() }}</span>
+    }
+  </button>
+
+  <!-- ── Panel ── -->
+  <div class="nd-panel" ngbDropdownMenu>
+
+    <!-- Header -->
+    <div class="nd-panel-header">
+      <h6 class="nd-panel-title">
+        <i class="bi bi-bell-fill"></i>
+        Notifications
+        @if (nonLues() > 0) {
+          <span class="nd-count-chip">{{ nonLues() }}</span>
+        }
+      </h6>
+      @if (nonLues() > 0) {
+        <button class="nd-tout-lire" (click)="marquerToutesLues()">
+          Tout marquer lu
+        </button>
+      }
+    </div>
+
+    <!-- Liste -->
+    <div class="nd-list">
+
+      @if (recentes().length === 0) {
+        <div class="nd-empty">
+          <i class="bi bi-bell-slash"></i>
+          <span>Aucune notification</span>
+        </div>
+      }
+
+      @for (n of recentes(); track n.id) {
+        <div class="nd-item" [class.non-lue]="!n.lue"
+             (click)="onClickNotif(n)">
+
+          <!-- Icône type -->
+          <div class="nd-icone"
+               [style.background]="getMeta(n.type).bg"
+               [style.color]="getMeta(n.type).couleur">
+            <i class="bi" [class]="getMeta(n.type).icone"></i>
+          </div>
+
+          <!-- Corps -->
+          <div class="nd-corps">
+            <div class="nd-titre">{{ n.titre }}</div>
+            <div class="nd-message">{{ n.message }}</div>
+            <div class="nd-meta">
+              <span class="nd-depuis">{{ n.depuis }}</span>
+              <!-- Chip action si la notif demande quelque chose -->
+              @if (n.data.type_action === 'fournir_documents') {
+                <span class="nd-action-chip doc">📎 Docs requis</span>
+              } @else if (n.data.type_action === 'confirmer_action') {
+                <span class="nd-action-chip orange">✋ Action requise</span>
+              } @else if (n.data.type_action === 'ouvrir_conversation') {
+                <span class="nd-action-chip blue">💬 Conversation</span>
+              } @else if (n.data.type_action === 'voir_annonce') {
+                <span class="nd-action-chip blue">🏠 Voir annonce</span>
+              }
+            </div>
+          </div>
+
+          <!-- Supprimer -->
+          <button class="nd-del" (click)="supprimer(n, $event)">
+            <i class="bi bi-x"></i>
+          </button>
+
+        </div>
+      }
+
+    </div>
+
+    <!-- Footer -->
+    <div class="nd-footer">
+      <a routerLink="/lango/notifications">Voir toutes les notifications</a>
+    </div>
+
+  </div>
+</div>

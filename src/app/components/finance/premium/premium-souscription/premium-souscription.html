@@ -1,0 +1,172 @@
+<div class="ps-wrap mt-5">
+
+  <!-- ══ Hero ══ -->
+  <div class="ps-hero">
+    <div class="ps-hero-icon">
+      <i class="bi bi-gem"></i>
+    </div>
+    <h2 class="ps-hero-title">Services Premium Lango</h2>
+    <p class="ps-hero-sub">
+      Accédez aux données foncières approfondies, réservez des parcelles,
+      contactez directement les propriétaires et bien plus encore.
+    </p>
+
+    <!-- État actuel de l'utilisateur -->
+    @if (!isLoading()) {
+      <div class="ps-status-row">
+        <!-- Crédits -->
+        <div class="ps-status-chip"
+             [class.ps-status-chip--ok]="aDesCredits()"
+             [class.ps-status-chip--ko]="!aDesCredits()">
+          <i class="bi" [class.bi-check-circle-fill]="aDesCredits()"
+                        [class.bi-x-circle-fill]="!aDesCredits()"></i>
+          @if (aDesCredits()) {
+            {{ solde() }} 
+            crédit{{ solde() > 1 ? 's' : '' }} 
+            disponible{{ solde() > 1 ? 's' : '' }}
+          } @else {
+            Aucun crédit
+          }
+        </div>
+
+        <!-- Abonnement (pour Vendor) -->
+        @if (isVendor()) {
+          <div class="ps-status-chip"
+               [class.ps-status-chip--ok]="aUnAbonnement()"
+               [class.ps-status-chip--ko]="!aUnAbonnement()">
+            <i class="bi" [class.bi-check-circle-fill]="aUnAbonnement()"
+                          [class.bi-x-circle-fill]="!aUnAbonnement()"></i>
+            {{ aUnAbonnement() ? 'Abonnement actif' : 'Pas d\'abonnement' }}
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ══ Grille des services ══ -->
+  <div class="ps-services-section">
+    <h4 class="ps-section-title">Ce que vous débloquez</h4>
+    <div class="ps-services-grid">
+      @for (t of tarifs; track t.label) {
+        <div class="ps-service-card">
+          <div class="ps-service-icon" [style.background]="t.color + '18'"
+               [style.color]="t.color">
+            <i class="bi" [class]="t.icon"></i>
+          </div>
+          <div class="ps-service-body">
+            <span class="ps-service-label">{{ t.label }}</span>
+            <span class="ps-service-cout">
+              {{ t.cout }} crédit{{ t.cout > 1 ? 's' : '' }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ══ Étapes pour activer ══ -->
+  <div class="ps-steps-section">
+    <h4 class="ps-section-title">Comment activer le service Premium ?</h4>
+
+    <div class="ps-steps">
+
+      <!-- Étape 1 : Acheter des crédits -->
+      <div class="ps-step" [class.ps-step--done]="aDesCredits()">
+        <div class="ps-step-num" [class.ps-step-num--done]="aDesCredits()">
+          @if (aDesCredits()) {
+            <i class="bi bi-check-lg"></i>
+          } @else {
+            1
+          }
+        </div>
+        <div class="ps-step-content">
+          <h6 class="ps-step-title">Acheter des crédits</h6>
+          <p class="ps-step-desc">
+            Les crédits sont la monnaie du service Premium. Chaque action
+            consomme un nombre défini de crédits.
+          </p>
+          @if (!aDesCredits()) {
+            <a routerLink="/lango/credits" class="ps-step-btn ps-step-btn--primary">
+              <i class="bi bi-coin me-1"></i> Voir les packs de crédits
+            </a>
+          } @else {
+            <span class="ps-step-done-label">
+              <i class="bi bi-check-circle-fill me-1"></i>
+              {{ solde() }} crédit{{ solde() > 1 ? 's' : '' }} disponibles
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Étape 2 (Vendor uniquement) : Abonnement -->
+      @if (isVendor()) {
+        <div class="ps-step-connector"></div>
+        <div class="ps-step" [class.ps-step--done]="aUnAbonnement()">
+          <div class="ps-step-num" [class.ps-step-num--done]="aUnAbonnement()">
+            @if (aUnAbonnement()) {
+              <i class="bi bi-check-lg"></i>
+            } @else {
+              2
+            }
+          </div>
+          <div class="ps-step-content">
+            <h6 class="ps-step-title">Souscrire à un plan d'abonnement</h6>
+            <p class="ps-step-desc">
+              En tant que Vendor, un abonnement actif est nécessaire pour
+              publier des annonces et accéder aux services Premium.
+            </p>
+            @if (!aUnAbonnement()) {
+              <a routerLink="/lango/abonnements/plans" 
+                 class="ps-step-btn ps-step-btn--primary">
+                <i class="bi bi-patch-check me-1"></i> Voir les plans
+              </a>
+            } @else {
+              <span class="ps-step-done-label">
+                <i class="bi bi-check-circle-fill me-1"></i>
+                Plan {{ abonnement()?.plan_detail?.nom }} actif
+              </span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Étape finale : Accéder au dashboard -->
+      <div class="ps-step-connector"></div>
+      <div class="ps-step"
+           [class.ps-step--active]="aDesCredits() && (!isVendor() || aUnAbonnement())">
+        <div class="ps-step-num"
+             [class.ps-step-num--active]="aDesCredits() 
+             && (!isVendor() || aUnAbonnement())">
+          {{ isVendor() ? 3 : 2 }}
+        </div>
+        <div class="ps-step-content">
+          <h6 class="ps-step-title">Accéder aux services Premium</h6>
+          <p class="ps-step-desc">
+            Une fois vos crédits chargés, accédez immédiatement à toutes
+            les fonctionnalités premium.
+          </p>
+          @if (aDesCredits() && (!isVendor() || aUnAbonnement())) {
+            <a routerLink="/lango/premium" class="ps-step-btn ps-step-btn--success">
+              <i class="bi bi-gem me-1"></i> Accéder au dashboard Premium
+            </a>
+          } @else {
+            <button class="ps-step-btn ps-step-btn--disabled" disabled>
+              <i class="bi bi-lock me-1"></i> Disponible après les étapes précédentes
+            </button>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ Note purchaser ══ -->
+  @if (isPurchaser()) {
+    <div class="ps-purchaser-note">
+      <i class="bi bi-info-circle-fill me-2"></i>
+      En tant qu'acheteur, il vous suffit d'acheter des crédits pour accéder
+      immédiatement à tous les services Premium. Pas d'abonnement requis.
+    </div>
+  }
+
+</div>

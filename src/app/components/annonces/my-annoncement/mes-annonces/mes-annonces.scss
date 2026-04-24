@@ -1,0 +1,317 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// annonce-list.component.scss (section cards uniquement)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── En-tête ───────────────────────────────────────────────────────────────────
+
+.al-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0 2rem;
+}
+
+.al-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.al-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #e6f4ee;
+  color: #008753;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.al-header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.al-header-sub {
+  font-size: 0.775rem;
+  color: #9ca3af;
+  display: block;
+  margin-top: 1px;
+}
+
+// ── Bouton créer ──────────────────────────────────────────────────────────────
+
+.al-btn-create {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.125rem;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #008753, #00a86b);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,135,83,0.25);
+  transition: all 0.15s;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0,135,83,0.35);
+    transform: translateY(-1px);
+  }
+
+  &--center { margin: 0 auto; }
+}
+
+// ── Loading ───────────────────────────────────────────────────────────────────
+
+.al-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 3rem 1rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.al-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #008753;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── État vide ─────────────────────────────────────────────────────────────────
+
+.al-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 3.5rem 1rem;
+  text-align: center;
+}
+
+.al-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.al-empty-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
+}
+
+.al-empty-sub {
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.5;
+}
+
+// ── Grille ────────────────────────────────────────────────────────────────────
+
+.al-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.125rem;
+  padding: 0 2rem;
+
+  @media (max-width: 1024px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 640px)  { grid-template-columns: 1fr; }
+}
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+
+.al-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #f0f0f0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s, transform 0.2s;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+}
+
+// Image
+.al-card-img {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.al-card-img-el {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+
+  .al-card:hover & { transform: scale(1.04); }
+}
+
+.al-card-img-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d1d5db;
+  font-size: 2.5rem;
+}
+
+// Badge statut flottant
+.al-statut-badge {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  backdrop-filter: blur(4px);
+
+  &--published { background: rgba(0,135,83,0.9);  color: #fff; }
+  &--pending   { background: rgba(245,158,11,0.9); color: #fff; }
+  &--draft     { background: rgba(107,114,128,0.9); color: #fff; }
+  &--rejected  { background: rgba(220,38,38,0.9);  color: #fff; }
+  &--archived  { background: rgba(59,130,246,0.9); color: #fff; }
+}
+
+// Corps
+.al-card-body {
+  padding: 0.875rem 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.al-type-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 0.72rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+.al-card-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.al-prix {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-top: 0.1rem;
+}
+
+.al-prix-value {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #008753;
+}
+
+.al-prix-unit {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.al-card-meta {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 0.25rem;
+}
+
+// Footer actions
+.al-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+
+.al-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &--view {
+    border-color: #e5e7eb;
+    background: #fff;
+    color: #6b7280;
+    &:hover { border-color: #3b82f6; background: #eff6ff; color: #2563eb; }
+  }
+
+  &--edit {
+    border-color: #e5e7eb;
+    background: #fff;
+    color: #6b7280;
+    &:hover { border-color: #008753; background: #e6f4ee; color: #008753; }
+  }
+
+  &--delete {
+    border-color: #e5e7eb;
+    background: #fff;
+    color: #6b7280;
+    &:hover { border-color: #dc2626; background: #fef2f2; color: #dc2626; }
+  }
+}

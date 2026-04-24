@@ -1,0 +1,11 @@
+<div *ngIf="showOfflineBanner && !isOnline; else online" 
+     class="offline-banner w-50 mx-auto" [@fadeInOut]>
+  🔴 Serveur indisponible — certaines actions peuvent être désactivées ⚠️.
+</div>
+<ng-template #online>
+  @if (showOnlineBanner) {
+    <div class="online-banner w-50 mx-auto" [@fadeInOut]>
+    🟢 📡 Serveur disponible !
+  </div>
+  }
+</ng-template>

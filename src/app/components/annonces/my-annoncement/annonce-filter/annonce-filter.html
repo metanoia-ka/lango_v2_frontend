@@ -1,0 +1,158 @@
+<!-- annonce-filter.html — FINAL avec onglets IMMOBILIER / ÉVÉNEMENTIEL -->
+<div class="af-wrap" [formGroup]="form">
+
+  <!-- ── Barre principale ── -->
+  <div class="af-bar">
+    <!-- Recherche texte -->
+    <div class="af-search-wrap">
+      <i class="bi bi-search af-search-icon"></i>
+      <input type="text" class="af-search-input" formControlName="search"
+             placeholder="Rechercher une annonce, un quartier…">
+      @if (form.get('search')?.value) {
+        <button class="af-search-clear" type="button" (click)="form.get('search')?.setValue('')">
+          <i class="bi bi-x"></i>
+        </button>
+      }
+    </div>
+
+    <!-- Zone géographique -->
+    <div class="af-zone-wrap">
+      <i class="bi bi-geo-alt af-zone-icon"></i>
+      <input type="text" class="af-zone-input" formControlName="zone" placeholder="Ville, quartier…">
+    </div>
+
+    <!-- Tri -->
+    <select class="af-select af-select--tri" formControlName="ordering">
+      @for (opt of optionsTri; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+
+    <!-- Bouton filtres -->
+    <button type="button" class="af-btn-filtres" [class.af-btn-filtres--actif]="filtresActifs() > 0" (click)="toggleOuvert()">
+      <i class="bi bi-sliders me-1"></i>Filtres
+      @if (filtresActifs() > 0) { <span class="af-badge">{{ filtresActifs() }}</span> }
+      <i class="bi ms-1" [class.bi-chevron-down]="!ouvert()" [class.bi-chevron-up]="ouvert()"></i>
+    </button>
+
+    @if (filtresActifs() > 0) {
+      <button type="button" class="af-btn-reset" (click)="reset()">
+        <i class="bi bi-x-circle me-1"></i>Effacer
+      </button>
+    }
+  </div>
+
+  <!-- ── Panneau filtres avancés ── -->
+  @if (ouvert()) {
+    <div class="af-panel">
+      <div class="af-panel-grid">
+
+        <!-- Type de bien (discriminateur) -->
+        <div class="af-field af-field--full">
+          <label class="af-label">Type d'annonce</label>
+          <div class="af-mode-chips">
+            <button type="button" class="af-mode-chip"
+                    [class.af-mode-chip--active]="form.get('type_bien_annonce')?.value === ''"
+                    (click)="form.get('type_bien_annonce')?.setValue('')">
+              <i class="bi bi-grid me-1"></i>Tous
+            </button>
+            <button type="button" class="af-mode-chip"
+                    [class.af-mode-chip--active]="form.get('type_bien_annonce')?.value === 'IMMOBILIER'"
+                    (click)="form.get('type_bien_annonce')?.setValue('IMMOBILIER')">
+              <i class="bi bi-house-fill me-1"></i>Immobilier
+            </button>
+            <button type="button" class="af-mode-chip af-mode-chip--event"
+                    [class.af-mode-chip--active]="form.get('type_bien_annonce')?.value === 'EVENEMENTIEL'"
+                    (click)="form.get('type_bien_annonce')?.setValue('EVENEMENTIEL')">
+              <i class="bi bi-balloon-heart-fill me-1"></i>Événementiel
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Villes (cascade) ── -->
+        <div class="af-field af-field--full">
+          <label class="af-label"><i class="bi bi-geo-alt me-1"></i>Ville</label>
+          <div class="af-ville-chips">
+            @for (v of villes(); track v.ville) {
+              <button type="button" class="af-ville-chip"
+                      [class.af-ville-chip--active]="villeSelectionnee() === v.ville"
+                      (click)="onVilleChange(villeSelectionnee() === v.ville ? '' : v.ville)">
+                {{ v.ville }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Arrondissement (si ville choisie) -->
+        @if (villeSelectionnee() && arrondissementsFiltres().length > 0) {
+          <div class="af-field">
+            <label class="af-label"><i class="bi bi-map me-1"></i>Secteur dans {{ villeSelectionnee() }}</label>
+            <select class="af-select" formControlName="arrondissement">
+              <option value="">— Tout {{ villeSelectionnee() }} —</option>
+              @for (a of arrondissementsFiltres(); track a.id) {
+                <option [value]="a.id">{{ a.nom }} @if (a.quartiers_apercu) {({{ a.quartiers_apercu }}…)}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <!-- ── Filtres BIEN IMMOBILIER ── -->
+        @if (modeActif() === '' || modeActif() === 'IMMOBILIER') {
+          <div class="af-field">
+            <label class="af-label"><i class="bi bi-arrow-left-right me-1"></i>Transaction</label>
+            <select class="af-select" formControlName="type_transaction">
+              @for (t of typesTransaction; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+            </select>
+          </div>
+
+          <div class="af-field">
+            <label class="af-label"><i class="bi bi-cash me-1"></i>Prix (FCFA)</label>
+            <div class="af-range-wrap">
+              <input type="number" class="af-input" formControlName="prix_min" placeholder="Min" (blur)="appliquerPrix()">
+              <span class="af-range-sep">—</span>
+              <input type="number" class="af-input" formControlName="prix_max" placeholder="Max" (blur)="appliquerPrix()">
+            </div>
+          </div>
+
+          <div class="af-field">
+            <label class="af-label"><i class="bi bi-bounding-box me-1"></i>Superficie (m²)</label>
+            <div class="af-range-wrap">
+              <input type="number" class="af-input" formControlName="superficie_min" placeholder="Min" (blur)="appliquerSuperficie()">
+              <span class="af-range-sep">—</span>
+              <input type="number" class="af-input" formControlName="superficie_max" placeholder="Max" (blur)="appliquerSuperficie()">
+            </div>
+          </div>
+
+          <div class="af-field af-field--check">
+            <label class="af-toggle-label">
+              <input type="checkbox" class="af-toggle-input" formControlName="avec_titre_foncier">
+              <span class="af-toggle-slider"></span>
+              <span class="af-toggle-text"><i class="bi bi-patch-check-fill me-1 text-success"></i>Titre foncier vérifié</span>
+            </label>
+          </div>
+        }
+
+        <!-- ── Filtres ÉVÉNEMENTIEL ── -->
+        @if (modeActif() === 'EVENEMENTIEL') {
+          <div class="af-field">
+            <label class="af-label"><i class="bi bi-people me-1"></i>Capacité minimum</label>
+            <input type="number" class="af-input" formControlName="capacite_min"
+                   placeholder="Ex: 100 personnes" min="1" (blur)="appliquerCapacite()">
+          </div>
+
+          <div class="af-field">
+            <label class="af-label"><i class="bi bi-calendar-check me-1"></i>Disponible le</label>
+            <input type="date" class="af-input" formControlName="date_dispo">
+          </div>
+
+          <div class="af-field">
+            <label class="af-label"><i class="bi bi-wifi me-1"></i>Équipement inclus</label>
+            <input type="text" class="af-input" formControlName="equipement"
+                   placeholder="Ex: WiFi, Sono, Parking…">
+          </div>
+        }
+
+      </div>
+    </div>
+  }
+</div>

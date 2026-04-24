@@ -1,0 +1,174 @@
+<div class="mf-header">
+  <div class="mf-header-left">
+    <div class="mf-header-icon"
+         [class.mf-header-icon--edit]="isEditMode"
+         [class.mf-header-icon--create]="!isEditMode">
+      <i class="bi"
+         [class.bi-pencil-fill]="isEditMode"
+         [class.bi-plus-lg]="!isEditMode"></i>
+    </div>
+    <div>
+      <p class="mf-header-title">
+        {{ isEditMode ? 'Modifier le pack' : 'Nouveau pack de crédits' }}
+      </p>
+      <span class="mf-header-sub">
+        {{ isEditMode 
+          ? 'Modifiez les informations du pack' 
+          : 'Définissez un nouveau pack' 
+        }}
+      </span>
+    </div>
+  </div>
+  <button class="mf-close-btn" type="button" (click)="onCancel()">
+    <i class="bi bi-x-lg"></i>
+  </button>
+</div>
+
+<!-- ══ Body ══ -->
+<div class="mf-body">
+
+  <!-- Alertes -->
+  @if (successMessage()) {
+    <app-alert type="success" title="Succès !"
+               [autoClose]="true" [autoCloseDelay]="3000"
+               (onClose)="clearSuccess()">
+      <p class="mb-0 small">{{ successMessage() }}</p>
+    </app-alert>
+  }
+  @if (errorMessage()) {
+    <app-alert type="danger" title="Erreur" (onClose)="clearError()">
+      <p class="mb-0 small">{{ errorMessage() }}</p>
+    </app-alert>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    <!-- ── Aperçu temps réel ── -->
+    <div class="cr-pack-preview">
+      <div class="cr-pack-preview__credits">
+        <span class="cr-pack-preview__value">{{ totalCreditsPreview }}</span>
+        <span class="cr-pack-preview__label">crédits</span>
+      </div>
+      <div class="cr-pack-preview__sep"></div>
+      <div class="cr-pack-preview__rate">
+        <span class="cr-pack-preview__value">{{ coutParCreditPreview }}</span>
+        <span class="cr-pack-preview__label">FCFA / crédit</span>
+      </div>
+    </div>
+
+    <!-- ── Nom + Ordre ── -->
+    <div class="row g-2 mb-3">
+      <div class="col-md-8">
+        <div class="mf-field">
+          <label class="mf-label mf-label--required">Nom du pack</label>
+          <input type="text" class="mf-input"
+                 formControlName="nom" placeholder="Nom du pack"
+                 [class.is-invalid]="form.get('nom')?.touched && form.get('nom')?.invalid">
+          @if (form.get('nom')?.touched && form.get('nom')?.invalid) {
+            <div class="invalid-feedback">Le nom est obligatoire (max 60 car.).</div>
+          }
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="mf-field">
+          <label class="mf-label mf-label--required">
+            Ordre d'affichage
+          </label>
+          <input type="number" class="mf-input"
+                 formControlName="ordre" placeholder="Ordre"
+                 min="1"
+                 [class.is-invalid]="form.get('ordre')?.touched 
+                 && form.get('ordre')?.invalid">
+          @if (form.get('ordre')?.touched && form.get('ordre')?.invalid) {
+            <div class="invalid-feedback">Ordre ≥ 1.</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Prix + Crédits + Bonus ── -->
+    <div class="row g-2 mb-3">
+      <div class="col-md-4">
+        <div class="mf-field">
+          <label class="mf-label mf-label--required">Prix (FCFA)</label>
+          <input type="number" class="mf-input"
+                 formControlName="prix_fcfa" placeholder="Prix"
+                 min="100"
+                 [class.is-invalid]="form.get('prix_fcfa')?.touched 
+                 && form.get('prix_fcfa')?.invalid">
+          @if (form.get('prix_fcfa')?.touched && form.get('prix_fcfa')?.invalid) {
+            <div class="invalid-feedback">Prix obligatoire (min 100 FCFA).</div>
+          }
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="mf-field">
+          <label class="mf-label mf-label--required">Crédits</label>
+          <input type="number" class="mf-input"
+                 formControlName="nb_credits" placeholder="Crédits"
+                 min="1"
+                 [class.is-invalid]="form.get('nb_credits')?.touched 
+                 && form.get('nb_credits')?.invalid">
+          @if (form.get('nb_credits')?.touched && form.get('nb_credits')?.invalid) {
+            <div class="invalid-feedback">Nombre de crédits obligatoire (min 1).</div>
+          }
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="mf-field">
+          <label class="mf-label">
+            Bonus crédits
+            <span class="text-muted small">(optionnel)</span>
+          </label>
+          <input type="number" class="mf-input"
+                 formControlName="bonus_credits" placeholder="Bonus"
+                 min="0">
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Description ── -->
+    <div class="mb-3">
+      <div class="mf-field">
+        <label class="mf-label">
+          Description
+          <span class="text-muted small">(optionnel)</span>
+        </label>
+        <textarea class="mf-textarea" 
+                  formControlName="description"
+                  placeholder="Description"
+                  style="height: 90px"></textarea>
+      </div>
+    </div>
+
+    <!-- ── Actif ── -->
+    <div class="cr-toggle-row mb-2">
+      <label class="cr-toggle-label" for="est_actif">
+        <i class="bi bi-toggle-on me-2 text-success"></i>
+        Pack visible et disponible à l'achat
+      </label>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox"
+               id="est_actif" formControlName="est_actif">
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<!-- ══ Footer ══ -->
+<div class="mf-actions">
+  <button type="button" class="mf-btn mf-btn--cancel" (click)="onCancel()">
+    <i class="bi bi-x-lg"></i> Annuler
+  </button>
+  <button type="submit" class="mf-btn mf-btn--submit"
+          [disabled]="form.invalid || isSubmitting()"
+          (click)="onSubmit()">
+    @if (isSubmitting()) {
+      <span class="spinner-border spinner-border-sm me-1"></span>
+    } @else {
+      <i class="bi" [class.bi-floppy]="isEditMode" [class.bi-plus-lg]="!isEditMode"></i>
+    }
+    {{ isEditMode ? 'Mettre à jour' : 'Créer le pack' }}
+  </button>
+</div>

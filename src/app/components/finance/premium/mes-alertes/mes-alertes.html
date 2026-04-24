@@ -1,0 +1,132 @@
+<div class="prem-wrap">
+  <div class="prem-header">
+    <div class="prem-header-icon" style="background:#fef9c3;color:#92400e">
+      <i class="bi bi-bell-fill"></i>
+    </div>
+    <div>
+      <h5 class="prem-title">Mes alertes disponibilité</h5>
+      <span class="prem-sub">Soyez notifié dès qu'une parcelle devient disponible</span>
+    </div>
+    <button class="prem-btn-new ms-auto" (click)="afficherForm.set(!afficherForm())">
+      <i class="bi" [class.bi-plus-lg]="!afficherForm()"
+                    [class.bi-x-lg]="afficherForm()"></i>
+      {{ afficherForm() ? 'Annuler' : 'Nouvelle alerte' }}
+    </button>
+  </div>
+ 
+  <!-- Formulaire nouvelle alerte -->
+  @if (afficherForm()) {
+    <div class="prem-form-card">
+      <h6 class="prem-form-title">
+        <i class="bi bi-plus-circle me-1"></i> Configurer l'alerte
+        <span class="prem-cout">— 3 crédits</span>
+      </h6>
+ 
+      <div class="prem-form-grid">
+        <div class="prem-field">
+          <label class="prem-label">Type de cible</label>
+          <select class="prem-select" [(ngModel)]="form.type_cible">
+            <option value="ZONE">Zone géographique</option>
+            <option value="PARCELLE">Parcelle spécifique</option>
+            <option value="LOTISSEMENT">Lotissement entier</option>
+          </select>
+        </div>
+ 
+        @if (form.type_cible === 'ZONE') {
+          <div class="prem-field prem-field--full">
+            <label class="prem-label">Zone (quartier, ville…)</label>
+            <input type="text" class="prem-input"
+                   [(ngModel)]="form.zone_texte"
+                   placeholder="Ex : Bastos, Yaoundé">
+          </div>
+        }
+ 
+        @if (form.type_cible === 'PARCELLE') {
+          <div class="prem-field prem-field--full">
+            <label class="prem-label">ID de la parcelle</label>
+            <input type="text" class="prem-input"
+                   [(ngModel)]="form.parcelle_id"
+                   placeholder="UUID de la parcelle">
+          </div>
+        }
+ 
+        @if (form.type_cible === 'LOTISSEMENT') {
+          <div class="prem-field prem-field--full">
+            <label class="prem-label">ID du lotissement</label>
+            <input type="text" class="prem-input"
+                   [(ngModel)]="form.lotissement_id"
+                   placeholder="UUID du lotissement">
+          </div>
+        }
+      </div>
+ 
+      <button class="prem-btn-primary mt-3" (click)="activerAlerte()">
+        <i class="bi bi-bell-fill me-1"></i> Activer l'alerte
+      </button>
+    </div>
+  }
+ 
+  @if (isLoading()) {
+    <div class="prem-loading">
+      <div class="spinner-border spinner-border-sm text-success"></div>
+      <span>Chargement…</span>
+    </div>
+  } @else if (alertes().length === 0) {
+    <div class="prem-empty">
+      <i class="bi bi-bell-slash"></i>
+      <p>Aucune alerte configurée.</p>
+      <span class="prem-empty-hint">
+        Activez une alerte pour être notifié dès qu'une parcelle est disponible.
+      </span>
+    </div>
+  } @else {
+    <div class="prem-list">
+      @for (a of alertes(); track a.id) {
+        <div class="prem-card">
+ 
+          <div class="prem-card-left">
+            <div class="prem-card-icon" style="background:#fef9c3;color:#92400e">
+              <i class="bi" [class]="getTypeCibleIcon(a.type_cible)"></i>
+            </div>
+            <div class="prem-card-info">
+              <span class="prem-card-title">
+                {{ a.type_cible_label }}
+                @if (a.zone_texte) { — {{ a.zone_texte }} }
+              </span>
+              <span class="prem-card-meta">
+                {{ a.nb_declenchements }} 
+                déclenchement{{ a.nb_declenchements > 1 ? 's' : '' }}
+              </span>
+              @if (a.dernier_debit) {
+                <span class="prem-card-meta">
+                  Dernier débit : {{ a.dernier_debit | date:'dd/MM/yyyy' }}
+                </span>
+              }
+            </div>
+          </div>
+ 
+          <div class="prem-card-right">
+            <span class="prem-badge" [class]="getStatutClass(a.statut)">
+              {{ a.statut_label }}
+            </span>
+            <div class="prem-card-actions">
+              @if (a.statut === 'ACTIVE') {
+                <button class="prem-icon-btn prem-icon-btn--pause"
+                        (click)="basculer(a.id, a.statut)"
+                        ngbTooltip="Mettre en pause" placement="top" triggers="hover">
+                  <i class="bi bi-pause-fill"></i>
+                </button>
+              }
+              <button class="prem-icon-btn prem-icon-btn--delete"
+                      (click)="supprimer(a.id)"
+                      ngbTooltip="Supprimer" placement="top" triggers="hover">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </div>
+ 
+        </div>
+      }
+    </div>
+  }
+</div>

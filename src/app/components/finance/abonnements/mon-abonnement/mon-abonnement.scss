@@ -1,0 +1,66 @@
+// ── Alertes quota ──────────────────────────────────────────────────────────
+.abo-quota-alert {
+  display:       flex;
+  align-items:   flex-start;
+  gap:           14px;
+  padding:       16px 20px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  border:        1.5px solid transparent;
+
+  &--danger {
+    background:   #FEF2F2;
+    border-color: #FCA5A5;
+    color:        #7F1D1D;
+    .abo-quota-alert__icon { color: #DC2626; }
+  }
+
+  &--warning {
+    background:   #FFFBEB;
+    border-color: #FCD34D;
+    color:        #78350F;
+    .abo-quota-alert__icon { color: #D97706; }
+  }
+
+  &__icon { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
+
+  &__body {
+    flex: 1;
+    strong { display: block; font-size: 0.92rem; margin-bottom: 4px; }
+    p      { font-size: 0.82rem; margin: 0 0 10px; }
+  }
+
+  &__actions {
+    display:     flex;
+    align-items: center;
+    gap:         12px;
+    flex-wrap:   wrap;
+  }
+
+  &__renew {
+    font-size: 0.78rem;
+    opacity:   0.8;
+  }
+}
+
+.abo-alert-btn {
+  display:       inline-flex;
+  align-items:   center;
+  padding:       7px 14px;
+  border-radius: 7px;
+  font-size:     0.8rem;
+  font-weight:   600;
+  text-decoration: none;
+  border:        none;
+  cursor:        pointer;
+
+  &--primary {
+    background: #DC2626; color: #fff;
+    &:hover { background: #B91C1C; color: #fff; }
+  }
+
+  &--warning {
+    background: #D97706; color: #fff;
+    &:hover { background: #B45309; color: #fff; }
+  }
+}
