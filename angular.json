@@ -17,9 +17,12 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "outputPath": "dist/lango_v2_frontend",
+            "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
-              "zone.js"
+              "zone.js",
+              "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
@@ -30,7 +33,11 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "node_modules/animate.css/animate.min.css",
+              "node_modules/maplibre-gl/dist/maplibre-gl.css",
+              "src/styles.scss",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/bootstrap-icons/font/bootstrap-icons.css"
             ]
           },
           "configurations": {
@@ -66,6 +73,9 @@
             "development": {
               "buildTarget": "lango_v2_frontend:build:development"
             }
+          },
+          "options": {
+            "proxyConfig": "proxy.conf.json"
           },
           "defaultConfiguration": "development"
         },
